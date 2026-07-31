@@ -1,0 +1,871 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jtgtools.dev/xframe/schemas/model.schema.json",
+  "title": "xframe model artifact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "unitSystem",
+    "nodes",
+    "materials",
+    "frameSections",
+    "trussSections",
+    "frames",
+    "trusses",
+    "springs",
+    "constraints",
+    "loadCases",
+    "combinations"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1"
+    },
+    "unitSystem": {
+      "$ref": "#/$defs/unitSystem"
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/node"
+      }
+    },
+    "materials": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/material"
+      }
+    },
+    "frameSections": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/frameSection"
+      }
+    },
+    "trussSections": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/trussSection"
+      }
+    },
+    "frames": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/frame"
+      }
+    },
+    "trusses": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/truss"
+      }
+    },
+    "springs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/spring"
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/constraint"
+      }
+    },
+    "loadCases": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/loadCase"
+      }
+    },
+    "combinations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/combination"
+      }
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^(?![=+@-])[^\\s\\u0000-\\u001F\\u007F]+$",
+      "description": "NFC-normalized structural identifier. Runtime validation additionally rejects every Unicode whitespace, control, and format code point."
+    },
+    "finiteNumber": {
+      "type": "number"
+    },
+    "positiveNumber": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "vector3": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "vector6": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "items": false,
+      "minItems": 6,
+      "maxItems": 6
+    },
+    "dof": {
+      "enum": [
+        "tx",
+        "ty",
+        "tz",
+        "rx",
+        "ry",
+        "rz"
+      ]
+    },
+    "unitSystem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "length",
+        "force",
+        "moment",
+        "modulus",
+        "distributedForce",
+        "density",
+        "rotation"
+      ],
+      "properties": {
+        "version": {
+          "const": "1"
+        },
+        "length": {
+          "type": "string",
+          "minLength": 1
+        },
+        "force": {
+          "type": "string",
+          "minLength": 1
+        },
+        "moment": {
+          "type": "string",
+          "minLength": 1
+        },
+        "modulus": {
+          "type": "string",
+          "minLength": 1
+        },
+        "distributedForce": {
+          "type": "string",
+          "minLength": 1
+        },
+        "density": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rotation": {
+          "const": "rad"
+        }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "coordinates"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "coordinates": {
+          "$ref": "#/$defs/vector3"
+        }
+      }
+    },
+    "material": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "elasticModulus"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "elasticModulus": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "shearModulus": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "poissonRatio": {
+          "type": "number",
+          "exclusiveMinimum": -1,
+          "exclusiveMaximum": 0.5
+        },
+        "density": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "shearModulus"
+          ]
+        },
+        {
+          "required": [
+            "poissonRatio"
+          ]
+        }
+      ]
+    },
+    "frameSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "area",
+        "torsionalConstant",
+        "momentOfInertiaY",
+        "momentOfInertiaZ"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "area": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "torsionalConstant": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "momentOfInertiaY": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "momentOfInertiaZ": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "shearAreaY": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "shearAreaZ": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "trussSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "area"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "area": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "theory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "euler-bernoulli",
+            "timoshenko"
+          ]
+        }
+      }
+    },
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/dof"
+          }
+        },
+        "end": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/dof"
+          }
+        }
+      }
+    },
+    "rigidOffsets": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "$ref": "#/$defs/vector3"
+        },
+        "end": {
+          "$ref": "#/$defs/vector3"
+        }
+      }
+    },
+    "frame": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "startNodeId",
+        "endNodeId",
+        "materialId",
+        "sectionId",
+        "theory"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "startNodeId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "endNodeId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "materialId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "sectionId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "theory": {
+          "$ref": "#/$defs/theory"
+        },
+        "orientation": {
+          "$ref": "#/$defs/vector3"
+        },
+        "releases": {
+          "$ref": "#/$defs/release"
+        },
+        "rigidOffsets": {
+          "$ref": "#/$defs/rigidOffsets"
+        }
+      }
+    },
+    "truss": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "startNodeId",
+        "endNodeId",
+        "materialId",
+        "sectionId"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "startNodeId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "endNodeId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "materialId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "sectionId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "rigidOffsets": {
+          "$ref": "#/$defs/rigidOffsets"
+        }
+      }
+    },
+    "spring": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "startNodeId",
+        "stiffness"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "startNodeId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "endNodeId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "stiffness": {
+          "$ref": "#/$defs/vector6"
+        }
+      }
+    },
+    "constraintTerm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nodeId",
+        "dof",
+        "coefficient"
+      ],
+      "properties": {
+        "nodeId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "dof": {
+          "$ref": "#/$defs/dof"
+        },
+        "coefficient": {
+          "type": "number"
+        }
+      }
+    },
+    "constraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "terms",
+        "rightHandSide"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "terms": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/constraintTerm"
+          }
+        },
+        "rightHandSide": {
+          "type": "number"
+        }
+      }
+    },
+    "pointLocation": {
+      "oneOf": [
+        {
+          "required": [
+            "distanceFromElasticStart"
+          ],
+          "not": {
+            "required": [
+              "positionRatio"
+            ]
+          }
+        },
+        {
+          "required": [
+            "positionRatio"
+          ],
+          "not": {
+            "required": [
+              "distanceFromElasticStart"
+            ]
+          }
+        }
+      ]
+    },
+    "distributedSpan": {
+      "oneOf": [
+        {
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "startDistanceFromElasticStart"
+                ]
+              },
+              {
+                "required": [
+                  "endDistanceFromElasticStart"
+                ]
+              },
+              {
+                "required": [
+                  "startPositionRatio"
+                ]
+              },
+              {
+                "required": [
+                  "endPositionRatio"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "required": [
+            "startDistanceFromElasticStart",
+            "endDistanceFromElasticStart"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "startPositionRatio"
+                ]
+              },
+              {
+                "required": [
+                  "endPositionRatio"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "required": [
+            "startPositionRatio",
+            "endPositionRatio"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "startDistanceFromElasticStart"
+                ]
+              },
+              {
+                "required": [
+                  "endDistanceFromElasticStart"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "nodalLoad": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "nodeId"
+      ],
+      "properties": {
+        "kind": {
+          "const": "nodal"
+        },
+        "nodeId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "force": {
+          "$ref": "#/$defs/vector3"
+        },
+        "moment": {
+          "$ref": "#/$defs/vector3"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "force"
+          ]
+        },
+        {
+          "required": [
+            "moment"
+          ]
+        }
+      ]
+    },
+    "memberPointForce": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "frameId",
+        "coordinateSystem",
+        "force"
+      ],
+      "properties": {
+        "kind": {
+          "const": "member-point-force"
+        },
+        "frameId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "coordinateSystem": {
+          "enum": [
+            "local",
+            "global"
+          ]
+        },
+        "distanceFromElasticStart": {
+          "type": "number",
+          "minimum": 0
+        },
+        "positionRatio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "force": {
+          "$ref": "#/$defs/vector3"
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/$defs/pointLocation"
+        }
+      ]
+    },
+    "memberPointMoment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "frameId",
+        "coordinateSystem",
+        "moment"
+      ],
+      "properties": {
+        "kind": {
+          "const": "member-point-moment"
+        },
+        "frameId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "coordinateSystem": {
+          "enum": [
+            "local",
+            "global"
+          ]
+        },
+        "distanceFromElasticStart": {
+          "type": "number",
+          "minimum": 0
+        },
+        "positionRatio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "moment": {
+          "$ref": "#/$defs/vector3"
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/$defs/pointLocation"
+        }
+      ]
+    },
+    "memberDistributed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "frameId",
+        "coordinateSystem",
+        "startIntensity",
+        "endIntensity"
+      ],
+      "properties": {
+        "kind": {
+          "const": "member-distributed"
+        },
+        "frameId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "coordinateSystem": {
+          "enum": [
+            "local",
+            "global"
+          ]
+        },
+        "startDistanceFromElasticStart": {
+          "type": "number",
+          "minimum": 0
+        },
+        "endDistanceFromElasticStart": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "startPositionRatio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "endPositionRatio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "startIntensity": {
+          "$ref": "#/$defs/vector3"
+        },
+        "endIntensity": {
+          "$ref": "#/$defs/vector3"
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/$defs/distributedSpan"
+        }
+      ]
+    },
+    "selfWeight": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "gravity"
+      ],
+      "properties": {
+        "kind": {
+          "const": "self-weight"
+        },
+        "gravity": {
+          "$ref": "#/$defs/vector3"
+        },
+        "frameIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "uniqueItems": true
+        },
+        "trussIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "load": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/nodalLoad"
+        },
+        {
+          "$ref": "#/$defs/memberPointForce"
+        },
+        {
+          "$ref": "#/$defs/memberPointMoment"
+        },
+        {
+          "$ref": "#/$defs/memberDistributed"
+        },
+        {
+          "$ref": "#/$defs/selfWeight"
+        }
+      ]
+    },
+    "loadCase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "loads"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "loads": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/load"
+          }
+        }
+      }
+    },
+    "combinationFactor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resultId",
+        "factor"
+      ],
+      "properties": {
+        "resultId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "factor": {
+          "type": "number"
+        }
+      }
+    },
+    "combination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "factors"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "factors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/combinationFactor"
+          }
+        }
+      }
+    }
+  }
+}

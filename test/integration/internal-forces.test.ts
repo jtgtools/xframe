@@ -1,0 +1,61 @@
+import { expect, it } from "vitest";
+import { prepareAnalysis } from "../../src/analysis/prepare-analysis.js";
+import { createModelBuilder } from "../../src/model/model-builder.js";
+
+it("FR-RES-002: recovers frame end forces and balanced internal-force stations for a uniform load", () => {
+  const length = 4;
+  const load = -10;
+  const builder = createModelBuilder()
+    .setUnitSystem({ version: "1", length: "m", force: "N", moment: "N*m", modulus: "Pa", distributedForce: "N/m", density: "kg/m^3", rotation: "rad" })
+    .addNode({ id: "a", coordinates: [0, 0, 0] })
+    .addNode({ id: "b", coordinates: [length, 0, 0] })
+    .addMaterial({ id: "m", elasticModulus: 200e9, poissonRatio: 0.3 })
+    .addFrameSection({ id: "s", area: 0.02, torsionalConstant: 1e-5, momentOfInertiaY: 2e-5, momentOfInertiaZ: 2e-5 })
+    .addFrame({ id: "f", startNodeId: "a", endNodeId: "b", materialId: "m", sectionId: "s", theory: { kind: "euler-bernoulli" }, orientation: [0, 1, 0] });
+  for (const dof of ["tx", "ty", "tz", "rx", "ry", "rz"] as const) builder.addConstraint({ id: `a:${dof}`, terms: [{ nodeId: "a", dof, coefficient: 1 }], rightHandSide: 0 });
+  const model = builder.addLoadCase({ id: "w", loads: [{ kind: "member-distributed", frameId: "f", coordinateSystem: "local", startIntensity: [0, load, 0], endIntensity: [0, load, 0] }] }).finalize();
+  const result = prepareAnalysis(model).solveCase("w");
+  const frame = result.frames[0]!;
+  expect(frame.localEndForces[1]).toBeCloseTo(-load * length, 9);
+  expect(frame.localEndForces[5]).toBeCloseTo((-load * length ** 2) / 2, 9);
+  expect(frame.internalForces[0]!.shearY).toBeCloseTo(frame.localEndForces[1], 9);
+  expect(frame.internalForces.at(-1)!.shearY).toBeCloseTo(0, 9);
+  expect(frame.internalForces.at(-1)!.bendingZ).toBeCloseTo(0, 9);
+});
+
+
+it("FR-RES-002/FR-RES-005: returns independent global and local frame end displacements", () => {
+  const builder = createModelBuilder()
+    .setUnitSystem({ version: "1", length: "m", force: "N", moment: "N*m", modulus: "Pa", distributedForce: "N/m", density: "kg/m^3", rotation: "rad" })
+    .addNode({ id: "a", coordinates: [0, 0, 0] })
+    .addNode({ id: "b", coordinates: [2, 0, 0] })
+    .addMaterial({ id: "m", elasticModulus: 200e9, poissonRatio: 0.3 })
+    .addFrameSection({ id: "s", area: 0.02, torsionalConstant: 1e-5, momentOfInertiaY: 2e-5, momentOfInertiaZ: 2e-5 })
+    .addFrame({ id: "f", startNodeId: "a", endNodeId: "b", materialId: "m", sectionId: "s", theory: { kind: "euler-bernoulli" }, orientation: [0, 1, 0] });
+  for (const dof of ["tx", "ty", "tz", "rx", "ry", "rz"] as const) builder.addConstraint({ id: `a:${dof}`, terms: [{ nodeId: "a", dof, coefficient: 1 }], rightHandSide: 0 });
+  const result = prepareAnalysis(builder.addLoadCase({ id: "P", loads: [{ kind: "nodal", nodeId: "b", force: [0, 1, 0] }] }).finalize()).solveCase("P");
+  const frame = result.frames[0]!;
+  expect(frame.globalEndDisplacements).toHaveLength(12);
+  expect(frame.localEndDisplacements).toHaveLength(12);
+  expect(frame.globalEndDisplacements).not.toBe(frame.localEndDisplacements);
+  expect(frame.globalEndForces).not.toBe(frame.localEndForces);
+  expect(Object.isFrozen(frame.globalEndDisplacements)).toBe(true);
+  expect(Object.isFrozen(frame.localEndDisplacements)).toBe(true);
+});
+
+it("FR-RES-004: inserts left and right stations at point-force discontinuities", () => {
+  const length = 4;
+  const builder = createModelBuilder()
+    .setUnitSystem({ version: "1", length: "m", force: "N", moment: "N*m", modulus: "Pa", distributedForce: "N/m", density: "kg/m^3", rotation: "rad" })
+    .addNode({ id: "a", coordinates: [0, 0, 0] })
+    .addNode({ id: "b", coordinates: [length, 0, 0] })
+    .addMaterial({ id: "m", elasticModulus: 200e9, poissonRatio: 0.3 })
+    .addFrameSection({ id: "s", area: 0.02, torsionalConstant: 1e-5, momentOfInertiaY: 2e-5, momentOfInertiaZ: 2e-5 })
+    .addFrame({ id: "f", startNodeId: "a", endNodeId: "b", materialId: "m", sectionId: "s", theory: { kind: "euler-bernoulli" }, orientation: [0, 1, 0] });
+  for (const dof of ["tx", "ty", "tz", "rx", "ry", "rz"] as const) builder.addConstraint({ id: `a:${dof}`, terms: [{ nodeId: "a", dof, coefficient: 1 }], rightHandSide: 0 });
+  const result = prepareAnalysis(builder.addLoadCase({ id: "P", loads: [{ kind: "member-point-force", frameId: "f", coordinateSystem: "local", force: [0, -10, 0], distanceFromElasticStart: 2 }] }).finalize()).solveCase("P");
+  const stations = result.frames[0]!.internalForces.filter(({ x }) => x === 2);
+  expect(stations.map(({ side }) => side)).toEqual(["left", "right"]);
+  expect(stations[1]!.shearY - stations[0]!.shearY).toBeCloseTo(-10, 12);
+  expect(stations[1]!.bendingZ).toBeCloseTo(stations[0]!.bendingZ, 12);
+});

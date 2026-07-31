@@ -1,0 +1,30 @@
+
+"P E A K   F R A M E   E L E M E N T   I N T E R N A L   F O R C E S    (local)",
+ "Elmnt",  ".", "Nx", "Vy", "Vz",  "Txx", "Myy", "Mzz", 
+     1, "max",   1000.000,   -2000.000,   1500.000, 100000.000, 4300000.000, -300000.000
+     1, "min",   1000.000,   -2000.000,   1500.000, 100000.000, -200000.000, -6300000.000
+
+"P E A K   F R A M E   E L E M E N T   I N T E R N A L   F O R C E S    (local)",
+ "Elmnt",  ".", "Nx", "Vy", "Vz",  "Txx", "Myy", "Mzz", 
+     1, "max",    600.000,       0.000,    900.000,      0.000, 1350000.054,      0.000
+     1, "min",      0.000,   -1500.000,      0.000,      0.000,      0.000, -2250000.000
+
+"P E A K   F R A M E   E L E M E N T   I N T E R N A L   F O R C E S    (local)",
+ "Elmnt",  ".", "Nx", "Vy", "Vz",  "Txx", "Myy", "Mzz", 
+     1, "max",    140.500,       5.833,      2.000,      0.000,    766.666,   8455.561
+     1, "min",     -2.000,    -633.333,    -91.333,      0.000, -108177.781, -954000.039
+
+"P E A K   F R A M E   E L E M E N T   I N T E R N A L   F O R C E S    (local)",
+ "Elmnt",  ".", "Nx", "Vy", "Vz",  "Txx", "Myy", "Mzz", 
+     1, "max",    100.000,       0.000,    300.000,      0.000, 360000.000,      0.000
+     1, "min",      0.000,    -200.000,      0.000,      0.000,     -0.000, -240000.000
+
+"P E A K   F R A M E   E L E M E N T   I N T E R N A L   F O R C E S    (local)",
+ "Elmnt",  ".", "Nx", "Vy", "Vz",  "Txx", "Myy", "Mzz", 
+     1, "max",      0.000,       0.000,      0.000,      0.000,      0.000,     -0.000
+     1, "min",      0.000,    -277.136,      0.000,      0.000,      0.000, -415703.889
+
+"P E A K   F R A M E   E L E M E N T   I N T E R N A L   F O R C E S    (local)",
+ "Elmnt",  ".", "Nx", "Vy", "Vz",  "Txx", "Myy", "Mzz", 
+     1, "max",      0.000,      -0.000,     -0.000,      0.000,      0.000,      0.000
+     1, "min",      0.000,      -0.000,     -0.000,      0.000,     -0.000,      0.000

@@ -1,0 +1,749 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jtgtools.dev/xframe/schemas/result.schema.json",
+  "title": "xframe structural result artifact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "result"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1"
+    },
+    "result": {
+      "$ref": "#/$defs/structuralResult"
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^(?![=+@-])[^\\s\\u0000-\\u001F\\u007F]+$",
+      "description": "NFC-normalized structural identifier. Runtime validation additionally rejects every Unicode whitespace, control, and format code point."
+    },
+    "finiteNumber": {
+      "type": "number"
+    },
+    "vector3": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "vector6": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "items": false,
+      "minItems": 6,
+      "maxItems": 6
+    },
+    "vector12": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "items": false,
+      "minItems": 12,
+      "maxItems": 12
+    },
+    "dof": {
+      "enum": [
+        "tx",
+        "ty",
+        "tz",
+        "rx",
+        "ry",
+        "rz"
+      ]
+    },
+    "unitSystem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "length",
+        "force",
+        "moment",
+        "modulus",
+        "distributedForce",
+        "density",
+        "rotation"
+      ],
+      "properties": {
+        "version": {
+          "const": "1"
+        },
+        "length": {
+          "type": "string",
+          "minLength": 1
+        },
+        "force": {
+          "type": "string",
+          "minLength": 1
+        },
+        "moment": {
+          "type": "string",
+          "minLength": 1
+        },
+        "modulus": {
+          "type": "string",
+          "minLength": 1
+        },
+        "distributedForce": {
+          "type": "string",
+          "minLength": 1
+        },
+        "density": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rotation": {
+          "const": "rad"
+        }
+      }
+    },
+    "dofValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dof",
+        "value"
+      ],
+      "properties": {
+        "dof": {
+          "$ref": "#/$defs/dof"
+        },
+        "value": {
+          "type": "number"
+        }
+      }
+    },
+    "nodeResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "coordinates",
+        "displacements",
+        "reactions"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "coordinates": {
+          "$ref": "#/$defs/vector3"
+        },
+        "displacements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/dofValue"
+          }
+        },
+        "reactions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/dofValue"
+          }
+        }
+      }
+    },
+    "frameStation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "side",
+        "axial",
+        "shearY",
+        "shearZ",
+        "torsion",
+        "bendingY",
+        "bendingZ"
+      ],
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "side": {
+          "enum": [
+            "single",
+            "left",
+            "right"
+          ]
+        },
+        "axial": {
+          "type": "number"
+        },
+        "shearY": {
+          "type": "number"
+        },
+        "shearZ": {
+          "type": "number"
+        },
+        "torsion": {
+          "type": "number"
+        },
+        "bendingY": {
+          "type": "number"
+        },
+        "bendingZ": {
+          "type": "number"
+        }
+      }
+    },
+    "frameResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "localEndDisplacements",
+        "globalEndDisplacements",
+        "localEndForces",
+        "globalEndForces",
+        "internalForces"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "localEndDisplacements": {
+          "$ref": "#/$defs/vector12"
+        },
+        "globalEndDisplacements": {
+          "$ref": "#/$defs/vector12"
+        },
+        "localEndForces": {
+          "$ref": "#/$defs/vector12"
+        },
+        "globalEndForces": {
+          "$ref": "#/$defs/vector12"
+        },
+        "internalForces": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/frameStation"
+          }
+        }
+      }
+    },
+    "trussResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "extension",
+        "strain",
+        "axialForce",
+        "globalEndForces"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "extension": {
+          "type": "number"
+        },
+        "strain": {
+          "type": "number"
+        },
+        "axialForce": {
+          "type": "number"
+        },
+        "globalEndForces": {
+          "$ref": "#/$defs/vector6"
+        }
+      }
+    },
+    "springResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "grounded",
+            "globalEndForces"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "#/$defs/identifier"
+            },
+            "grounded": {
+              "const": true
+            },
+            "globalEndForces": {
+              "$ref": "#/$defs/vector6"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "grounded",
+            "globalEndForces"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "#/$defs/identifier"
+            },
+            "grounded": {
+              "const": false
+            },
+            "globalEndForces": {
+              "$ref": "#/$defs/vector12"
+            }
+          }
+        }
+      ]
+    },
+    "conventions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "coordinateSystem",
+        "rotations",
+        "frameEndForces",
+        "internalForces"
+      ],
+      "properties": {
+        "coordinateSystem": {
+          "const": "global-node-local-member"
+        },
+        "rotations": {
+          "const": "radians-right-hand-rule"
+        },
+        "frameEndForces": {
+          "const": "element-on-node"
+        },
+        "internalForces": {
+          "const": "positive-local-cut-face"
+        }
+      }
+    },
+    "diagnostics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "maximumAbsoluteResidual",
+        "normalizedResidual",
+        "forceEquilibrium",
+        "momentEquilibrium",
+        "normalizedForceEquilibrium",
+        "normalizedMomentEquilibrium",
+        "strainEnergy",
+        "externalWork",
+        "relativeEnergyError",
+        "minimumNormalizedPivot",
+        "minimumPivotEquation",
+        "equationCount",
+        "fullEquationCount",
+        "fullNonzeros",
+        "reducedNonzeros",
+        "skylineStorage",
+        "skylineMaximumRowWidth",
+        "skylineBandwidth",
+        "assemblyReused",
+        "factorizationReused"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "pass",
+            "warn",
+            "fail",
+            "not-applicable"
+          ]
+        },
+        "forceEquilibrium": {
+          "$ref": "#/$defs/vector3"
+        },
+        "momentEquilibrium": {
+          "$ref": "#/$defs/vector3"
+        },
+        "minimumPivotEquation": {
+          "type": "integer",
+          "minimum": -1
+        },
+        "assemblyReused": {
+          "type": "boolean"
+        },
+        "factorizationReused": {
+          "type": "boolean"
+        },
+        "maximumAbsoluteResidual": {
+          "type": "number"
+        },
+        "normalizedResidual": {
+          "type": "number"
+        },
+        "normalizedForceEquilibrium": {
+          "type": "number"
+        },
+        "normalizedMomentEquilibrium": {
+          "type": "number"
+        },
+        "strainEnergy": {
+          "type": "number"
+        },
+        "externalWork": {
+          "type": "number"
+        },
+        "relativeEnergyError": {
+          "type": "number"
+        },
+        "minimumNormalizedPivot": {
+          "type": "number"
+        },
+        "equationCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fullEquationCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fullNonzeros": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reducedNonzeros": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "skylineStorage": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "skylineMaximumRowWidth": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "skylineBandwidth": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "loadIndex",
+        "kind",
+        "targetIds"
+      ],
+      "properties": {
+        "loadIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "kind": {
+          "enum": [
+            "nodal",
+            "member-point-force",
+            "member-point-moment",
+            "member-distributed",
+            "self-weight"
+          ]
+        },
+        "targetIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          }
+        }
+      }
+    },
+    "resultFactor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resultId",
+        "factor"
+      ],
+      "properties": {
+        "resultId": {
+          "$ref": "#/$defs/identifier"
+        },
+        "factor": {
+          "type": "number"
+        }
+      }
+    },
+    "caseResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "modelFingerprint",
+        "unitSystem",
+        "conventions",
+        "fullDisplacements",
+        "reducedDisplacements",
+        "fullLoad",
+        "fullResidual",
+        "nodes",
+        "frames",
+        "trusses",
+        "springs",
+        "diagnostics",
+        "provenance"
+      ],
+      "properties": {
+        "kind": {
+          "const": "case"
+        },
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "modelFingerprint": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unitSystem": {
+          "$ref": "#/$defs/unitSystem"
+        },
+        "conventions": {
+          "$ref": "#/$defs/conventions"
+        },
+        "fullDisplacements": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "reducedDisplacements": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "fullLoad": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "fullResidual": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nodeResult"
+          }
+        },
+        "frames": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/frameResult"
+          }
+        },
+        "trusses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/trussResult"
+          }
+        },
+        "springs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/springResult"
+          }
+        },
+        "diagnostics": {
+          "$ref": "#/$defs/diagnostics"
+        },
+        "provenance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/provenance"
+          }
+        }
+      }
+    },
+    "combinationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "modelFingerprint",
+        "unitSystem",
+        "conventions",
+        "fullDisplacements",
+        "reducedDisplacements",
+        "fullLoad",
+        "fullResidual",
+        "nodes",
+        "frames",
+        "trusses",
+        "springs",
+        "diagnostics",
+        "factors"
+      ],
+      "properties": {
+        "kind": {
+          "const": "combination"
+        },
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "modelFingerprint": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unitSystem": {
+          "$ref": "#/$defs/unitSystem"
+        },
+        "conventions": {
+          "$ref": "#/$defs/conventions"
+        },
+        "fullDisplacements": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "reducedDisplacements": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "fullLoad": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "fullResidual": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nodeResult"
+          }
+        },
+        "frames": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/frameResult"
+          }
+        },
+        "trusses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/trussResult"
+          }
+        },
+        "springs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/springResult"
+          }
+        },
+        "diagnostics": {
+          "$ref": "#/$defs/diagnostics"
+        },
+        "factors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/resultFactor"
+          }
+        }
+      }
+    },
+    "structuralResult": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/caseResult"
+        },
+        {
+          "$ref": "#/$defs/combinationResult"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,2 @@
+# oxfmt honors .prettierignore. Keep the preserved skill byte-identical.
+.agents/

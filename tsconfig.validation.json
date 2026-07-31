@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": false,
+    "outDir": ".validation-dist",
+    "rootDir": "."
+  },
+  "include": ["src/**/*.ts", "verification/validation/**/*.ts"],
+  "exclude": ["verification/validation/requested-suite.test.ts"]
+}

@@ -1,0 +1,61 @@
+{
+  "name": "@jtgtools/xframe",
+  "version": "0.0.1",
+  "description": "Linear-static 3D structural analysis: frames, trusses, and springs.",
+  "keywords": [
+    "finite-element",
+    "frames",
+    "linear-static",
+    "solver",
+    "springs",
+    "structural-analysis",
+    "trusses"
+  ],
+  "license": "MIT",
+  "author": "",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "schemas",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
+    "lint": "oxlint .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "verify": "vitest run verification",
+    "verify:frame3dd": "node scripts/verify-frame3dd.mjs",
+    "validation:report": "node scripts/write-validation-report.mjs",
+    "check:runtime": "node scripts/check-runtime-imports.mjs",
+    "benchmark": "npm run build && npm run check:dense && node scripts/run-benchmarks.mjs",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run coverage && npm run verify && npm run build && npm run check:runtime && npm run check:dense",
+    "check:dense": "node scripts/check-no-dense-global.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "@vitest/coverage-v8": "4.1.10",
+    "oxfmt": "0.61.0",
+    "oxlint": "1.76.0",
+    "typescript": "5.9.3",
+    "vitest": "4.1.10"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "npm@11.12.1"
+}

@@ -1,0 +1,77 @@
+________________________________________________________________________________
+Frame3DD version: 20140514+               http://frame3dd.sf.net/
+GPL Copyright (C) 1992-2015, Henri P. Gavin 
+Frame3DD is distributed in the hope that it will be useful but with no warranty.
+For details see the GNU Public Licence: http://www.fsf.org/copyleft/gpl.html
+________________________________________________________________________________
+
+xframe triangular truss with support settlement (N m) 
+Fri Jul 31 09:09:17 2026
+________________________________________________________________________________
+In 2D problems the Y-axis is vertical.  In 3D problems the Z-axis is vertical.
+________________________________________________________________________________
+    3 NODES              3 FIXED NODES        3 FRAME ELEMENTS   1 LOAD CASES   
+________________________________________________________________________________
+N O D E   D A T A                                           R E S T R A I N T S
+  Node       X              Y              Z         radius  Fx Fy Fz Mx My Mz
+    1       0.000000       0.000000       0.000000    0.000   1  1  1  1  1  1
+    2       4.000000       0.000000       0.000000    0.000   1  1  1  1  1  1
+    3       2.000000       3.000000       0.000000    0.000   0  0  1  1  1  0
+F R A M E   E L E M E N T   D A T A					(local)
+  Elmnt  J1    J2     Ax   Asy   Asz    Jxx     Iyy     Izz       E       G roll  density
+    1     1     2    0.0   0.0   0.0    0.0     0.0     0.0 199999995904.0 80000000000.0   0 1.00e-30
+    2     1     3    0.0   0.0   0.0    0.0     0.0     0.0 199999995904.0 80000000000.0   0 1.00e-30
+    3     2     3    0.0   0.0   0.0    0.0     0.0     0.0 199999995904.0 80000000000.0   0 1.00e-30
+  Neglect shear deformations.
+  Neglect geometric stiffness.
+
+L O A D   C A S E   1   O F   1  ... 
+
+   Gravity X =  0.0    Gravity Y =  0.0    Gravity Z =  0.0 
+   1 concentrated loads
+   0 uniformly distributed loads
+   0 trapezoidally distributed loads
+   0 concentrated point loads
+   0 temperature loads
+   1 prescribed displacements
+ N O D A L   L O A D S  +  E Q U I V A L E N T   N O D A L   L O A D S  (global)
+  Node        Fx          Fy          Fz          Mxx         Myy         Mzz
+     3    1000.000   -5000.000       0.000       0.000       0.000       0.000
+
+ P R E S C R I B E D   D I S P L A C E M E N T S                        (global)
+  Node        Dx          Dy          Dz          Dxx         Dyy         Dzz
+     2       0.001       0.000       0.000       0.000       0.000       0.000
+
+E L A S T I C   S T I F F N E S S   A N A L Y S I S   via  L D L'  decomposition
+
+
+L O A D   C A S E   1   O F   1  ... 
+
+N O D E   D I S P L A C E M E N T S  					(global)
+  Node    X-dsp       Y-dsp       Z-dsp       X-rot       Y-rot       Z-rot
+     2    0.001000    0.0         0.0         0.0         0.0         0.0     
+     3    0.000503   -0.000340    0.0         0.0         0.0        -0.000001
+F R A M E   E L E M E N T   E N D   F O R C E S				(local)
+  Elmnt  Node       Nx          Vy         Vz        Txx        Myy        Mzz
+     1      1 -499999.992t      0.0        0.0        0.0        0.0        0.0  
+     1      2 499999.992t      0.0        0.0        0.0        0.0        0.0  
+     2      1   2103.238c      0.0        0.0        0.0        0.0        0.0  
+     2      3  -2103.238c      0.0        0.0        0.0        0.0        0.0  
+     3      2   3906.014c      0.0        0.0        0.0        0.0        0.0  
+     3      3  -3906.014c      0.0        0.0        0.0        0.0        0.0  
+R E A C T I O N S							(global)
+  Node        Fx          Fy          Fz         Mxx         Myy         Mzz
+     1 -498833.325    1750.000       0.000       0.000       0.000       0.000
+     2  497833.325    3250.000       0.000       0.000       0.000      -0.000
+     3       0.0         0.0         0.000       0.000       0.000       0.0  
+R M S    R E L A T I V E    E Q U I L I B R I U M    E R R O R: 0.000e+00
+
+P E A K   F R A M E   E L E M E N T   I N T E R N A L   F O R C E S(local)", 
+  Elmnt   .         Nx          Vy         Vz        Txx        Myy        Mzz
+     1   max  499999.992      -0.000      0.000      0.000      0.000     -0.000
+     1   min  499999.992      -0.000      0.000      0.000      0.000     -0.000
+     2   max   -2103.238      -0.000      0.000      0.000      0.000      0.000
+     2   min   -2103.238      -0.000      0.000      0.000      0.000     -0.000
+     3   max   -3906.014       0.000     -0.000      0.000      0.000      0.000
+     3   min   -3906.014       0.000     -0.000      0.000      0.000     -0.000
+

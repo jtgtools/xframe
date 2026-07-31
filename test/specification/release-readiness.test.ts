@@ -1,0 +1,56 @@
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { join } from "node:path";
+import { expect, it } from "vitest";
+
+function filesUnder(root: string): string[] {
+  const output: string[] = [];
+  for (const name of readdirSync(root)) {
+    const path = join(root, name);
+    if (statSync(path).isDirectory()) output.push(...filesUnder(path));
+    else output.push(path);
+  }
+  return output;
+}
+
+it("AUD-REL-001: the repository has a factual final audit and no focused or skipped tests", () => {
+  expect(existsSync("docs/verification/final-audit.md")).toBe(true);
+  const audit = readFileSync("docs/verification/final-audit.md", "utf8");
+  for (const phrase of [
+    "clean installation",
+    "Frame3DD",
+    "element stiffness",
+    "global stiffness",
+    "303",
+    "4,096",
+    "not formally certified",
+  ]) expect(audit).toContain(phrase);
+
+  const tests = [...filesUnder("test"), ...filesUnder("verification")]
+    .filter((path) => path.endsWith(".ts"))
+    .map((path) => readFileSync(path, "utf8"))
+    .join("\n");
+  expect(tests).not.toMatch(/\.(?:skip|only|todo)\s*\(/);
+});
+
+it("AUD-REL-002: production runtime remains browser-safe and free of release placeholders", () => {
+  const source = filesUnder("src")
+    .filter((path) => path.endsWith(".ts"))
+    .map((path) => readFileSync(path, "utf8"))
+    .join("\n");
+  expect(source).not.toMatch(/from\s+["']node:/);
+  expect(source).not.toMatch(/\b(?:TODO|FIXME|STUB)\b/);
+});
+
+it("AUD-REL-003: npm is the only declared package manager", () => {
+  const packageJson = readFileSync("package.json", "utf8");
+  expect(packageJson).toContain('"packageManager": "npm@');
+  expect(packageJson).not.toMatch(/\b(?:bun|pnpm|yarn)\b/i);
+});
+
+it("AUD-REL-004: Frame3DD references have a non-destructive executable verification command", () => {
+  const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as {
+    readonly scripts?: Readonly<Record<string, string>>;
+  };
+  expect(packageJson.scripts?.["verify:frame3dd"]).toBe("node scripts/verify-frame3dd.mjs");
+  expect(existsSync("scripts/verify-frame3dd.mjs")).toBe(true);
+});
