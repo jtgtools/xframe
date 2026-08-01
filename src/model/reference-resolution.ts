@@ -78,11 +78,11 @@ function required<T>(
 
 function sortIssues(issues: ReferenceIssue[]): readonly ReferenceIssue[] {
   return Object.freeze(
-    [...issues].toSorted(
+    issues.toSorted(
       (left, right) =>
-        compareIdentifiers(left.entityType as EntityId, right.entityType as EntityId) ||
-        compareIdentifiers(left.id as EntityId, right.id as EntityId) ||
-        compareIdentifiers(left.path as EntityId, right.path as EntityId),
+        compareIdentifiers(left.entityType, right.entityType) ||
+        compareIdentifiers(left.id, right.id) ||
+        compareIdentifiers(left.path, right.path),
     ),
   );
 }

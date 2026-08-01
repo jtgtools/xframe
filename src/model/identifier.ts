@@ -8,7 +8,7 @@ const CONTROL_OR_FORMAT = /[\p{Cc}\p{Cf}]/u;
 
 export type EntityId = string & { readonly [entityIdBrand]: true };
 
-export function compareIdentifiers(left: EntityId, right: EntityId): number {
+export function compareIdentifiers(left: string, right: string): number {
   return left < right ? -1 : left > right ? 1 : 0;
 }
 

@@ -1,5 +1,5 @@
 import { XFrameError } from "../errors/xframe-error.js";
-import { compareIdentifiers, type EntityId } from "../model/identifier.js";
+import { compareIdentifiers } from "../model/identifier.js";
 import type { CanonicalAffineConstraint } from "./affine-equation.js";
 
 const TOLERANCE = 256 * Number.EPSILON;
@@ -24,8 +24,8 @@ function removeScaledZeros(row: Map<number, number>, scale: number): void {
 export function analyzeConstraintRank(
   equationsInput: readonly CanonicalAffineConstraint[],
 ): ConstraintRankAnalysis {
-  const equations = [...equationsInput].toSorted((left, right) =>
-    compareIdentifiers(left.sourceId as EntityId, right.sourceId as EntityId),
+  const equations = equationsInput.toSorted((left, right) =>
+    compareIdentifiers(left.sourceId, right.sourceId),
   );
   const rows: {
     sourceId: string;

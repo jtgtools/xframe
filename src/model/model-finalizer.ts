@@ -20,9 +20,7 @@ import { computeModelFingerprint } from "./model-fingerprint.js";
 import { resolveModelReferences } from "./reference-resolution.js";
 
 function sortedById<T extends { readonly id: EntityId }>(values: readonly T[]): readonly T[] {
-  return Object.freeze(
-    [...values].toSorted((left, right) => compareIdentifiers(left.id, right.id)),
-  );
+  return Object.freeze(values.toSorted((left, right) => compareIdentifiers(left.id, right.id)));
 }
 
 function canonicalSnapshot(snapshot: ModelSnapshot): ModelSnapshot {

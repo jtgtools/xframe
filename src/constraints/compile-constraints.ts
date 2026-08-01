@@ -1,6 +1,6 @@
 import { XFrameError } from "../errors/xframe-error.js";
 import { finiteNumber } from "../geometry/finite.js";
-import { compareIdentifiers, type EntityId } from "../model/identifier.js";
+import { compareIdentifiers } from "../model/identifier.js";
 import type { ConstraintRecord } from "../model/domain-records.js";
 import { createDofKey } from "../model/dof-key.js";
 import type { PhysicalDofTable } from "../model/dof-topology.js";
@@ -101,9 +101,7 @@ export function compileConstraints(
   const canonical = equationsInput
     .map(canonicalizeConstraint)
     .filter(({ terms }) => terms.length > 0)
-    .toSorted((left, right) =>
-      compareIdentifiers(left.sourceId as EntityId, right.sourceId as EntityId),
-    );
+    .toSorted((left, right) => compareIdentifiers(left.sourceId, right.sourceId));
   for (const equation of canonical) {
     for (const { dof } of equation.terms) {
       if (dof >= fullDofCount) {
