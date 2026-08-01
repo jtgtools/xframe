@@ -7,11 +7,7 @@ export type { XFrameErrorContext } from "./errors/error-context.js";
 export { XFrameError } from "./errors/xframe-error.js";
 
 export { createModelBuilder } from "./model/model-builder.js";
-export type {
-  ModelBatchInput,
-  ModelBuilder,
-  RigidDiaphragmInput,
-} from "./model/model-builder.js";
+export type { ModelBatchInput, ModelBuilder, RigidDiaphragmInput } from "./model/model-builder.js";
 export type {
   CombinationInput,
   ConstraintInput,
@@ -43,18 +39,16 @@ export type { UnitSystem } from "./units/unit-system.js";
 export { prepareAnalysis } from "./analysis/prepare-analysis.js";
 export type { PrepareAnalysisOptions } from "./analysis/prepare-analysis.js";
 export { PreparedAnalysis } from "./analysis/prepared-analysis.js";
-export type {
-  AnalysisStatistics,
-  CaseSolution,
-} from "./analysis/prepared-analysis.js";
+export type { AnalysisStatistics, CaseSolution } from "./analysis/prepared-analysis.js";
 
 export { combineResults } from "./results/combine-results.js";
 export type { ResultFactor } from "./results/combine-results.js";
-export { streamEnvelope } from "./results/stream-envelope.js";
+export { createEnvelopeCompatibility, streamEnvelope } from "./results/stream-envelope.js";
 export type {
   CaseDiagnostics,
   CaseResult,
   CombinationResult,
+  EnvelopeCompatibility,
   EnvelopeComponent,
   EnvelopeExtreme,
   EnvelopeGoverning,
@@ -62,6 +56,7 @@ export type {
   FrameInternalForceStation,
   FrameResult,
   NodeResult,
+  ResultConventions,
   SpringElementResult,
   StreamingEnvelope,
   StructuralResult,

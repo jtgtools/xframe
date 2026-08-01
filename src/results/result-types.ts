@@ -119,9 +119,17 @@ export interface EnvelopeComponent {
   readonly location?: number;
 }
 
+export interface EnvelopeCompatibility {
+  readonly modelFingerprint: string;
+  readonly unitSystem: UnitSystem;
+  readonly conventions: ResultConventions;
+  readonly components: readonly EnvelopeComponent[];
+}
+
 export interface EnvelopeInputRecord {
   readonly resultId: string;
   readonly resultKind: StructuralResult["kind"];
+  readonly compatibility: EnvelopeCompatibility;
   readonly values: ArrayLike<number>;
 }
 
