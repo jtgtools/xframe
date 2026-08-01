@@ -18,7 +18,7 @@ it("FR-RES-002: recovers frame end forces and balanced internal-force stations f
   const frame = result.frames[0]!;
   expect(frame.localEndForces[1]).toBeCloseTo(-load * length, 9);
   expect(frame.localEndForces[5]).toBeCloseTo((-load * length ** 2) / 2, 9);
-  expect(frame.internalForces[0]!.shearY).toBeCloseTo(frame.localEndForces[1], 9);
+  expect(frame.internalForces[0]!.shearY).toBeCloseTo(frame.localEndForces[1]!, 9);
   expect(frame.internalForces.at(-1)!.shearY).toBeCloseTo(0, 9);
   expect(frame.internalForces.at(-1)!.bendingZ).toBeCloseTo(0, 9);
 });
