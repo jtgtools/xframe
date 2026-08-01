@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { expect, it } from "vitest";
@@ -23,7 +24,8 @@ it("AUD-REL-001: the repository has a factual final audit and no focused or skip
     "303",
     "4,096",
     "not formally certified",
-  ]) expect(audit).toContain(phrase);
+  ])
+    expect(audit).toContain(phrase);
 
   const tests = [...filesUnder("test"), ...filesUnder("verification")]
     .filter((path) => path.endsWith(".ts"))
@@ -45,6 +47,15 @@ it("AUD-REL-003: npm is the only declared package manager", () => {
   const packageJson = readFileSync("package.json", "utf8");
   expect(packageJson).toContain('"packageManager": "npm@');
   expect(packageJson).not.toMatch(/\b(?:bun|pnpm|yarn)\b/i);
+});
+
+it("NFR-PKG-001: runtime boundary check resolves the repository root portably", () => {
+  expect(() =>
+    execFileSync(process.execPath, ["scripts/check-runtime-imports.mjs"], {
+      cwd: process.cwd(),
+      stdio: "pipe",
+    }),
+  ).not.toThrow();
 });
 
 it("AUD-REL-004: Frame3DD references have a non-destructive executable verification command", () => {

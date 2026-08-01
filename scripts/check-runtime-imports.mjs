@@ -1,8 +1,8 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative, resolve } from "node:path";
-import { pathToFileURL } from "node:url";
+import { join, relative } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
-const root = resolve(new URL("..", import.meta.url).pathname);
+const root = fileURLToPath(new URL("..", import.meta.url));
 const sourceRoot = join(root, "src");
 const forbidden = [
   { pattern: /(?:from\s+|import\s*\()\s*["']node:/u, reason: "Node built-in import" },
@@ -31,5 +31,7 @@ if (violations.length > 0) {
 } else {
   const builtEntry = join(root, "dist", "index.js");
   if (existsSync(builtEntry)) await import(pathToFileURL(builtEntry).href);
-  console.log(`Browser runtime boundary clean (${files(sourceRoot).filter((entry) => entry.endsWith(".ts")).length} source modules).`);
+  console.log(
+    `Browser runtime boundary clean (${files(sourceRoot).filter((entry) => entry.endsWith(".ts")).length} source modules).`,
+  );
 }
