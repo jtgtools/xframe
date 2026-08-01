@@ -169,4 +169,33 @@ describe("constraint canonicalization", () => {
     expect(thrown).toBeInstanceOf(XFrameError);
     expect((thrown as XFrameError).code).toBe("CONSTRAINT_CONTRADICTION");
   });
+
+  it("FR-SAFE-003: retains subnormal cancellation across exact power-of-two scaling", () => {
+    const m = 3e-310;
+    const p = m - Number.MIN_VALUE;
+    const residual = m - p;
+    const scale = 2 ** 996;
+    const base = {
+      sourceId: "subnormal-cancellation",
+      terms: [
+        { dof: 0, coefficient: m },
+        { dof: 0, coefficient: -p },
+      ],
+      rightHandSide: residual,
+    };
+    const scaled = {
+      sourceId: "subnormal-cancellation",
+      terms: [
+        { dof: 0, coefficient: m * scale },
+        { dof: 0, coefficient: -p * scale },
+      ],
+      rightHandSide: residual * scale,
+    };
+
+    const baseCanonical = canonicalizeConstraint(base);
+    const scaledCanonical = canonicalizeConstraint(scaled);
+    expect(baseCanonical.terms.map(({ dof }) => dof)).toEqual([0]);
+    expect(scaledCanonical.terms.map(({ dof }) => dof)).toEqual([0]);
+    expect(scaledCanonical).toEqual(baseCanonical);
+  });
 });

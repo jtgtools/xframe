@@ -83,6 +83,37 @@ describe("constraint compiler", () => {
       { sourceId: "support", multiplier: 10, dofForces: [{ dof: 0, force: 10 }] },
     ]);
   });
+
+  it("FR-SAFE-003: preserves compiled topology and recovery across exact subnormal scaling", () => {
+    const m = 3e-310;
+    const p = m - Number.MIN_VALUE;
+    const residual = m - p;
+    const scale = 2 ** 996;
+    const base = {
+      sourceId: "subnormal-cancellation",
+      terms: [
+        { dof: 0, coefficient: m },
+        { dof: 0, coefficient: -p },
+      ],
+      rightHandSide: residual,
+    };
+    const scaled = {
+      sourceId: "subnormal-cancellation",
+      terms: [
+        { dof: 0, coefficient: m * scale },
+        { dof: 0, coefficient: -p * scale },
+      ],
+      rightHandSide: residual * scale,
+    };
+
+    const baseCompiled = compileConstraints(3, [base]);
+    const scaledCompiled = compileConstraints(3, [scaled]);
+    expect(scaledCompiled.pivotDofs).toEqual(baseCompiled.pivotDofs);
+    expect(scaledCompiled.freeDofs).toEqual(baseCompiled.freeDofs);
+    expect(Array.from(scaledCompiled.recover([7, 11]))).toEqual(
+      Array.from(baseCompiled.recover([7, 11])),
+    );
+  });
 });
 
 it("FR-CON-001/FR-MOD-005: expands a rigid diaphragm atomically into affine equations", () => {

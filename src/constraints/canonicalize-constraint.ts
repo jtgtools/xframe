@@ -45,9 +45,10 @@ export function canonicalizeConstraint(input: AffineConstraintEquation): Canonic
     `constraint[${input.sourceId}].rightHandSide`,
   );
   const terms: Array<[number, number]> = [];
-  const pruningThreshold = ZERO_TOLERANCE * maximumOriginalCoefficient;
   for (const [dof, coefficient] of sums) {
-    if (Math.abs(coefficient) > pruningThreshold) terms.push([dof, coefficient]);
+    if (Math.abs(coefficient) / maximumOriginalCoefficient > ZERO_TOLERANCE) {
+      terms.push([dof, coefficient]);
+    }
   }
   terms.sort(([left], [right]) => left - right);
   if (terms.length === 0) {
