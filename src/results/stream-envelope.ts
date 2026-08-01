@@ -368,21 +368,79 @@ function frozen(
   );
 }
 
+type CapturedResultMetadata = {
+  readonly resultId: EntityId;
+  readonly modelFingerprint: unknown;
+  readonly unitSystem: unknown;
+  readonly conventions: unknown;
+};
+
+function captureResultMetadata(result: unknown): CapturedResultMetadata {
+  const invalidReason = "missing compatibility metadata";
+  if (!isRecord(result)) incompatible([], invalidReason);
+
+  let hasRequiredFields: boolean;
+  try {
+    hasRequiredFields =
+      Object.hasOwn(result, "id") &&
+      Object.hasOwn(result, "modelFingerprint") &&
+      Object.hasOwn(result, "unitSystem") &&
+      Object.hasOwn(result, "conventions");
+  } catch {
+    incompatible([], invalidReason);
+  }
+  if (!hasRequiredFields) incompatible([], invalidReason);
+
+  let idValue: unknown;
+  try {
+    idValue = result["id"];
+  } catch {
+    incompatible([], invalidReason);
+  }
+  let resultId: EntityId;
+  try {
+    resultId = parseIdentifier(idValue, "envelope.resultId");
+  } catch {
+    incompatible([], invalidReason);
+  }
+
+  let modelFingerprint: unknown;
+  let unitSystem: unknown;
+  let conventions: unknown;
+  try {
+    modelFingerprint = result["modelFingerprint"];
+  } catch {
+    incompatible([resultId], invalidReason);
+  }
+  try {
+    unitSystem = result["unitSystem"];
+  } catch {
+    incompatible([resultId], invalidReason);
+  }
+  try {
+    conventions = result["conventions"];
+  } catch {
+    incompatible([resultId], invalidReason);
+  }
+  return { resultId, modelFingerprint, unitSystem, conventions };
+}
+
 export function createEnvelopeCompatibility(
   result: StructuralResult,
   components: readonly EnvelopeComponent[],
 ): EnvelopeCompatibility {
-  const resultIds = [result.id];
-  const modelFingerprint = result.modelFingerprint;
-  if (typeof modelFingerprint !== "string" || !MODEL_FINGERPRINT.test(modelFingerprint)) {
+  const captured = captureResultMetadata(result);
+  const resultIds = [captured.resultId];
+  if (
+    typeof captured.modelFingerprint !== "string" ||
+    !MODEL_FINGERPRINT.test(captured.modelFingerprint)
+  ) {
     incompatible(resultIds, "missing compatibility metadata");
   }
-  const unitSystem = result.unitSystem;
-  const conventions = result.conventions;
   return Object.freeze({
-    modelFingerprint,
-    unitSystem: normalizeUnitSystem(unitSystem, resultIds),
-    conventions: normalizeConventions(conventions, resultIds),
+    modelFingerprint: captured.modelFingerprint,
+    unitSystem: normalizeUnitSystem(captured.unitSystem, resultIds),
+    conventions: normalizeConventions(captured.conventions, resultIds),
     components: normalizeComponents(components, resultIds),
   });
 }

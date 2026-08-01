@@ -212,17 +212,26 @@ it("FR-SAFE-014: rejects component layouts that differ between records", () => {
   expect(error.context).toMatchObject({ reason: "component layouts differ" });
 });
 
-it("FR-SAFE-014: rejects a first component layout that differs from supplied components", () => {
+it("FR-SAFE-014: rejects a first component layout that differs from supplied components before reading values", () => {
   const otherComponents: readonly EnvelopeComponent[] = [
     { component: "tx", entityId: "n1" },
     { component: "bendingY", entityId: "f1", location: 2 },
   ];
-  const record = { ...baseRecord, compatibility: compatible({ components: otherComponents }) };
+  let valuesRead = false;
+  const record = {
+    ...baseRecord,
+    compatibility: compatible({ components: otherComponents }),
+    get values(): readonly number[] {
+      valuesRead = true;
+      return [1, 2];
+    },
+  };
   const error = incompatibleError(() => streamEnvelope([record], components));
   expect(error.code).toBe("RESULT_INCOMPATIBLE");
   expect(error.context).toMatchObject({
     reason: "component layout differs from supplied components",
   });
+  expect(valuesRead).toBe(false);
 });
 
 it("FR-SAFE-014: creates an immutable compatibility copy with normalized nested metadata", () => {
@@ -233,6 +242,7 @@ it("FR-SAFE-014: creates an immutable compatibility copy with normalized nested 
     { component: "bendingZ", entityId: "f1", location: -0 },
   ];
   const result = {
+    id: "RESULT",
     modelFingerprint: compatibility.modelFingerprint,
     unitSystem: sourceUnits,
     conventions: sourceConventions,
@@ -293,6 +303,144 @@ it("FR-SAFE-014: enforces exact result convention literals in first metadata", (
   expect(error.context).toMatchObject({ reason: "missing compatibility metadata" });
 });
 
+it.each([null, undefined, 1, "result", []] as unknown[])(
+  "FR-SAFE-014: rejects non-object envelope compatibility results as structured errors",
+  (result) => {
+    const error = incompatibleError(() =>
+      createEnvelopeCompatibility(result as unknown as StructuralResult, components),
+    );
+    expect(error.code).toBe("RESULT_INCOMPATIBLE");
+    expect(error.context).toMatchObject({
+      resultIds: [],
+      reason: "missing compatibility metadata",
+    });
+  },
+);
+
+it("FR-SAFE-014: rejects a metadata-only result without an own identifier", () => {
+  const result = {
+    modelFingerprint: compatibility.modelFingerprint,
+    unitSystem,
+    conventions,
+  } as unknown as StructuralResult;
+  const error = incompatibleError(() => createEnvelopeCompatibility(result, components));
+  expect(error.code).toBe("RESULT_INCOMPATIBLE");
+  expect(error.context).toMatchObject({
+    resultIds: [],
+    reason: "missing compatibility metadata",
+  });
+});
+
+it("FR-SAFE-014: rejects a revoked result proxy as a structured error", () => {
+  const { proxy, revoke } = Proxy.revocable(
+    {
+      id: "RESULT",
+      modelFingerprint: compatibility.modelFingerprint,
+      unitSystem,
+      conventions,
+    },
+    {},
+  );
+  revoke();
+  const error = incompatibleError(() =>
+    createEnvelopeCompatibility(proxy as unknown as StructuralResult, components),
+  );
+  expect(error.code).toBe("RESULT_INCOMPATIBLE");
+  expect(error.context).toMatchObject({
+    resultIds: [],
+    reason: "missing compatibility metadata",
+  });
+});
+
+it.each(["id", "modelFingerprint", "unitSystem", "conventions"] as const)(
+  "FR-SAFE-014: maps a throwing result %s getter to missing compatibility metadata",
+  (throwingField) => {
+    const result = Object.defineProperties(
+      {},
+      {
+        id: {
+          enumerable: true,
+          get(): string {
+            if (throwingField === "id") throw new Error("result id trap");
+            return "RESULT";
+          },
+        },
+        modelFingerprint: {
+          enumerable: true,
+          get(): string {
+            if (throwingField === "modelFingerprint") throw new Error("fingerprint trap");
+            return compatibility.modelFingerprint;
+          },
+        },
+        unitSystem: {
+          enumerable: true,
+          get(): UnitSystem {
+            if (throwingField === "unitSystem") throw new Error("unit trap");
+            return unitSystem;
+          },
+        },
+        conventions: {
+          enumerable: true,
+          get(): ResultConventions {
+            if (throwingField === "conventions") throw new Error("conventions trap");
+            return conventions;
+          },
+        },
+      },
+    ) as unknown as StructuralResult;
+    const error = incompatibleError(() => createEnvelopeCompatibility(result, components));
+    expect(error.code).toBe("RESULT_INCOMPATIBLE");
+    expect(error.context).toMatchObject({
+      reason: "missing compatibility metadata",
+    });
+  },
+);
+
+it("FR-SAFE-014: captures each own result metadata getter once", () => {
+  const reads = {
+    id: 0,
+    modelFingerprint: 0,
+    unitSystem: 0,
+    conventions: 0,
+  };
+  const result = Object.defineProperties(
+    {},
+    {
+      id: {
+        enumerable: true,
+        get(): string {
+          reads.id += 1;
+          return "RESULT";
+        },
+      },
+      modelFingerprint: {
+        enumerable: true,
+        get(): string {
+          reads.modelFingerprint += 1;
+          return compatibility.modelFingerprint;
+        },
+      },
+      unitSystem: {
+        enumerable: true,
+        get(): UnitSystem {
+          reads.unitSystem += 1;
+          return unitSystem;
+        },
+      },
+      conventions: {
+        enumerable: true,
+        get(): ResultConventions {
+          reads.conventions += 1;
+          return conventions;
+        },
+      },
+    },
+  ) as unknown as StructuralResult;
+  const created = createEnvelopeCompatibility(result, components);
+  expect(created.modelFingerprint).toBe(compatibility.modelFingerprint);
+  expect(reads).toEqual({ id: 1, modelFingerprint: 1, unitSystem: 1, conventions: 1 });
+});
+
 it("FR-SAFE-014: captures stateful unit getters once while creating owned metadata", () => {
   let lengthReads = 0;
   const sourceUnits = {
@@ -303,6 +451,7 @@ it("FR-SAFE-014: captures stateful unit getters once while creating owned metada
     },
   };
   const result = {
+    id: "RESULT",
     modelFingerprint: compatibility.modelFingerprint,
     unitSystem: sourceUnits,
     conventions,
@@ -322,6 +471,7 @@ it("FR-SAFE-014: copies component arrays by index without calling overridden map
   }
   const sourceComponents = new OverriddenComponentArray(...components);
   const result = {
+    id: "RESULT",
     modelFingerprint: compatibility.modelFingerprint,
     unitSystem,
     conventions,
@@ -393,6 +543,7 @@ it.each([
   "FR-SAFE-014: rejects %s fingerprints from create compatibility",
   (_label, fingerprint) => {
     const result = {
+      id: "RESULT",
       modelFingerprint: fingerprint,
       unitSystem,
       conventions,
