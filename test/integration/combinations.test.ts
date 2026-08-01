@@ -38,7 +38,7 @@ function collisionModel(area: number) {
   });
 }
 
-it("FR-SAFE-001/FR-RES-006: combines compatible results without aliasing and preserves factor provenance", () => {
+it("FR-RES-006: combines compatible results without aliasing and preserves factor provenance", () => {
   const model = createModelBuilder()
     .setUnitSystem({
       version: "1",
@@ -70,7 +70,7 @@ it("FR-SAFE-001/FR-RES-006: combines compatible results without aliasing and pre
   expect(result.fullDisplacements).not.toBe(a!.fullDisplacements);
 });
 
-it("FR-SAFE-001/FR-RES-006: rejects duplicate source IDs and a combination ID collision", () => {
+it("FR-RES-006: rejects duplicate source IDs and a combination ID collision", () => {
   const model = createModelBuilder()
     .setUnitSystem({
       version: "1",
@@ -131,7 +131,7 @@ it("FR-SAFE-001: rejects results from the reproduced full-model fingerprint coll
   expect((error as XFrameError).context).toMatchObject({ reason: "model fingerprints differ" });
 });
 
-it("FR-SAFE-001/FR-RES-006/NFR-COR-002: rejects entity-order fabrication and non-finite combined output", () => {
+it("FR-RES-006/NFR-COR-002: rejects entity-order fabrication and non-finite combined output", () => {
   const model = createModelBuilder()
     .setUnitSystem({
       version: "1",
