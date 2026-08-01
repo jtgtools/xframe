@@ -52,6 +52,26 @@ describe("constraint compiler", () => {
     }
   });
 
+  it.each([1e-300, -1e-300, 1e-120, -1e-120, 1, -1, 1e120, -1e120, 1e300, -1e300])(
+    "FR-SAFE-003: preserves compiled pivot/free topology and kinematics at scale %s",
+    (scale) => {
+      const compiled = compileConstraints(2, [
+        {
+          sourceId: "scaled-fix",
+          terms: [{ dof: 0, coefficient: scale }],
+          rightHandSide: 2 * scale,
+        },
+      ]);
+      expect(compiled.pivotDofs).toEqual([0]);
+      expect(compiled.freeDofs).toEqual([1]);
+      expect(compiled.rows).toEqual([
+        { offset: 2, terms: [] },
+        { offset: 0, terms: [{ reducedDof: 0, coefficient: 1 }] },
+      ]);
+      expect(Array.from(compiled.recover([7]))).toEqual([2, 7]);
+    },
+  );
+
   it("FR-CON-004: recovers full displacement and source-traced constraint forces", () => {
     const compiled = compileConstraints(2, [
       { sourceId: "support", terms: [{ dof: 0, coefficient: 1 }], rightHandSide: 0 },
