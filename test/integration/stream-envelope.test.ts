@@ -1,5 +1,7 @@
 import { expect, it } from "vitest";
 import { XFrameError } from "../../src/errors/xframe-error.js";
+import { prepareAnalysis } from "../../src/analysis/prepare-analysis.js";
+import { createModelBuilder } from "../../src/model/model-builder.js";
 import { createEnvelopeCompatibility, streamEnvelope } from "../../src/results/stream-envelope.js";
 import type {
   EnvelopeCompatibility,
@@ -78,7 +80,18 @@ it("FR-RES-006/FR-RES-007: streams 150000 records and retains complete determini
   }
   const envelope = streamEnvelope(records(), components);
   expect(envelope.count).toBe(150_000);
+  expect(envelope.minimum[0]!.value).toBe(-8);
+  expect(envelope.minimum[0]!.governing).toHaveLength(8_824);
+  expect(envelope.minimum[0]!.governing.at(-1)!.resultId).toBe("R149991");
   expect(envelope.maximum[0]!.value).toBe(8);
+  expect(envelope.maximum[0]!.governing).toHaveLength(8_823);
+  expect(envelope.maximum[0]!.governing.at(-1)!.resultId).toBe("R149990");
+  expect(envelope.minimum[1]!.value).toBe(-11);
+  expect(envelope.minimum[1]!.governing).toHaveLength(6_522);
+  expect(envelope.minimum[1]!.governing.at(-1)!.resultId).toBe("R149983");
+  expect(envelope.maximum[1]!.value).toBe(11);
+  expect(envelope.maximum[1]!.governing).toHaveLength(6_521);
+  expect(envelope.maximum[1]!.governing.at(-1)!.resultId).toBe("R149982");
   expect(envelope.maximum[0]!.governing[0]).toEqual({
     resultId: "R16",
     resultKind: "case",
@@ -86,7 +99,6 @@ it("FR-RES-006/FR-RES-007: streams 150000 records and retains complete determini
     entityId: "n1",
     extremum: "maximum",
   });
-  expect(envelope.minimum[1]!.value).toBe(-11);
   expect(envelope.minimum[1]!.governing[0]).toEqual({
     resultId: "R0",
     resultKind: "case",
@@ -149,6 +161,33 @@ it("FR-SAFE-014: rejects a bare legacy record with missing compatibility metadat
   const error = incompatibleError(() => streamEnvelope([legacy], components));
   expect(error.code).toBe("RESULT_INCOMPATIBLE");
   expect(error.context).toMatchObject({ reason: "missing compatibility metadata" });
+});
+
+it("FR-SAFE-014: accepts unread unrelated own compatibility extensions", () => {
+  let extensionReads = 0;
+  const extensionKey = Symbol("extension");
+  const compatibilityWithExtensions = {
+    ...compatibility,
+    get extension(): never {
+      extensionReads += 1;
+      throw new Error("string extension read");
+    },
+    get [extensionKey](): never {
+      extensionReads += 1;
+      throw new Error("symbol extension read");
+    },
+  };
+  const extendedCompatibility: EnvelopeCompatibility = compatibilityWithExtensions;
+  const envelope = streamEnvelope(
+    [
+      { ...baseRecord, compatibility: extendedCompatibility },
+      { ...baseRecord, resultId: "OTHER", compatibility: extendedCompatibility, values: [2, 3] },
+    ],
+    components,
+  );
+  expect(envelope.count).toBe(2);
+  expect(envelope.minimum[0]!.value).toBe(1);
+  expect(extensionReads).toBe(0);
 });
 
 it("FR-SAFE-014: rejects model fingerprints that differ before reading values", () => {
@@ -266,6 +305,21 @@ it("FR-SAFE-014: creates an immutable compatibility copy with normalized nested 
   expect(created.unitSystem.length).toBe("m");
   expect(created.conventions.internalForces).toBe("positive-local-cut-face");
   expect(created.components[0]!.component).toBe("tx");
+});
+
+it("FR-SAFE-014: creates compatibility from a solver-produced structural result", () => {
+  const model = createModelBuilder()
+    .setUnitSystem(unitSystem)
+    .addNode({ id: "n", coordinates: [0, 0, 0] })
+    .addSpring({ id: "k", startNodeId: "n", stiffness: [500, 0, 0, 0, 0, 0] })
+    .addLoadCase({ id: "P", loads: [{ kind: "nodal", nodeId: "n", force: [25, 0, 0] }] })
+    .finalize();
+  const result = prepareAnalysis(model).solveCase("P");
+  const created = createEnvelopeCompatibility(result, [{ component: "tx", entityId: "n" }]);
+  expect(created.modelFingerprint).toBe(result.modelFingerprint);
+  expect(created.unitSystem).toEqual(result.unitSystem);
+  expect(created.conventions).toEqual(result.conventions);
+  expect(created.components).toEqual([{ component: "tx", entityId: "n" }]);
 });
 
 it("FR-SAFE-014: rejects inherited record compatibility before reading values", () => {

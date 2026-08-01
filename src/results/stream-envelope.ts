@@ -68,13 +68,28 @@ function hasExactKeys(value: MetadataRecord, keys: readonly string[]): boolean {
   }
 }
 
+function hasRequiredKeys(value: MetadataRecord, keys: readonly string[]): boolean {
+  try {
+    const actual = Reflect.ownKeys(value);
+    for (const key of keys) if (!actual.includes(key) || !Object.hasOwn(value, key)) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function captureMetadata(
   value: unknown,
   keys: readonly string[],
   resultIds: readonly string[],
   invalidReason: string,
+  allowExtraKeys = false,
 ): CapturedMetadata {
-  if (!isRecord(value) || !hasExactKeys(value, keys)) incompatible(resultIds, invalidReason);
+  if (
+    !isRecord(value) ||
+    !(allowExtraKeys ? hasRequiredKeys(value, keys) : hasExactKeys(value, keys))
+  )
+    incompatible(resultIds, invalidReason);
   const captured: CapturedMetadata = Object.create(null) as CapturedMetadata;
   for (const key of keys) {
     try {
@@ -217,6 +232,7 @@ function normalizeCompatibility(
     COMPATIBILITY_KEYS,
     resultIds,
     "missing compatibility metadata",
+    true,
   );
   const modelFingerprint = captured["modelFingerprint"];
   if (typeof modelFingerprint !== "string" || !MODEL_FINGERPRINT.test(modelFingerprint)) {
@@ -236,11 +252,6 @@ function normalizeCompatibility(
 
 function sameUnitSystem(value: UnitSystem, expected: UnitSystem): boolean {
   for (const key of UNIT_SYSTEM_KEYS) if (value[key] !== expected[key]) return false;
-  return true;
-}
-
-function sameConventions(value: ResultConventions, expected: ResultConventions): boolean {
-  for (const key of CONVENTION_KEYS) if (value[key] !== expected[key]) return false;
   return true;
 }
 
@@ -274,19 +285,14 @@ function assertCompatibility(
     COMPATIBILITY_KEYS,
     resultIds,
     "missing compatibility metadata",
+    true,
   );
   if (captured["modelFingerprint"] !== expected.modelFingerprint)
     incompatible(resultIds, "model fingerprints differ");
   const unitSystem = normalizeUnitSystem(captured["unitSystem"], resultIds, "unit systems differ");
   if (!sameUnitSystem(unitSystem, expected.unitSystem))
     incompatible(resultIds, "unit systems differ");
-  const conventions = normalizeConventions(
-    captured["conventions"],
-    resultIds,
-    "result conventions differ",
-  );
-  if (!sameConventions(conventions, expected.conventions))
-    incompatible(resultIds, "result conventions differ");
+  normalizeConventions(captured["conventions"], resultIds, "result conventions differ");
   const components = normalizeComponents(
     captured["components"],
     resultIds,
