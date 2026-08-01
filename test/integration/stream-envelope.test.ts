@@ -462,3 +462,303 @@ it.each(metadataMismatches)(
     expect(valuesRead).toBe(false);
   },
 );
+
+it("FR-SAFE-014: revalidates a compatibility object that mutates and freezes during capture", () => {
+  const fingerprintA = compatibility.modelFingerprint;
+  const fingerprintB = "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+  const stateful = {
+    get modelFingerprint(): string {
+      Object.defineProperty(this, "modelFingerprint", {
+        configurable: false,
+        enumerable: true,
+        value: fingerprintB,
+        writable: false,
+      });
+      Object.freeze(this);
+      return fingerprintA;
+    },
+    unitSystem: compatibility.unitSystem,
+    conventions: compatibility.conventions,
+    components: compatibility.components,
+  } as unknown as EnvelopeCompatibility;
+  let valuesRead = false;
+  const second = {
+    resultId: "OTHER",
+    resultKind: "case" as const,
+    compatibility: stateful,
+    get values(): readonly number[] {
+      valuesRead = true;
+      return [2, 3];
+    },
+  };
+  const error = incompatibleError(() =>
+    streamEnvelope(
+      [{ resultId: "BASE", resultKind: "case", compatibility: stateful, values: [1, 2] }, second],
+      components,
+    ),
+  );
+  expect(error.code).toBe("RESULT_INCOMPATIBLE");
+  expect(error.context).toMatchObject({ reason: "model fingerprints differ" });
+  expect(valuesRead).toBe(false);
+});
+
+it("FR-SAFE-014: revalidates a frozen component after its prototype gains location", () => {
+  const prototype: { location?: number } = {};
+  const mutableComponent = Object.freeze(
+    Object.create(prototype, {
+      component: { enumerable: true, value: "tx" },
+      entityId: { enumerable: true, value: "n1" },
+    }),
+  ) as EnvelopeComponent;
+  const statefulCompatibility = Object.freeze({
+    ...compatibility,
+    components: Object.freeze([mutableComponent, compatibility.components[1]!]),
+  });
+  let valuesRead = false;
+  const records = (function* () {
+    yield {
+      resultId: "BASE",
+      resultKind: "case" as const,
+      compatibility: statefulCompatibility,
+      values: [1, 2],
+    };
+    prototype.location = 0;
+    yield {
+      resultId: "OTHER",
+      resultKind: "case" as const,
+      compatibility: statefulCompatibility,
+      get values(): readonly number[] {
+        valuesRead = true;
+        return [2, 3];
+      },
+    };
+  })();
+  const error = incompatibleError(() => streamEnvelope(records, components));
+  expect(error.code).toBe("RESULT_INCOMPATIBLE");
+  expect(error.context).toMatchObject({ reason: "component layouts differ" });
+  expect(valuesRead).toBe(false);
+});
+
+it.each([null, 1, "record", []] as unknown[])(
+  "FR-SAFE-014: maps a non-object record to a structured malformed record error",
+  (record) => {
+    const error = incompatibleError(() =>
+      streamEnvelope([record as unknown as EnvelopeInputRecord], components),
+    );
+    expect(error.code).toBe("RESULT_INCOMPATIBLE");
+    expect(error.context).toMatchObject({ reason: "malformed record" });
+  },
+);
+
+it("FR-SAFE-014: maps revoked record proxies without reading values", () => {
+  let valuesRead = false;
+  const { proxy, revoke } = Proxy.revocable(
+    {
+      resultId: "REVOKED",
+      resultKind: "case",
+      compatibility,
+      get values(): readonly number[] {
+        valuesRead = true;
+        return [1, 2];
+      },
+    },
+    {},
+  );
+  revoke();
+  const error = incompatibleError(() =>
+    streamEnvelope([proxy as unknown as EnvelopeInputRecord], components),
+  );
+  expect(error.code).toBe("RESULT_INCOMPATIBLE");
+  expect(error.context).toMatchObject({ reason: "malformed record" });
+  expect(valuesRead).toBe(false);
+});
+
+it("FR-SAFE-014: maps throwing record metadata accessors and reads each metadata field once", () => {
+  let resultIdReads = 0;
+  let resultKindReads = 0;
+  let compatibilityReads = 0;
+  let valuesRead = false;
+  const record = Object.defineProperties(
+    {},
+    {
+      resultId: {
+        enumerable: true,
+        get(): string {
+          resultIdReads += 1;
+          return "OTHER";
+        },
+      },
+      resultKind: {
+        enumerable: true,
+        get(): "case" {
+          resultKindReads += 1;
+          return "case";
+        },
+      },
+      compatibility: {
+        enumerable: true,
+        get(): EnvelopeCompatibility {
+          compatibilityReads += 1;
+          return compatible({
+            modelFingerprint:
+              "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          });
+        },
+      },
+      values: {
+        enumerable: true,
+        get(): readonly number[] {
+          valuesRead = true;
+          return [1, 2];
+        },
+      },
+    },
+  ) as EnvelopeInputRecord;
+  const error = incompatibleError(() => streamEnvelope([baseRecord, record], components));
+  expect(error.code).toBe("RESULT_INCOMPATIBLE");
+  expect(error.context).toMatchObject({ reason: "model fingerprints differ" });
+  expect(resultIdReads).toBe(1);
+  expect(resultKindReads).toBe(1);
+  expect(compatibilityReads).toBe(1);
+  expect(valuesRead).toBe(false);
+});
+
+it("FR-SAFE-014: maps a throwing resultId accessor before reading values", () => {
+  let valuesRead = false;
+  const record = {
+    get resultId(): string {
+      throw new Error("result id trap");
+    },
+    resultKind: "case" as const,
+    compatibility,
+    get values(): readonly number[] {
+      valuesRead = true;
+      return [1, 2];
+    },
+  } as EnvelopeInputRecord;
+  const error = incompatibleError(() => streamEnvelope([record], components));
+  expect(error.code).toBe("RESULT_INCOMPATIBLE");
+  expect(error.context).toMatchObject({ reason: "malformed record" });
+  expect(valuesRead).toBe(false);
+});
+
+it("FR-SAFE-014: maps a throwing compatibility accessor before reading values", () => {
+  let valuesRead = false;
+  const record = {
+    resultId: "BROKEN",
+    resultKind: "case" as const,
+    get compatibility(): EnvelopeCompatibility {
+      throw new Error("compatibility trap");
+    },
+    get values(): readonly number[] {
+      valuesRead = true;
+      return [1, 2];
+    },
+  };
+  const error = incompatibleError(() => streamEnvelope([record], components));
+  expect(error.code).toBe("RESULT_INCOMPATIBLE");
+  expect(error.context).toMatchObject({ reason: "missing compatibility metadata" });
+  expect(valuesRead).toBe(false);
+});
+
+it("FR-SAFE-014: maps a throwing metadata accessor before reading values", () => {
+  let valuesRead = false;
+  const record = {
+    resultId: "BROKEN",
+    resultKind: "case" as const,
+    compatibility: {
+      ...compatibility,
+      unitSystem: {
+        ...unitSystem,
+        get length(): string {
+          throw new Error("unit trap");
+        },
+      },
+    },
+    get values(): readonly number[] {
+      valuesRead = true;
+      return [1, 2];
+    },
+  } as unknown as EnvelopeInputRecord;
+  const error = incompatibleError(() => streamEnvelope([record], components));
+  expect(error.code).toBe("RESULT_INCOMPATIBLE");
+  expect(error.context).toMatchObject({ reason: "missing compatibility metadata" });
+  expect(valuesRead).toBe(false);
+});
+
+it("FR-SAFE-014: maps a throwing supplied component index before reading values", () => {
+  let valuesRead = false;
+  const supplied = new Proxy([...components], {
+    get(target, property, receiver) {
+      if (property === "0") throw new Error("component index trap");
+      return Reflect.get(target, property, receiver);
+    },
+  });
+  const record = {
+    ...baseRecord,
+    get values(): readonly number[] {
+      valuesRead = true;
+      return [1, 2];
+    },
+  };
+  const error = incompatibleError(() =>
+    streamEnvelope([record], supplied as readonly EnvelopeComponent[]),
+  );
+  expect(error.code).toBe("RESULT_INCOMPATIBLE");
+  expect(error.context).toMatchObject({ reason: "component layout is invalid" });
+  expect(valuesRead).toBe(false);
+});
+
+it("FR-SAFE-014: maps a throwing component field accessor before reading values", () => {
+  let valuesRead = false;
+  const throwingComponent = {
+    get component(): string {
+      throw new Error("component field trap");
+    },
+    entityId: "n1",
+  } as unknown as EnvelopeComponent;
+  const record = {
+    ...baseRecord,
+    get values(): readonly number[] {
+      valuesRead = true;
+      return [1, 2];
+    },
+  };
+  const error = incompatibleError(() =>
+    streamEnvelope([record], [throwingComponent, components[1]]),
+  );
+  expect(error.code).toBe("RESULT_INCOMPATIBLE");
+  expect(error.context).toMatchObject({ reason: "component layout is invalid" });
+  expect(valuesRead).toBe(false);
+});
+
+it.each(["ownKeys", "hasOwn"] as const)(
+  "FR-SAFE-014: maps a metadata proxy %s trap before reading values",
+  (trap) => {
+    let valuesRead = false;
+    const metadata = new Proxy(compatibility, {
+      ownKeys(target) {
+        if (trap === "ownKeys") throw new Error("ownKeys trap");
+        return Reflect.ownKeys(target);
+      },
+      getOwnPropertyDescriptor(target, property) {
+        if (trap === "hasOwn" && property === "modelFingerprint") {
+          throw new Error("hasOwn trap");
+        }
+        return Reflect.getOwnPropertyDescriptor(target, property);
+      },
+    });
+    const record = {
+      ...baseRecord,
+      compatibility: metadata,
+      get values(): readonly number[] {
+        valuesRead = true;
+        return [1, 2];
+      },
+    } as unknown as EnvelopeInputRecord;
+    const error = incompatibleError(() => streamEnvelope([record], components));
+    expect(error.code).toBe("RESULT_INCOMPATIBLE");
+    expect(error.context).toMatchObject({ reason: "missing compatibility metadata" });
+    expect(valuesRead).toBe(false);
+  },
+);

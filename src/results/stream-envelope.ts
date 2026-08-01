@@ -39,11 +39,6 @@ type RecordMetadata = {
   readonly compatibility: unknown;
 };
 
-type NormalizedCompatibility = {
-  readonly value: EnvelopeCompatibility;
-  readonly captured: CapturedMetadata;
-};
-
 function incompatible(resultIds: readonly string[], reason: string): never {
   throw new XFrameError("RESULT_INCOMPATIBLE", "Envelope input is incompatible.", {
     kind: "result",
@@ -53,20 +48,24 @@ function incompatible(resultIds: readonly string[], reason: string): never {
 }
 
 function isRecord(value: unknown): value is MetadataRecord {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-function hasExactKeys(value: MetadataRecord, keys: readonly string[]): boolean {
-  let actual: readonly PropertyKey[];
+  if (value === null || typeof value !== "object") return false;
   try {
-    actual = Reflect.ownKeys(value);
+    return !Array.isArray(value);
   } catch {
     return false;
   }
-  if (actual.length !== keys.length) return false;
-  for (const key of actual) if (typeof key !== "string" || !keys.includes(key)) return false;
-  for (const key of keys) if (!Object.hasOwn(value, key)) return false;
-  return true;
+}
+
+function hasExactKeys(value: MetadataRecord, keys: readonly string[]): boolean {
+  try {
+    const actual = Reflect.ownKeys(value);
+    if (actual.length !== keys.length) return false;
+    for (const key of actual) if (typeof key !== "string" || !keys.includes(key)) return false;
+    for (const key of keys) if (!Object.hasOwn(value, key)) return false;
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function captureMetadata(
@@ -92,10 +91,15 @@ function normalizeComponents(
   resultIds: readonly string[],
   invalidReason = "component layout is invalid",
 ): readonly EnvelopeComponent[] {
-  if (!Array.isArray(input)) incompatible(resultIds, invalidReason);
+  let array: readonly unknown[];
+  try {
+    array = Array.isArray(input) ? input : incompatible(resultIds, invalidReason);
+  } catch {
+    incompatible(resultIds, invalidReason);
+  }
   let length: number;
   try {
-    length = input.length;
+    length = array.length;
   } catch {
     incompatible(resultIds, invalidReason);
   }
@@ -105,7 +109,12 @@ function normalizeComponents(
   const copiedComponents: EnvelopeComponent[] = [];
   copiedComponents.length = length;
   for (let index = 0; index < length; index += 1) {
-    const component = input[index];
+    let component: unknown;
+    try {
+      component = array[index];
+    } catch {
+      incompatible(resultIds, invalidReason);
+    }
     if (!isRecord(component)) incompatible(resultIds, invalidReason);
 
     let hasLocation: boolean;
@@ -202,7 +211,7 @@ function normalizeConventions(
 function normalizeCompatibility(
   value: unknown,
   resultIds: readonly string[],
-): NormalizedCompatibility {
+): EnvelopeCompatibility {
   const captured = captureMetadata(
     value,
     COMPATIBILITY_KEYS,
@@ -213,86 +222,16 @@ function normalizeCompatibility(
   if (typeof modelFingerprint !== "string" || !MODEL_FINGERPRINT.test(modelFingerprint)) {
     incompatible(resultIds, "missing compatibility metadata");
   }
-  return {
-    value: Object.freeze({
-      modelFingerprint,
-      unitSystem: normalizeUnitSystem(captured["unitSystem"], resultIds),
-      conventions: normalizeConventions(captured["conventions"], resultIds),
-      components: normalizeComponents(
-        captured["components"],
-        resultIds,
-        "missing compatibility metadata",
-      ),
-    }),
-    captured,
-  };
-}
-
-function hasOnlyDataProperties(value: object): boolean {
-  try {
-    if (!Object.isFrozen(value)) return false;
-    for (const key of Reflect.ownKeys(value)) {
-      const descriptor = Object.getOwnPropertyDescriptor(value, key);
-      if (descriptor === undefined || !("value" in descriptor)) return false;
-    }
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function hasFrozenDataRecord(value: unknown, keys: readonly string[]): boolean {
-  return (
-    isRecord(value) &&
-    Object.isFrozen(value) &&
-    hasExactKeys(value, keys) &&
-    hasOnlyDataProperties(value)
-  );
-}
-
-function hasImmutableComponent(value: unknown): boolean {
-  if (!isRecord(value) || !hasOnlyDataProperties(value)) return false;
-  try {
-    if (!Object.hasOwn(value, "component") || !Object.hasOwn(value, "entityId")) return false;
-    if (!Object.hasOwn(value, "location") && "location" in value) return false;
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function isImmutableCompatibility(value: unknown, captured: CapturedMetadata): boolean {
-  if (!hasFrozenDataRecord(value, COMPATIBILITY_KEYS)) return false;
-  if (!hasFrozenDataRecord(captured["unitSystem"], UNIT_SYSTEM_KEYS)) return false;
-  if (!hasFrozenDataRecord(captured["conventions"], CONVENTION_KEYS)) return false;
-
-  const components = captured["components"];
-  if (!Array.isArray(components) || !hasOnlyDataProperties(components)) return false;
-  let length: unknown;
-  try {
-    const descriptor = Object.getOwnPropertyDescriptor(components, "length");
-    if (descriptor === undefined || !("value" in descriptor)) return false;
-    length = descriptor.value;
-  } catch {
-    return false;
-  }
-  if (typeof length !== "number" || !Number.isSafeInteger(length) || length < 0) return false;
-  for (let index = 0; index < length; index += 1) {
-    let descriptor: PropertyDescriptor | undefined;
-    try {
-      descriptor = Object.getOwnPropertyDescriptor(components, String(index));
-    } catch {
-      return false;
-    }
-    if (
-      descriptor === undefined ||
-      !("value" in descriptor) ||
-      !hasImmutableComponent(descriptor.value)
-    ) {
-      return false;
-    }
-  }
-  return true;
+  return Object.freeze({
+    modelFingerprint,
+    unitSystem: normalizeUnitSystem(captured["unitSystem"], resultIds),
+    conventions: normalizeConventions(captured["conventions"], resultIds),
+    components: normalizeComponents(
+      captured["components"],
+      resultIds,
+      "missing compatibility metadata",
+    ),
+  });
 }
 
 function sameUnitSystem(value: UnitSystem, expected: UnitSystem): boolean {
@@ -360,21 +299,40 @@ function assertCompatibility(
 }
 
 function captureRecordMetadata(record: EnvelopeInputRecord): RecordMetadata {
-  const resultId = parseIdentifier(record.resultId, "envelope.resultId");
-  const resultKind = record.resultKind;
-  if (resultKind !== "case" && resultKind !== "combination") {
+  if (!isRecord(record)) incompatible([], "malformed record");
+
+  let resultIdValue: unknown;
+  let resultKindValue: unknown;
+  let hasCompatibility: boolean;
+  try {
+    if (!Object.hasOwn(record, "resultId")) incompatible([], "malformed record");
+    resultIdValue = record.resultId;
+    if (!Object.hasOwn(record, "resultKind")) incompatible([], "malformed record");
+    resultKindValue = record.resultKind;
+    hasCompatibility = Object.hasOwn(record, "compatibility");
+  } catch {
+    incompatible([], "malformed record");
+  }
+
+  let resultId: EntityId;
+  try {
+    resultId = parseIdentifier(resultIdValue, "envelope.resultId");
+  } catch (error) {
+    if (error instanceof XFrameError) throw error;
+    incompatible([], "malformed record");
+  }
+  if (resultKindValue !== "case" && resultKindValue !== "combination") {
     incompatible([resultId], "resultKind must be case or combination");
   }
-  if (record === null || typeof record !== "object" || !Object.hasOwn(record, "compatibility")) {
-    incompatible([resultId], "missing compatibility metadata");
-  }
+  if (!hasCompatibility) incompatible([resultId], "missing compatibility metadata");
+
   let compatibility: unknown;
   try {
     compatibility = record.compatibility;
   } catch {
     incompatible([resultId], "missing compatibility metadata");
   }
-  return { resultId, resultKind, compatibility };
+  return { resultId, resultKind: resultKindValue, compatibility };
 }
 
 function normalized(value: unknown, resultId: string, index: number): number {
@@ -439,21 +397,14 @@ export function streamEnvelope(
   const minimum: { value: number; governing: EnvelopeGoverning[] }[] = [];
   const maximum: { value: number; governing: EnvelopeGoverning[] }[] = [];
   let firstCompatibility: EnvelopeCompatibility | undefined;
-  let sharedCompatibility: unknown;
-  let hasSharedCompatibility = false;
   let count = 0;
   for (const record of records) {
     const metadata = captureRecordMetadata(record);
     if (count === 0) {
-      const normalizedFirst = normalizeCompatibility(metadata.compatibility, [metadata.resultId]);
-      firstCompatibility = normalizedFirst.value;
+      firstCompatibility = normalizeCompatibility(metadata.compatibility, [metadata.resultId]);
       if (!sameComponents(firstCompatibility.components, components))
         incompatible([metadata.resultId], "component layout differs from supplied components");
-      if (isImmutableCompatibility(metadata.compatibility, normalizedFirst.captured)) {
-        sharedCompatibility = metadata.compatibility;
-        hasSharedCompatibility = true;
-      }
-    } else if (!hasSharedCompatibility || metadata.compatibility !== sharedCompatibility) {
+    } else {
       assertCompatibility(metadata.compatibility, firstCompatibility!, components, [
         metadata.resultId,
       ]);
