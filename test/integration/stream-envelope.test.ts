@@ -257,3 +257,208 @@ it("FR-SAFE-014: creates an immutable compatibility copy with normalized nested 
   expect(created.conventions.internalForces).toBe("positive-local-cut-face");
   expect(created.components[0]!.component).toBe("tx");
 });
+
+it("FR-SAFE-014: rejects inherited record compatibility before reading values", () => {
+  let valuesRead = false;
+  const record = Object.create({ compatibility }) as EnvelopeInputRecord;
+  Object.defineProperties(record, {
+    resultId: { value: "INHERITED", enumerable: true },
+    resultKind: { value: "case", enumerable: true },
+    values: {
+      enumerable: true,
+      get(): readonly number[] {
+        valuesRead = true;
+        return [1, 2];
+      },
+    },
+  });
+  const error = incompatibleError(() => streamEnvelope([record], components));
+  expect(error.code).toBe("RESULT_INCOMPATIBLE");
+  expect(error.context).toMatchObject({ reason: "missing compatibility metadata" });
+  expect(valuesRead).toBe(false);
+});
+
+it("FR-SAFE-014: enforces exact result convention literals in first metadata", () => {
+  const invalidConventions = {
+    ...conventions,
+    rotations: "nonempty-but-unsupported",
+  } as unknown as ResultConventions;
+  const error = incompatibleError(() =>
+    streamEnvelope(
+      [{ ...baseRecord, compatibility: compatible({ conventions: invalidConventions }) }],
+      components,
+    ),
+  );
+  expect(error.code).toBe("RESULT_INCOMPATIBLE");
+  expect(error.context).toMatchObject({ reason: "missing compatibility metadata" });
+});
+
+it("FR-SAFE-014: captures stateful unit getters once while creating owned metadata", () => {
+  let lengthReads = 0;
+  const sourceUnits = {
+    ...unitSystem,
+    get length(): string {
+      lengthReads += 1;
+      return lengthReads === 1 ? "m" : "mm";
+    },
+  };
+  const result = {
+    modelFingerprint: compatibility.modelFingerprint,
+    unitSystem: sourceUnits,
+    conventions,
+  } as StructuralResult;
+  const created = createEnvelopeCompatibility(result, components);
+  expect(lengthReads).toBe(1);
+  expect(created.unitSystem.length).toBe("m");
+});
+
+it("FR-SAFE-014: copies component arrays by index without calling overridden map", () => {
+  class OverriddenComponentArray extends Array<EnvelopeComponent> {
+    public override map<U>(
+      _callbackfn: (value: EnvelopeComponent, index: number, array: EnvelopeComponent[]) => U,
+    ): U[] {
+      throw new Error("untrusted map called");
+    }
+  }
+  const sourceComponents = new OverriddenComponentArray(...components);
+  const result = {
+    modelFingerprint: compatibility.modelFingerprint,
+    unitSystem,
+    conventions,
+  } as StructuralResult;
+  const created = createEnvelopeCompatibility(result, sourceComponents);
+  expect(created.components).toEqual(components);
+  expect(Object.isFrozen(created.components)).toBe(true);
+  expect(Object.isFrozen(created.components[0])).toBe(true);
+});
+
+it("FR-SAFE-014: rejects inherited component fields", () => {
+  const inherited = Object.create({ component: "tx", entityId: "n1" });
+  const supplied = [inherited, components[1]] as readonly EnvelopeComponent[];
+  const error = incompatibleError(() => streamEnvelope([baseRecord], supplied));
+  expect(error.code).toBe("RESULT_INCOMPATIBLE");
+  expect(error.context).toMatchObject({ reason: "component layout is invalid" });
+});
+
+it("FR-SAFE-014: rejects an inherited optional component location", () => {
+  const inherited = Object.create({ location: 0 });
+  Object.assign(inherited, { component: "tx", entityId: "n1" });
+  const supplied = [inherited, components[1]] as readonly EnvelopeComponent[];
+  const error = incompatibleError(() => streamEnvelope([baseRecord], supplied));
+  expect(error.code).toBe("RESULT_INCOMPATIBLE");
+  expect(error.context).toMatchObject({ reason: "component layout is invalid" });
+});
+
+it("FR-SAFE-014: maps invalid compatibility identifiers to a stable incompatibility", () => {
+  const invalidComponents = [{ component: "tx", entityId: "" }, components[1]];
+  const error = incompatibleError(() =>
+    streamEnvelope(
+      [{ ...baseRecord, compatibility: compatible({ components: invalidComponents }) }],
+      components,
+    ),
+  );
+  expect(error.code).toBe("RESULT_INCOMPATIBLE");
+  expect(error.context).toMatchObject({ reason: "missing compatibility metadata" });
+});
+
+it.each([
+  ["invalid fingerprint", "sha256:ABC"],
+  ["missing fingerprint", undefined],
+] as const)(
+  "FR-SAFE-014: maps %s in first metadata to missing compatibility metadata",
+  (_label, fingerprint) => {
+    const metadata = { ...compatible() } as Record<string, unknown>;
+    if (fingerprint === undefined) delete metadata["modelFingerprint"];
+    else metadata["modelFingerprint"] = fingerprint;
+    let valuesRead = false;
+    const record = {
+      ...baseRecord,
+      compatibility: metadata as unknown as EnvelopeCompatibility,
+      get values(): readonly number[] {
+        valuesRead = true;
+        return [1, 2];
+      },
+    };
+    const error = incompatibleError(() => streamEnvelope([record], components));
+    expect(error.code).toBe("RESULT_INCOMPATIBLE");
+    expect(error.context).toMatchObject({ reason: "missing compatibility metadata" });
+    expect(valuesRead).toBe(false);
+  },
+);
+
+it.each([
+  ["uppercase hex", "sha256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"],
+  ["short hex", "sha256:aaaaaaaa"],
+] as const)(
+  "FR-SAFE-014: rejects %s fingerprints from create compatibility",
+  (_label, fingerprint) => {
+    const result = {
+      modelFingerprint: fingerprint,
+      unitSystem,
+      conventions,
+    } as StructuralResult;
+    const error = incompatibleError(() => createEnvelopeCompatibility(result, components));
+    expect(error.code).toBe("RESULT_INCOMPATIBLE");
+    expect(error.context).toMatchObject({ reason: "missing compatibility metadata" });
+  },
+);
+
+const metadataMismatches = [
+  {
+    label: "model fingerprints",
+    reason: "model fingerprints differ",
+    compatibility: compatible({
+      modelFingerprint: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    }),
+  },
+  {
+    label: "unit systems",
+    reason: "unit systems differ",
+    compatibility: compatible({ unitSystem: { ...unitSystem, length: "mm" } }),
+  },
+  {
+    label: "result conventions",
+    reason: "result conventions differ",
+    compatibility: compatible({
+      conventions: {
+        ...conventions,
+        internalForces: "other-sign-convention",
+      } as unknown as ResultConventions,
+    }),
+  },
+  {
+    label: "component layouts",
+    reason: "component layouts differ",
+    compatibility: compatible({
+      components: [
+        { component: "tx", entityId: "n1" },
+        { component: "bendingY", entityId: "f1", location: 2 },
+      ],
+    }),
+  },
+  {
+    label: "missing compatibility metadata",
+    reason: "missing compatibility metadata",
+    compatibility: {} as EnvelopeCompatibility,
+  },
+] as const;
+
+it.each(metadataMismatches)(
+  "FR-SAFE-014: leaves values unread for $label metadata mismatches",
+  ({ compatibility: mismatchedCompatibility, reason }) => {
+    let valuesRead = false;
+    const record = {
+      resultId: "OTHER",
+      resultKind: "case" as const,
+      compatibility: mismatchedCompatibility,
+      get values(): readonly number[] {
+        valuesRead = true;
+        return [1, 2];
+      },
+    };
+    const error = incompatibleError(() => streamEnvelope([baseRecord, record], components));
+    expect(error.code).toBe("RESULT_INCOMPATIBLE");
+    expect(error.context).toMatchObject({ reason });
+    expect(valuesRead).toBe(false);
+  },
+);

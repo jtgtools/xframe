@@ -1,5 +1,5 @@
 import { XFrameError } from "../errors/xframe-error.js";
-import { parseIdentifier } from "../model/identifier.js";
+import { parseIdentifier, type EntityId } from "../model/identifier.js";
 import type { ResultConventions, StructuralResult } from "./result-types.js";
 import type {
   EnvelopeCompatibility,
@@ -28,8 +28,21 @@ const CONVENTION_KEYS = [
   "internalForces",
 ] as const;
 const COMPATIBILITY_KEYS = ["modelFingerprint", "unitSystem", "conventions", "components"] as const;
+const MODEL_FINGERPRINT = /^sha256:[0-9a-f]{64}$/u;
 
 type MetadataRecord = Readonly<Record<string, unknown>>;
+type CapturedMetadata = Record<string, unknown>;
+
+type RecordMetadata = {
+  readonly resultId: EntityId;
+  readonly resultKind: StructuralResult["kind"];
+  readonly compatibility: unknown;
+};
+
+type NormalizedCompatibility = {
+  readonly value: EnvelopeCompatibility;
+  readonly captured: CapturedMetadata;
+};
 
 function incompatible(resultIds: readonly string[], reason: string): never {
   throw new XFrameError("RESULT_INCOMPATIBLE", "Envelope input is incompatible.", {
@@ -44,10 +57,34 @@ function isRecord(value: unknown): value is MetadataRecord {
 }
 
 function hasExactKeys(value: MetadataRecord, keys: readonly string[]): boolean {
-  const actual = Object.keys(value);
+  let actual: readonly PropertyKey[];
+  try {
+    actual = Reflect.ownKeys(value);
+  } catch {
+    return false;
+  }
   if (actual.length !== keys.length) return false;
+  for (const key of actual) if (typeof key !== "string" || !keys.includes(key)) return false;
   for (const key of keys) if (!Object.hasOwn(value, key)) return false;
   return true;
+}
+
+function captureMetadata(
+  value: unknown,
+  keys: readonly string[],
+  resultIds: readonly string[],
+  invalidReason: string,
+): CapturedMetadata {
+  if (!isRecord(value) || !hasExactKeys(value, keys)) incompatible(resultIds, invalidReason);
+  const captured: CapturedMetadata = Object.create(null) as CapturedMetadata;
+  for (const key of keys) {
+    try {
+      captured[key] = value[key];
+    } catch {
+      incompatible(resultIds, invalidReason);
+    }
+  }
+  return captured;
 }
 
 function normalizeComponents(
@@ -56,133 +93,230 @@ function normalizeComponents(
   invalidReason = "component layout is invalid",
 ): readonly EnvelopeComponent[] {
   if (!Array.isArray(input)) incompatible(resultIds, invalidReason);
-  return Object.freeze(
-    input.map((component, index) => {
-      if (
-        !isRecord(component) ||
-        typeof component["component"] !== "string" ||
-        component["component"].length === 0
-      ) {
+  let length: number;
+  try {
+    length = input.length;
+  } catch {
+    incompatible(resultIds, invalidReason);
+  }
+  if (!Number.isSafeInteger(length) || length < 0 || length > 4_294_967_295) {
+    incompatible(resultIds, invalidReason);
+  }
+  const copiedComponents: EnvelopeComponent[] = [];
+  copiedComponents.length = length;
+  for (let index = 0; index < length; index += 1) {
+    const component = input[index];
+    if (!isRecord(component)) incompatible(resultIds, invalidReason);
+
+    let hasLocation: boolean;
+    let componentName: unknown;
+    let entityIdValue: unknown;
+    let locationValue: unknown;
+    try {
+      if (!Object.hasOwn(component, "component") || !Object.hasOwn(component, "entityId")) {
         incompatible(resultIds, invalidReason);
       }
-      const entityId = parseIdentifier(
-        component["entityId"],
-        `envelope.components[${index}].entityId`,
-      );
-      if (
-        component["location"] !== undefined &&
-        (typeof component["location"] !== "number" || !Number.isFinite(component["location"]))
-      ) {
-        incompatible(resultIds, invalidReason);
-      }
-      return Object.freeze({
-        component: component["component"],
-        entityId,
-        ...(component["location"] === undefined
-          ? {}
-          : { location: Object.is(component["location"], -0) ? 0 : component["location"] }),
-      });
-    }),
-  );
+      hasLocation = Object.hasOwn(component, "location");
+      if (!hasLocation && "location" in component) incompatible(resultIds, invalidReason);
+      componentName = component["component"];
+      entityIdValue = component["entityId"];
+      locationValue = hasLocation ? component["location"] : undefined;
+    } catch {
+      incompatible(resultIds, invalidReason);
+    }
+
+    if (typeof componentName !== "string" || componentName.length === 0) {
+      incompatible(resultIds, invalidReason);
+    }
+
+    let entityId: EntityId;
+    try {
+      entityId = parseIdentifier(entityIdValue, `envelope.components[${index}].entityId`);
+    } catch {
+      incompatible(resultIds, invalidReason);
+    }
+
+    if (
+      locationValue !== undefined &&
+      (typeof locationValue !== "number" || !Number.isFinite(locationValue))
+    ) {
+      incompatible(resultIds, invalidReason);
+    }
+    copiedComponents[index] = Object.freeze({
+      component: componentName,
+      entityId,
+      ...(locationValue === undefined
+        ? {}
+        : { location: Object.is(locationValue, -0) ? 0 : locationValue }),
+    });
+  }
+  return Object.freeze(copiedComponents);
 }
 
-function normalizeUnitSystem(value: unknown, resultIds: readonly string[]): UnitSystem {
-  if (!isRecord(value) || !hasExactKeys(value, UNIT_SYSTEM_KEYS))
-    incompatible(resultIds, "missing compatibility metadata");
-  if (value["version"] !== "1" || value["rotation"] !== "rad")
-    incompatible(resultIds, "missing compatibility metadata");
+function normalizeUnitSystem(
+  value: unknown,
+  resultIds: readonly string[],
+  invalidReason = "missing compatibility metadata",
+): UnitSystem {
+  const captured = captureMetadata(value, UNIT_SYSTEM_KEYS, resultIds, invalidReason);
+  if (captured["version"] !== "1" || captured["rotation"] !== "rad")
+    incompatible(resultIds, invalidReason);
   for (const key of UNIT_SYSTEM_KEYS.slice(1, -1)) {
-    if (typeof value[key] !== "string" || value[key]!.length === 0)
-      incompatible(resultIds, "missing compatibility metadata");
+    const unit = captured[key];
+    if (typeof unit !== "string" || unit.length === 0) incompatible(resultIds, invalidReason);
   }
   return Object.freeze({
     version: "1",
-    length: value["length"] as string,
-    force: value["force"] as string,
-    moment: value["moment"] as string,
-    modulus: value["modulus"] as string,
-    distributedForce: value["distributedForce"] as string,
-    density: value["density"] as string,
+    length: captured["length"] as string,
+    force: captured["force"] as string,
+    moment: captured["moment"] as string,
+    modulus: captured["modulus"] as string,
+    distributedForce: captured["distributedForce"] as string,
+    density: captured["density"] as string,
     rotation: "rad",
   });
 }
 
-function normalizeConventions(value: unknown, resultIds: readonly string[]): ResultConventions {
-  if (!isRecord(value) || !hasExactKeys(value, CONVENTION_KEYS))
-    incompatible(resultIds, "missing compatibility metadata");
-  for (const key of CONVENTION_KEYS) {
-    if (typeof value[key] !== "string" || value[key]!.length === 0)
-      incompatible(resultIds, "missing compatibility metadata");
+function normalizeConventions(
+  value: unknown,
+  resultIds: readonly string[],
+  invalidReason = "missing compatibility metadata",
+): ResultConventions {
+  const captured = captureMetadata(value, CONVENTION_KEYS, resultIds, invalidReason);
+  if (
+    captured["coordinateSystem"] !== "global-node-local-member" ||
+    captured["rotations"] !== "radians-right-hand-rule" ||
+    captured["frameEndForces"] !== "element-on-node" ||
+    captured["internalForces"] !== "positive-local-cut-face"
+  ) {
+    incompatible(resultIds, invalidReason);
   }
   return Object.freeze({
-    coordinateSystem: value["coordinateSystem"] as ResultConventions["coordinateSystem"],
-    rotations: value["rotations"] as ResultConventions["rotations"],
-    frameEndForces: value["frameEndForces"] as ResultConventions["frameEndForces"],
-    internalForces: value["internalForces"] as ResultConventions["internalForces"],
+    coordinateSystem: "global-node-local-member",
+    rotations: "radians-right-hand-rule",
+    frameEndForces: "element-on-node",
+    internalForces: "positive-local-cut-face",
   });
 }
 
 function normalizeCompatibility(
   value: unknown,
   resultIds: readonly string[],
-): EnvelopeCompatibility {
-  if (!isRecord(value)) incompatible(resultIds, "missing compatibility metadata");
-  for (const key of COMPATIBILITY_KEYS)
-    if (!Object.hasOwn(value, key)) incompatible(resultIds, "missing compatibility metadata");
-  if (typeof value["modelFingerprint"] !== "string" || value["modelFingerprint"].length === 0)
+): NormalizedCompatibility {
+  const captured = captureMetadata(
+    value,
+    COMPATIBILITY_KEYS,
+    resultIds,
+    "missing compatibility metadata",
+  );
+  const modelFingerprint = captured["modelFingerprint"];
+  if (typeof modelFingerprint !== "string" || !MODEL_FINGERPRINT.test(modelFingerprint)) {
     incompatible(resultIds, "missing compatibility metadata");
-  return Object.freeze({
-    modelFingerprint: value["modelFingerprint"],
-    unitSystem: normalizeUnitSystem(value["unitSystem"], resultIds),
-    conventions: normalizeConventions(value["conventions"], resultIds),
-    components: normalizeComponents(
-      value["components"],
-      resultIds,
-      "missing compatibility metadata",
-    ),
-  });
+  }
+  return {
+    value: Object.freeze({
+      modelFingerprint,
+      unitSystem: normalizeUnitSystem(captured["unitSystem"], resultIds),
+      conventions: normalizeConventions(captured["conventions"], resultIds),
+      components: normalizeComponents(
+        captured["components"],
+        resultIds,
+        "missing compatibility metadata",
+      ),
+    }),
+    captured,
+  };
 }
 
-function sameUnitSystem(value: unknown, expected: UnitSystem): boolean {
-  if (!isRecord(value) || !hasExactKeys(value, UNIT_SYSTEM_KEYS)) return false;
+function hasOnlyDataProperties(value: object): boolean {
+  try {
+    if (!Object.isFrozen(value)) return false;
+    for (const key of Reflect.ownKeys(value)) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (descriptor === undefined || !("value" in descriptor)) return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function hasFrozenDataRecord(value: unknown, keys: readonly string[]): boolean {
+  return (
+    isRecord(value) &&
+    Object.isFrozen(value) &&
+    hasExactKeys(value, keys) &&
+    hasOnlyDataProperties(value)
+  );
+}
+
+function hasImmutableComponent(value: unknown): boolean {
+  if (!isRecord(value) || !hasOnlyDataProperties(value)) return false;
+  try {
+    if (!Object.hasOwn(value, "component") || !Object.hasOwn(value, "entityId")) return false;
+    if (!Object.hasOwn(value, "location") && "location" in value) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function isImmutableCompatibility(value: unknown, captured: CapturedMetadata): boolean {
+  if (!hasFrozenDataRecord(value, COMPATIBILITY_KEYS)) return false;
+  if (!hasFrozenDataRecord(captured["unitSystem"], UNIT_SYSTEM_KEYS)) return false;
+  if (!hasFrozenDataRecord(captured["conventions"], CONVENTION_KEYS)) return false;
+
+  const components = captured["components"];
+  if (!Array.isArray(components) || !hasOnlyDataProperties(components)) return false;
+  let length: unknown;
+  try {
+    const descriptor = Object.getOwnPropertyDescriptor(components, "length");
+    if (descriptor === undefined || !("value" in descriptor)) return false;
+    length = descriptor.value;
+  } catch {
+    return false;
+  }
+  if (typeof length !== "number" || !Number.isSafeInteger(length) || length < 0) return false;
+  for (let index = 0; index < length; index += 1) {
+    let descriptor: PropertyDescriptor | undefined;
+    try {
+      descriptor = Object.getOwnPropertyDescriptor(components, String(index));
+    } catch {
+      return false;
+    }
+    if (
+      descriptor === undefined ||
+      !("value" in descriptor) ||
+      !hasImmutableComponent(descriptor.value)
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function sameUnitSystem(value: UnitSystem, expected: UnitSystem): boolean {
   for (const key of UNIT_SYSTEM_KEYS) if (value[key] !== expected[key]) return false;
   return true;
 }
 
-function sameConventions(value: unknown, expected: ResultConventions): boolean {
-  if (!isRecord(value) || !hasExactKeys(value, CONVENTION_KEYS)) return false;
+function sameConventions(value: ResultConventions, expected: ResultConventions): boolean {
   for (const key of CONVENTION_KEYS) if (value[key] !== expected[key]) return false;
   return true;
 }
 
-function normalizedIdentifier(value: unknown, path: string): string | undefined {
-  if (typeof value !== "string") return undefined;
-  try {
-    return parseIdentifier(value, path);
-  } catch {
-    return undefined;
-  }
-}
-
-function sameComponents(value: unknown, expected: readonly EnvelopeComponent[]): boolean {
-  if (!Array.isArray(value) || value.length !== expected.length) return false;
+function sameComponents(
+  value: readonly EnvelopeComponent[],
+  expected: readonly EnvelopeComponent[],
+): boolean {
+  if (value.length !== expected.length) return false;
   for (let index = 0; index < expected.length; index += 1) {
-    const actual = value[index];
+    const actual = value[index]!;
     const wanted = expected[index]!;
-    if (!isRecord(actual) || actual["component"] !== wanted.component) return false;
     if (
-      normalizedIdentifier(
-        actual["entityId"],
-        `envelope.compatibility.components[${index}].entityId`,
-      ) !== wanted.entityId
-    )
-      return false;
-    if (wanted.location === undefined) {
-      if (actual["location"] !== undefined) return false;
-    } else if (
-      typeof actual["location"] !== "number" ||
-      !Number.isFinite(actual["location"]) ||
-      (Object.is(actual["location"], -0) ? 0 : actual["location"]) !== wanted.location
+      actual.component !== wanted.component ||
+      actual.entityId !== wanted.entityId ||
+      actual.location !== wanted.location
     ) {
       return false;
     }
@@ -193,34 +327,72 @@ function sameComponents(value: unknown, expected: readonly EnvelopeComponent[]):
 function assertCompatibility(
   value: unknown,
   expected: EnvelopeCompatibility,
+  suppliedComponents: readonly EnvelopeComponent[],
   resultIds: readonly string[],
 ): void {
-  if (!isRecord(value)) incompatible(resultIds, "missing compatibility metadata");
-  for (const key of COMPATIBILITY_KEYS)
-    if (!Object.hasOwn(value, key)) incompatible(resultIds, "missing compatibility metadata");
-  if (value["modelFingerprint"] !== expected.modelFingerprint)
+  const captured = captureMetadata(
+    value,
+    COMPATIBILITY_KEYS,
+    resultIds,
+    "missing compatibility metadata",
+  );
+  if (captured["modelFingerprint"] !== expected.modelFingerprint)
     incompatible(resultIds, "model fingerprints differ");
-  if (!sameUnitSystem(value["unitSystem"], expected.unitSystem))
+  const unitSystem = normalizeUnitSystem(captured["unitSystem"], resultIds, "unit systems differ");
+  if (!sameUnitSystem(unitSystem, expected.unitSystem))
     incompatible(resultIds, "unit systems differ");
-  if (!sameConventions(value["conventions"], expected.conventions))
+  const conventions = normalizeConventions(
+    captured["conventions"],
+    resultIds,
+    "result conventions differ",
+  );
+  if (!sameConventions(conventions, expected.conventions))
     incompatible(resultIds, "result conventions differ");
-  if (!sameComponents(value["components"], expected.components))
+  const components = normalizeComponents(
+    captured["components"],
+    resultIds,
+    "component layouts differ",
+  );
+  if (!sameComponents(components, expected.components))
+    incompatible(resultIds, "component layouts differ");
+  if (!sameComponents(components, suppliedComponents))
     incompatible(resultIds, "component layouts differ");
 }
 
-function normalized(value: number, resultId: string, index: number): number {
-  if (!Number.isFinite(value)) incompatible([resultId], `nonfinite value at index ${index}`);
+function captureRecordMetadata(record: EnvelopeInputRecord): RecordMetadata {
+  const resultId = parseIdentifier(record.resultId, "envelope.resultId");
+  const resultKind = record.resultKind;
+  if (resultKind !== "case" && resultKind !== "combination") {
+    incompatible([resultId], "resultKind must be case or combination");
+  }
+  if (record === null || typeof record !== "object" || !Object.hasOwn(record, "compatibility")) {
+    incompatible([resultId], "missing compatibility metadata");
+  }
+  let compatibility: unknown;
+  try {
+    compatibility = record.compatibility;
+  } catch {
+    incompatible([resultId], "missing compatibility metadata");
+  }
+  return { resultId, resultKind, compatibility };
+}
+
+function normalized(value: unknown, resultId: string, index: number): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    incompatible([resultId], `nonfinite value at index ${index}`);
+  }
   return Object.is(value, -0) ? 0 : value;
 }
 
 function governor(
-  record: EnvelopeInputRecord,
+  resultId: EntityId,
+  resultKind: StructuralResult["kind"],
   component: EnvelopeComponent,
   extremum: "minimum" | "maximum",
 ): EnvelopeGoverning {
   return Object.freeze({
-    resultId: parseIdentifier(record.resultId, "envelope.resultId"),
-    resultKind: record.resultKind,
+    resultId,
+    resultKind,
     component: component.component,
     entityId: component.entityId,
     ...(component.location === undefined ? {} : { location: component.location }),
@@ -243,12 +415,16 @@ export function createEnvelopeCompatibility(
   components: readonly EnvelopeComponent[],
 ): EnvelopeCompatibility {
   const resultIds = [result.id];
-  if (typeof result.modelFingerprint !== "string" || result.modelFingerprint.length === 0)
+  const modelFingerprint = result.modelFingerprint;
+  if (typeof modelFingerprint !== "string" || !MODEL_FINGERPRINT.test(modelFingerprint)) {
     incompatible(resultIds, "missing compatibility metadata");
+  }
+  const unitSystem = result.unitSystem;
+  const conventions = result.conventions;
   return Object.freeze({
-    modelFingerprint: result.modelFingerprint,
-    unitSystem: normalizeUnitSystem(result.unitSystem, resultIds),
-    conventions: normalizeConventions(result.conventions, resultIds),
+    modelFingerprint,
+    unitSystem: normalizeUnitSystem(unitSystem, resultIds),
+    conventions: normalizeConventions(conventions, resultIds),
     components: normalizeComponents(components, resultIds),
   });
 }
@@ -257,49 +433,102 @@ export function streamEnvelope(
   records: Iterable<EnvelopeInputRecord>,
   componentsInput: readonly EnvelopeComponent[],
 ): StreamingEnvelope {
-  if (componentsInput.length === 0) incompatible([], "at least one component is required");
   const components = normalizeComponents(componentsInput, [], "component layout is invalid");
+  if (components.length === 0) incompatible([], "at least one component is required");
   const seen = new Set<string>();
   const minimum: { value: number; governing: EnvelopeGoverning[] }[] = [];
   const maximum: { value: number; governing: EnvelopeGoverning[] }[] = [];
   let firstCompatibility: EnvelopeCompatibility | undefined;
+  let sharedCompatibility: unknown;
+  let hasSharedCompatibility = false;
   let count = 0;
   for (const record of records) {
-    const resultId = parseIdentifier(record.resultId, "envelope.resultId");
-    if (record.resultKind !== "case" && record.resultKind !== "combination") {
-      incompatible([resultId], "resultKind must be case or combination");
-    }
+    const metadata = captureRecordMetadata(record);
     if (count === 0) {
-      firstCompatibility = normalizeCompatibility(record.compatibility, [resultId]);
+      const normalizedFirst = normalizeCompatibility(metadata.compatibility, [metadata.resultId]);
+      firstCompatibility = normalizedFirst.value;
       if (!sameComponents(firstCompatibility.components, components))
-        incompatible([resultId], "component layout differs from supplied components");
-    } else {
-      assertCompatibility(record.compatibility, firstCompatibility!, [resultId]);
+        incompatible([metadata.resultId], "component layout differs from supplied components");
+      if (isImmutableCompatibility(metadata.compatibility, normalizedFirst.captured)) {
+        sharedCompatibility = metadata.compatibility;
+        hasSharedCompatibility = true;
+      }
+    } else if (!hasSharedCompatibility || metadata.compatibility !== sharedCompatibility) {
+      assertCompatibility(metadata.compatibility, firstCompatibility!, components, [
+        metadata.resultId,
+      ]);
     }
-    if (seen.has(resultId)) incompatible([resultId], "duplicate result identifier");
-    seen.add(resultId);
-    if (record.values.length !== components.length) {
+    if (seen.has(metadata.resultId))
+      incompatible([metadata.resultId], "duplicate result identifier");
+    seen.add(metadata.resultId);
+
+    let values: ArrayLike<number>;
+    try {
+      values = record.values;
+    } catch {
+      incompatible([metadata.resultId], "values are invalid");
+    }
+    let valuesLength: number;
+    try {
+      valuesLength = values.length;
+    } catch {
+      incompatible([metadata.resultId], "values are invalid");
+    }
+    if (!Number.isSafeInteger(valuesLength) || valuesLength < 0) {
+      incompatible([metadata.resultId], "values are invalid");
+    }
+    if (valuesLength !== components.length) {
       incompatible(
-        [resultId],
-        `expected ${components.length} values, received ${record.values.length}`,
+        [metadata.resultId],
+        `expected ${components.length} values, received ${valuesLength}`,
       );
     }
     for (let index = 0; index < components.length; index += 1) {
-      const value = normalized(record.values[index]!, resultId, index);
+      let rawValue: unknown;
+      try {
+        rawValue = values[index];
+      } catch {
+        incompatible([metadata.resultId], `nonfinite value at index ${index}`);
+      }
+      const value = normalized(rawValue, metadata.resultId, index);
       if (count === 0) {
-        minimum.push({ value, governing: [governor(record, components[index]!, "minimum")] });
-        maximum.push({ value, governing: [governor(record, components[index]!, "maximum")] });
+        minimum.push({
+          value,
+          governing: [
+            governor(metadata.resultId, metadata.resultKind, components[index]!, "minimum"),
+          ],
+        });
+        maximum.push({
+          value,
+          governing: [
+            governor(metadata.resultId, metadata.resultKind, components[index]!, "maximum"),
+          ],
+        });
         continue;
       }
       if (value < minimum[index]!.value) {
-        minimum[index] = { value, governing: [governor(record, components[index]!, "minimum")] };
+        minimum[index] = {
+          value,
+          governing: [
+            governor(metadata.resultId, metadata.resultKind, components[index]!, "minimum"),
+          ],
+        };
       } else if (value === minimum[index]!.value) {
-        minimum[index]!.governing.push(governor(record, components[index]!, "minimum"));
+        minimum[index]!.governing.push(
+          governor(metadata.resultId, metadata.resultKind, components[index]!, "minimum"),
+        );
       }
       if (value > maximum[index]!.value) {
-        maximum[index] = { value, governing: [governor(record, components[index]!, "maximum")] };
+        maximum[index] = {
+          value,
+          governing: [
+            governor(metadata.resultId, metadata.resultKind, components[index]!, "maximum"),
+          ],
+        };
       } else if (value === maximum[index]!.value) {
-        maximum[index]!.governing.push(governor(record, components[index]!, "maximum"));
+        maximum[index]!.governing.push(
+          governor(metadata.resultId, metadata.resultKind, components[index]!, "maximum"),
+        );
       }
     }
     count += 1;
