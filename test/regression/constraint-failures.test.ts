@@ -99,4 +99,116 @@ describe("constraint failures", () => {
     expect(thrown).toBeInstanceOf(XFrameError);
     expect((thrown as XFrameError).code).toBe("CONSTRAINT_CONTRADICTION");
   });
+
+  it.each([1, -1, 2 ** 986, -(2 ** 986), 2 ** -986, -(2 ** -986)])(
+    "FR-SAFE-003: keeps a scale-invariant independent public chain at scale %s",
+    (scale) => {
+      const q = 3.2515731794557063e-14;
+      const f = 3.251573179455313e-14;
+      const compiled = compileConstraints(24, [
+        ...Array.from({ length: 23 }, (_, index) => ({
+          sourceId: `a${String(index).padStart(2, "0")}`,
+          terms: [
+            { dof: index, coefficient: scale },
+            { dof: index + 1, coefficient: scale * q },
+          ],
+          rightHandSide: 0,
+        })),
+        {
+          sourceId: "z",
+          terms: [
+            { dof: 0, coefficient: scale },
+            { dof: 1, coefficient: scale * f },
+          ],
+          rightHandSide: 0,
+        },
+      ]);
+      expect(compiled.pivotDofs).toEqual(Array.from({ length: 24 }, (_, index) => index));
+      expect(compiled.redundantSourceIds).toEqual([]);
+    },
+  );
+
+  it.each([1, 2 ** 45])(
+    "FR-SAFE-003: retains the backward tail through a normalized public chain at tail scale %s",
+    (tailScale) => {
+      const q = 3.2515731794557063e-14;
+      const r = 0.999999999999943;
+      const compiled = compileConstraints(26, [
+        ...Array.from({ length: 23 }, (_, index) => ({
+          sourceId: `a${String(index).padStart(2, "0")}`,
+          terms: [
+            { dof: index, coefficient: 1 },
+            { dof: index + 1, coefficient: q },
+          ],
+          rightHandSide: 0,
+        })),
+        {
+          sourceId: "a23",
+          terms: [
+            { dof: 23, coefficient: 1 },
+            { dof: 24, coefficient: tailScale },
+            { dof: 25, coefficient: tailScale * r },
+          ],
+          rightHandSide: 0,
+        },
+        {
+          sourceId: "z",
+          terms: [
+            { dof: 24, coefficient: 1 },
+            { dof: 25, coefficient: 1 },
+          ],
+          rightHandSide: 0,
+        },
+      ]);
+      expect(compiled.pivotDofs).toEqual(Array.from({ length: 25 }, (_, index) => index));
+      expect(compiled.rows[0]!.terms.some(({ reducedDof }) => reducedDof === 0)).toBe(true);
+    },
+  );
+
+  it.each([1, -1])(
+    "FR-SAFE-003: rejects a subnormal contradictory RHS residual at sign %s",
+    (sign) => {
+      const m = sign * 6e-311;
+      const p = sign * (6e-311 - Number.MIN_VALUE);
+      let thrown: unknown;
+      try {
+        compileConstraints(1, [
+          { sourceId: "a", terms: [{ dof: 0, coefficient: 1 }], rightHandSide: p },
+          { sourceId: "b", terms: [{ dof: 0, coefficient: 1 }], rightHandSide: m },
+        ]);
+      } catch (error) {
+        thrown = error;
+      }
+      expect(thrown).toBeInstanceOf(XFrameError);
+      expect((thrown as XFrameError).code).toBe("CONSTRAINT_CONTRADICTION");
+    },
+  );
+
+  it("FR-SAFE-003: reports nonfinite backward elimination arithmetic structurally", () => {
+    let thrown: unknown;
+    try {
+      compileConstraints(3, [
+        {
+          sourceId: "a",
+          terms: [
+            { dof: 0, coefficient: 1 },
+            { dof: 1, coefficient: 1e13 },
+          ],
+          rightHandSide: 0,
+        },
+        {
+          sourceId: "b",
+          terms: [
+            { dof: 1, coefficient: 1 },
+            { dof: 2, coefficient: 1 },
+          ],
+          rightHandSide: Number.MAX_VALUE,
+        },
+      ]);
+    } catch (error) {
+      thrown = error;
+    }
+    expect(thrown).toBeInstanceOf(XFrameError);
+    expect((thrown as XFrameError).code).toBe("NON_FINITE_VALUE");
+  });
 });

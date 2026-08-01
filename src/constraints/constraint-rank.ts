@@ -34,25 +34,25 @@ function minimumMapKey(values: ReadonlyMap<number, number>): number {
   return minimum;
 }
 
+function isWithinRelativeTolerance(valueInput: number, scaleInput: number, path: string): boolean {
+  const value = finiteNumber(valueInput, path);
+  const scale = finiteNumber(scaleInput, `${path}Scale`);
+  if (value === 0) return true;
+  if (scale === 0) return false;
+  return finiteNumber(Math.abs(value) / scale, `${path}Relative`) <= TOLERANCE;
+}
+
 function removeScaledZeros(
   row: Map<number, number>,
   scale: number,
   candidates: ReadonlyMap<number, number>,
 ): void {
   const checkedScale = finiteNumber(scale, "constraint-rank.coefficientCancellationScale");
-  const threshold = finiteNumber(
-    TOLERANCE * checkedScale,
-    "constraint-rank.coefficientCancellationThreshold",
-  );
   for (const dof of candidates.keys()) {
     const value = row.get(dof);
     if (value === undefined) continue;
-    const checkedValue = finiteNumber(value, `constraint-rank.coefficient[${dof}]`);
-    const absoluteValue = finiteNumber(
-      Math.abs(checkedValue),
-      `constraint-rank.coefficient[${dof}]`,
-    );
-    if (checkedValue === 0 || absoluteValue <= threshold) row.delete(dof);
+    if (isWithinRelativeTolerance(value, checkedScale, `constraint-rank.coefficient[${dof}]`))
+      row.delete(dof);
   }
 }
 
@@ -126,10 +126,14 @@ function eliminateRow(
       ? rightHandSideOperandAbsolute
       : rightHandSideContributionAbsolute;
   rightHandSide = rightHandSideResidual;
-  if (rightHandSideScale !== 0) {
-    const threshold = finiteNumber(TOLERANCE * rightHandSideScale, "constraint-rank.rhsThreshold");
-    if (Math.abs(rightHandSideResidual) <= threshold) rightHandSide = 0;
-  }
+  if (
+    isWithinRelativeTolerance(
+      rightHandSideResidual,
+      rightHandSideScale,
+      "constraint-rank.rhsResidual",
+    )
+  )
+    rightHandSide = 0;
   return rightHandSide;
 }
 
