@@ -2,6 +2,7 @@ import { expect, it } from "vitest";
 import { canonicalJson } from "../../src/serialization/canonical-json.js";
 import { sha256Hex } from "../../src/serialization/sha-256.js";
 import { computeModelFingerprint } from "../../src/model/model-fingerprint.js";
+import { createModelBuilder } from "../../src/model/model-builder.js";
 
 const units = {
   version: "1",
@@ -14,27 +15,27 @@ const units = {
   rotation: "rad",
 } as const;
 
-function canonicalModelValue(area: number) {
-  const trussId =
-    area === 0.00015793100000000002 ? "d8ef901a37" : area === 0.000164232 ? "d4d5000cfb" : "t";
-  return {
-    unitSystem: units,
-    nodes: [
-      { id: "a", coordinates: [0, 0, 0] },
-      { id: "b", coordinates: [1, 0, 0] },
-    ],
-    materials: [
-      { id: "m", elasticModulus: 200e9, shearModulus: 76923076923.07692, poissonRatio: 0.3 },
-    ],
-    frameSections: [],
-    trussSections: [{ id: "s", area }],
-    frames: [],
-    trusses: [{ id: trussId, startNodeId: "a", endNodeId: "b", materialId: "m", sectionId: "s" }],
-    springs: [],
-    constraints: [],
-    loadCases: [],
-    combinations: [],
-  };
+function collisionModel(area: number) {
+  const builder = createModelBuilder()
+    .setUnitSystem(units)
+    .addNode({ id: "a", coordinates: [0, 0, 0] })
+    .addNode({ id: "b", coordinates: [1, 0, 0] })
+    .addMaterial({ id: "m", elasticModulus: 200e9, poissonRatio: 0.3 })
+    .addTrussSection({ id: "s", area })
+    .addTruss({ id: "t", startNodeId: "a", endNodeId: "b", materialId: "m", sectionId: "s" });
+  for (const [id, nodeId, dof] of [
+    ["c1", "a", "tx"],
+    ["c2", "a", "ty"],
+    ["c3", "a", "tz"],
+    ["c4", "b", "ty"],
+    ["c5", "b", "tz"],
+  ] as const) {
+    builder.addConstraint({ id, terms: [{ nodeId, dof, coefficient: 1 }], rightHandSide: 0 });
+  }
+  return builder.addLoadCase({
+    id: "L",
+    loads: [{ kind: "nodal", nodeId: "b", force: [1, 0, 0] }],
+  });
 }
 
 function legacyFnv(value: unknown): string {
@@ -85,10 +86,23 @@ it("FR-SAFE-001: emits an exact lowercase SHA-256 model identity", () => {
   );
 });
 
-it("FR-SAFE-001: separates the reproduced FNV collision", () => {
+it("FR-SAFE-001: separates the reproduced full-model FNV collision", () => {
   const collisionAreas = [0.00015793100000000002, 0.000164232] as const;
-  const values = collisionAreas.map((area) => canonicalModelValue(area));
-  expect(legacyFnv(values[0])).toBe("fnv1a32:e557d0d4");
-  expect(legacyFnv(values[0])).toBe(legacyFnv(values[1]));
-  expect(computeModelFingerprint(values[0])).not.toBe(computeModelFingerprint(values[1]));
+  const builders = collisionAreas.map(collisionModel);
+  const snapshots = builders.map((builder) => builder.snapshot());
+  const firstSnapshot = snapshots[0]!;
+  const secondSnapshot = snapshots[1]!;
+  expect({
+    ...firstSnapshot,
+    trussSections: firstSnapshot.trussSections.map((section, index) => ({
+      ...section,
+      area: secondSnapshot.trussSections[index]!.area,
+    })),
+  }).toEqual(secondSnapshot);
+  expect(legacyFnv(firstSnapshot)).toBe("fnv1a32:e557d0d4");
+  expect(legacyFnv(secondSnapshot)).toBe("fnv1a32:e557d0d4");
+  const models = builders.map((builder) => builder.finalize());
+  expect(models[0]!.fingerprint).toMatch(/^sha256:[0-9a-f]{64}$/u);
+  expect(models[1]!.fingerprint).toMatch(/^sha256:[0-9a-f]{64}$/u);
+  expect(models[0]!.fingerprint).not.toBe(models[1]!.fingerprint);
 });
