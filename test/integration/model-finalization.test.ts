@@ -96,13 +96,13 @@ describe("model finalization", () => {
     }
   });
 
-  it("NFR-DET-001: canonical ordering and fingerprint ignore insertion order", () => {
+  it("FR-SAFE-001/NFR-DET-001: canonical ordering and fingerprint ignore insertion order", () => {
     const first = completeFrame(false).finalize();
     const second = completeFrame(true).finalize();
     expect(first.nodes.map(({ id }) => id)).toEqual(["a", "b"]);
     expect(second.nodes.map(({ id }) => id)).toEqual(["a", "b"]);
     expect(first.fingerprint).toBe(second.fingerprint);
-    expect(first.fingerprint.startsWith("fnv1a32:")).toBe(true);
+    expect(first.fingerprint).toMatch(/^sha256:[0-9a-f]{64}$/u);
   });
 
   it("FR-MOD-006: rejects missing units and structurally empty models", () => {
