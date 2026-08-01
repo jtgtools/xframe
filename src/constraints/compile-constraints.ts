@@ -1,5 +1,6 @@
 import { XFrameError } from "../errors/xframe-error.js";
 import { finiteNumber } from "../geometry/finite.js";
+import { compareIdentifiers, type EntityId } from "../model/identifier.js";
 import type { ConstraintRecord } from "../model/domain-records.js";
 import { createDofKey } from "../model/dof-key.js";
 import type { PhysicalDofTable } from "../model/dof-topology.js";
@@ -51,7 +52,12 @@ function detectEqualDofCycle(equations: readonly CanonicalAffineConstraint[]): v
   for (const equation of equations) {
     if (equation.rightHandSide !== 0 || equation.terms.length !== 2) continue;
     const [left, right] = equation.terms;
-    if (Math.abs(Math.abs(left!.coefficient) - 1) > 1e-12 || Math.abs(Math.abs(right!.coefficient) - 1) > 1e-12 || left!.coefficient * right!.coefficient >= 0) continue;
+    if (
+      Math.abs(Math.abs(left!.coefficient) - 1) > 1e-12 ||
+      Math.abs(Math.abs(right!.coefficient) - 1) > 1e-12 ||
+      left!.coefficient * right!.coefficient >= 0
+    )
+      continue;
     const a = Math.min(left!.dof, right!.dof);
     const b = Math.max(left!.dof, right!.dof);
     const key = `${a}:${b}`;
@@ -74,7 +80,7 @@ function detectEqualDofCycle(equations: readonly CanonicalAffineConstraint[]): v
     }
     return false;
   };
-  for (const node of [...graph.keys()].sort((a, b) => a - b)) {
+  for (const node of [...graph.keys()].toSorted((a, b) => a - b)) {
     if (!visited.has(node) && walk(node, -1)) {
       throw new XFrameError("CONSTRAINT_CYCLE", "Equal-DOF constraint graph contains a cycle.", {
         kind: "analysis",
@@ -95,16 +101,22 @@ export function compileConstraints(
   const canonical = equationsInput
     .map(canonicalizeConstraint)
     .filter(({ terms }) => terms.length > 0)
-    .sort((left, right) => left.sourceId.localeCompare(right.sourceId));
+    .toSorted((left, right) =>
+      compareIdentifiers(left.sourceId as EntityId, right.sourceId as EntityId),
+    );
   for (const equation of canonical) {
     for (const { dof } of equation.terms) {
       if (dof >= fullDofCount) {
-        throw new XFrameError("INPUT_INVALID", "Constraint DOF index is outside the physical DOF range.", {
-          kind: "input",
-          path: `constraint[${equation.sourceId}]`,
-          expected: `DOF index in [0, ${fullDofCount})`,
-          actual: String(dof),
-        });
+        throw new XFrameError(
+          "INPUT_INVALID",
+          "Constraint DOF index is outside the physical DOF range.",
+          {
+            kind: "input",
+            path: `constraint[${equation.sourceId}]`,
+            expected: `DOF index in [0, ${fullDofCount})`,
+            actual: String(dof),
+          },
+        );
       }
     }
   }
@@ -112,7 +124,9 @@ export function compileConstraints(
   const analysis = analyzeConstraintRank(canonical);
   const pivotDofs = analysis.rows.map(({ pivotDof }) => pivotDof);
   const pivotSet = new Set(pivotDofs);
-  const freeDofs = Array.from({ length: fullDofCount }, (_, index) => index).filter((index) => !pivotSet.has(index));
+  const freeDofs = Array.from({ length: fullDofCount }, (_, index) => index).filter(
+    (index) => !pivotSet.has(index),
+  );
   const reducedByFull = new Map(freeDofs.map((full, reduced) => [full, reduced]));
   const rowByPivot = new Map(analysis.rows.map((row) => [row.pivotDof, row]));
   const rows: SparseAffineTransformRow[] = [];
@@ -120,7 +134,12 @@ export function compileConstraints(
   for (let full = 0; full < fullDofCount; full += 1) {
     const reduced = reducedByFull.get(full);
     if (reduced !== undefined) {
-      rows.push(Object.freeze({ offset: 0, terms: Object.freeze([Object.freeze({ reducedDof: reduced, coefficient: 1 })]) }));
+      rows.push(
+        Object.freeze({
+          offset: 0,
+          terms: Object.freeze([Object.freeze({ reducedDof: reduced, coefficient: 1 })]),
+        }),
+      );
       transformNonzeroCount += 1;
       continue;
     }
@@ -130,28 +149,38 @@ export function compileConstraints(
       if (dof === full) continue;
       const reducedDof = reducedByFull.get(dof);
       if (reducedDof === undefined) {
-        throw new XFrameError("CONSTRAINT_RANK_DEFICIENT", "Constraint elimination retained an unresolved pivot dependency.", {
-          kind: "analysis",
-          stage: "constraint-compilation",
-          detail: `pivot=${full}, dependency=${dof}`,
-          equation: full,
-        });
+        throw new XFrameError(
+          "CONSTRAINT_RANK_DEFICIENT",
+          "Constraint elimination retained an unresolved pivot dependency.",
+          {
+            kind: "analysis",
+            stage: "constraint-compilation",
+            detail: `pivot=${full}, dependency=${dof}`,
+            equation: full,
+          },
+        );
       }
       const value = -coefficient;
       if (value !== 0) terms.push(Object.freeze({ reducedDof, coefficient: value }));
     }
-    terms.sort((left, right) => left.reducedDof - right.reducedDof);
-    transformNonzeroCount += terms.length;
-    rows.push(Object.freeze({ offset: reducedRow.rightHandSide, terms: Object.freeze(terms) }));
+    const orderedTerms = terms.toSorted((left, right) => left.reducedDof - right.reducedDof);
+    transformNonzeroCount += orderedTerms.length;
+    rows.push(
+      Object.freeze({ offset: reducedRow.rightHandSide, terms: Object.freeze(orderedTerms) }),
+    );
   }
   const maximum = options.maximumTransformNonzeros ?? 10_000_000;
   if (!Number.isSafeInteger(maximum) || maximum < 0 || transformNonzeroCount > maximum) {
-    throw new XFrameError("MEMORY_LIMIT_EXCEEDED", "Sparse constraint transform exceeds the configured storage limit.", {
-      kind: "memory",
-      operation: "constraint-transform",
-      estimatedBytes: transformNonzeroCount * 16 + fullDofCount * 24,
-      limitBytes: Math.max(0, maximum) * 16 + fullDofCount * 24,
-    });
+    throw new XFrameError(
+      "MEMORY_LIMIT_EXCEEDED",
+      "Sparse constraint transform exceeds the configured storage limit.",
+      {
+        kind: "memory",
+        operation: "constraint-transform",
+        estimatedBytes: transformNonzeroCount * 16 + fullDofCount * 24,
+        limitBytes: Math.max(0, maximum) * 16 + fullDofCount * 24,
+      },
+    );
   }
   const frozenRows = Object.freeze(rows);
   return Object.freeze({
@@ -160,23 +189,35 @@ export function compileConstraints(
     rows: frozenRows,
     freeDofs: Object.freeze(freeDofs),
     pivotDofs: Object.freeze(pivotDofs),
-    equations: Object.freeze(analysis.rows.map((row) => canonical.find(({ sourceId }) => sourceId === row.sourceId)!)),
+    equations: Object.freeze(
+      analysis.rows.map((row) => canonical.find(({ sourceId }) => sourceId === row.sourceId)!),
+    ),
     redundantSourceIds: analysis.redundantSourceIds,
     transformNonzeroCount,
     recover(reducedDisplacements: ArrayLike<number>): Float64Array {
       if (reducedDisplacements.length !== freeDofs.length) {
-        throw new XFrameError("INPUT_INVALID", "Reduced displacement length does not match compiled constraints.", {
-          kind: "input",
-          path: "reducedDisplacements",
-          expected: `array-like of length ${freeDofs.length}`,
-          actual: `length ${reducedDisplacements.length}`,
-        });
+        throw new XFrameError(
+          "INPUT_INVALID",
+          "Reduced displacement length does not match compiled constraints.",
+          {
+            kind: "input",
+            path: "reducedDisplacements",
+            expected: `array-like of length ${freeDofs.length}`,
+            actual: `length ${reducedDisplacements.length}`,
+          },
+        );
       }
       const result = new Float64Array(fullDofCount);
       for (let full = 0; full < fullDofCount; full += 1) {
         const row = frozenRows[full]!;
         let value = row.offset;
-        for (const term of row.terms) value += term.coefficient * finiteNumber(reducedDisplacements[term.reducedDof], `reducedDisplacements[${term.reducedDof}]`);
+        for (const term of row.terms)
+          value +=
+            term.coefficient *
+            finiteNumber(
+              reducedDisplacements[term.reducedDof],
+              `reducedDisplacements[${term.reducedDof}]`,
+            );
         result[full] = finiteNumber(value, `fullDisplacements[${full}]`);
       }
       return result;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseIdentifier } from "../../src/model/identifier.js";
+import { compareIdentifiers, parseIdentifier, type EntityId } from "../../src/model/identifier.js";
 import { XFrameError } from "../../src/errors/xframe-error.js";
 
 function codeOf(action: () => unknown): string | undefined {
@@ -23,7 +23,19 @@ describe("parseIdentifier", () => {
   });
 
   it("FR-MOD-003: rejects empty, whitespace-bearing, control-character, and formula-prefixed identifiers", () => {
-    for (const value of ["", " ", " a", "a ", "a b", "a\n", "a\u0000b", "=SUM(A1)", "+cmd", "-1", "@name"]) {
+    for (const value of [
+      "",
+      " ",
+      " a",
+      "a ",
+      "a b",
+      "a\n",
+      "a\u0000b",
+      "=SUM(A1)",
+      "+cmd",
+      "-1",
+      "@name",
+    ]) {
       expect(codeOf(() => parseIdentifier(value, "id"))).toBe("IDENTIFIER_INVALID");
     }
   });
@@ -37,4 +49,10 @@ describe("parseIdentifier", () => {
 it("FR-MOD-003: rejects boxed strings and other non-string identifier values", () => {
   expect(codeOf(() => parseIdentifier(new String("alpha"), "id"))).toBe("IDENTIFIER_INVALID");
   expect(codeOf(() => parseIdentifier(42, "id"))).toBe("IDENTIFIER_INVALID");
+});
+
+it("FR-SAFE-010: compares normalized identifiers by ECMAScript code units", () => {
+  expect(compareIdentifiers("z" as EntityId, "ä" as EntityId)).toBe(-1);
+  expect(compareIdentifiers("ä" as EntityId, "z" as EntityId)).toBe(1);
+  expect(compareIdentifiers("z" as EntityId, "z" as EntityId)).toBe(0);
 });

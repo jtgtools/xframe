@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { compileConstraints } from "../../src/constraints/compile-constraints.js";
 import { recoverConstrainedState } from "../../src/constraints/recover-constrained-state.js";
 import { buildLocalAxes } from "../../src/geometry/local-axes.js";
@@ -31,9 +31,25 @@ describe("constraint compiler", () => {
       { sourceId: "a", terms: [{ dof: 0, coefficient: 1 }], rightHandSide: 1 },
     ] as const;
     const forward = compileConstraints(3, equations);
-    const reverse = compileConstraints(3, [...equations].reverse());
+    const reverse = compileConstraints(3, equations.toReversed());
     expect(forward.rows).toEqual(reverse.rows);
     expect(forward.freeDofs).toEqual(reverse.freeDofs);
+  });
+
+  it("FR-SAFE-010: constraint source ordering uses ECMAScript code units without host collation", () => {
+    const localeCompare = vi.spyOn(String.prototype, "localeCompare").mockImplementation(() => {
+      throw new Error("localeCompare used");
+    });
+    try {
+      const compiled = compileConstraints(1, [
+        { sourceId: "ä", terms: [{ dof: 0, coefficient: 1 }], rightHandSide: 0 },
+        { sourceId: "z", terms: [{ dof: 0, coefficient: 1 }], rightHandSide: 0 },
+      ]);
+      expect(compiled.equations.map(({ sourceId }) => sourceId)).toEqual(["z"]);
+      expect(compiled.redundantSourceIds).toEqual(["ä"]);
+    } finally {
+      localeCompare.mockRestore();
+    }
   });
 
   it("FR-CON-004: recovers full displacement and source-traced constraint forces", () => {
@@ -77,8 +93,13 @@ it("FR-CON-001/FR-MOD-005: expands a rigid diaphragm atomically into affine equa
   ]);
   const before = JSON.stringify(builder.snapshot());
   expect(() =>
-    builder.addRigidDiaphragm({ id: "bad", plane: "xy", masterNodeId: "m", slaveNodeIds: ["s", "missing"] }),
-  ).toThrow();
+    builder.addRigidDiaphragm({
+      id: "bad",
+      plane: "xy",
+      masterNodeId: "m",
+      slaveNodeIds: ["s", "missing"],
+    }),
+  ).toThrowError(/missing node/u);
   expect(JSON.stringify(builder.snapshot())).toBe(before);
 });
 
@@ -97,7 +118,8 @@ it("FR-CON-003/NFR-COR-001: two oblique restraints preserve the exact free-axis 
   const elasticModulus = 205e9;
   const area = 0.018;
   const load = 22_000;
-  const builder = modelBuilderModule.createModelBuilder()
+  const builder = modelBuilderModule
+    .createModelBuilder()
     .setUnitSystem({
       version: "1",
       length: "m",
@@ -114,9 +136,16 @@ it("FR-CON-003/NFR-COR-001: two oblique restraints preserve the exact free-axis 
     .addTrussSection({ id: "s", area })
     .addTruss({ id: "t", startNodeId: "a", endNodeId: "b", materialId: "m", sectionId: "s" });
   for (const dof of ["tx", "ty", "tz"] as const) {
-    builder.addConstraint({ id: `a:${dof}`, terms: [{ nodeId: "a", dof, coefficient: 1 }], rightHandSide: 0 });
+    builder.addConstraint({
+      id: `a:${dof}`,
+      terms: [{ nodeId: "a", dof, coefficient: 1 }],
+      rightHandSide: 0,
+    });
   }
-  for (const [id, normal] of [["y", axes.y], ["z", axes.z]] as const) {
+  for (const [id, normal] of [
+    ["y", axes.y],
+    ["z", axes.z],
+  ] as const) {
     builder.addConstraint({
       id: `b:${id}`,
       terms: (["tx", "ty", "tz"] as const).map((dof, index) => ({
@@ -131,11 +160,13 @@ it("FR-CON-003/NFR-COR-001: two oblique restraints preserve the exact free-axis 
     builder
       .addLoadCase({
         id: "LC",
-        loads: [{
-          kind: "nodal",
-          nodeId: "b",
-          force: direction.map((entry) => entry * load),
-        }],
+        loads: [
+          {
+            kind: "nodal",
+            nodeId: "b",
+            force: direction.map((entry) => entry * load),
+          },
+        ],
       })
       .finalize(),
   ).solveCase("LC");

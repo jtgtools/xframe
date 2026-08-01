@@ -8,6 +8,10 @@ const CONTROL_OR_FORMAT = /[\p{Cc}\p{Cf}]/u;
 
 export type EntityId = string & { readonly [entityIdBrand]: true };
 
+export function compareIdentifiers(left: EntityId, right: EntityId): number {
+  return left < right ? -1 : left > right ? 1 : 0;
+}
+
 function invalidIdentifier(
   path: string,
   reason: "type" | "empty" | "whitespace" | "control-character" | "formula-prefix" | "too-long",

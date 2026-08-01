@@ -9,7 +9,7 @@ import type {
   TrussRecord,
   TrussSectionRecord,
 } from "./domain-records.js";
-import type { EntityId } from "./identifier.js";
+import { compareIdentifiers, type EntityId } from "./identifier.js";
 
 export interface ReferenceIssue {
   readonly entityType: string;
@@ -78,8 +78,11 @@ function required<T>(
 
 function sortIssues(issues: ReferenceIssue[]): readonly ReferenceIssue[] {
   return Object.freeze(
-    [...issues].sort((left, right) =>
-      left.entityType.localeCompare(right.entityType) || left.id.localeCompare(right.id) || left.path.localeCompare(right.path),
+    [...issues].toSorted(
+      (left, right) =>
+        compareIdentifiers(left.entityType as EntityId, right.entityType as EntityId) ||
+        compareIdentifiers(left.id as EntityId, right.id as EntityId) ||
+        compareIdentifiers(left.path as EntityId, right.path as EntityId),
     ),
   );
 }
@@ -93,49 +96,146 @@ export function resolveModelReferences(model: ModelSnapshot): ResolvedReferences
 
   const frames: ResolvedFrameReferences[] = [];
   for (const record of model.frames) {
-    const startNode = required(nodes, issues, "frame", record.id, "startNodeId", record.startNodeId, "node");
-    const endNode = required(nodes, issues, "frame", record.id, "endNodeId", record.endNodeId, "node");
-    const material = required(materials, issues, "frame", record.id, "materialId", record.materialId, "material");
-    const section = required(frameSections, issues, "frame", record.id, "sectionId", record.sectionId, "frame section");
-    if (startNode !== undefined && endNode !== undefined && material !== undefined && section !== undefined) {
+    const startNode = required(
+      nodes,
+      issues,
+      "frame",
+      record.id,
+      "startNodeId",
+      record.startNodeId,
+      "node",
+    );
+    const endNode = required(
+      nodes,
+      issues,
+      "frame",
+      record.id,
+      "endNodeId",
+      record.endNodeId,
+      "node",
+    );
+    const material = required(
+      materials,
+      issues,
+      "frame",
+      record.id,
+      "materialId",
+      record.materialId,
+      "material",
+    );
+    const section = required(
+      frameSections,
+      issues,
+      "frame",
+      record.id,
+      "sectionId",
+      record.sectionId,
+      "frame section",
+    );
+    if (
+      startNode !== undefined &&
+      endNode !== undefined &&
+      material !== undefined &&
+      section !== undefined
+    ) {
       frames.push(Object.freeze({ record, startNode, endNode, material, section }));
     }
   }
 
   const trusses: ResolvedTrussReferences[] = [];
   for (const record of model.trusses) {
-    const startNode = required(nodes, issues, "truss", record.id, "startNodeId", record.startNodeId, "node");
-    const endNode = required(nodes, issues, "truss", record.id, "endNodeId", record.endNodeId, "node");
-    const material = required(materials, issues, "truss", record.id, "materialId", record.materialId, "material");
-    const section = required(trussSections, issues, "truss", record.id, "sectionId", record.sectionId, "truss section");
-    if (startNode !== undefined && endNode !== undefined && material !== undefined && section !== undefined) {
+    const startNode = required(
+      nodes,
+      issues,
+      "truss",
+      record.id,
+      "startNodeId",
+      record.startNodeId,
+      "node",
+    );
+    const endNode = required(
+      nodes,
+      issues,
+      "truss",
+      record.id,
+      "endNodeId",
+      record.endNodeId,
+      "node",
+    );
+    const material = required(
+      materials,
+      issues,
+      "truss",
+      record.id,
+      "materialId",
+      record.materialId,
+      "material",
+    );
+    const section = required(
+      trussSections,
+      issues,
+      "truss",
+      record.id,
+      "sectionId",
+      record.sectionId,
+      "truss section",
+    );
+    if (
+      startNode !== undefined &&
+      endNode !== undefined &&
+      material !== undefined &&
+      section !== undefined
+    ) {
       trusses.push(Object.freeze({ record, startNode, endNode, material, section }));
     }
   }
 
   const springs: ResolvedSpringReferences[] = [];
   for (const record of model.springs) {
-    const startNode = required(nodes, issues, "spring", record.id, "startNodeId", record.startNodeId, "node");
-    const endNode = record.endNodeId === undefined
-      ? undefined
-      : required(nodes, issues, "spring", record.id, "endNodeId", record.endNodeId, "node");
+    const startNode = required(
+      nodes,
+      issues,
+      "spring",
+      record.id,
+      "startNodeId",
+      record.startNodeId,
+      "node",
+    );
+    const endNode =
+      record.endNodeId === undefined
+        ? undefined
+        : required(nodes, issues, "spring", record.id, "endNodeId", record.endNodeId, "node");
     if (startNode !== undefined && (record.endNodeId === undefined || endNode !== undefined)) {
-      springs.push(Object.freeze({ record, startNode, ...(endNode === undefined ? {} : { endNode }) }));
+      springs.push(
+        Object.freeze({ record, startNode, ...(endNode === undefined ? {} : { endNode }) }),
+      );
     }
   }
 
   for (const constraint of model.constraints) {
     for (let index = 0; index < constraint.terms.length; index += 1) {
       const term = constraint.terms[index]!;
-      required(nodes, issues, "constraint", constraint.id, `terms[${index}].nodeId`, term.nodeId, "node");
+      required(
+        nodes,
+        issues,
+        "constraint",
+        constraint.id,
+        `terms[${index}].nodeId`,
+        term.nodeId,
+        "node",
+      );
     }
   }
 
   if (issues.length > 0) {
-    throw new XFrameError("REFERENCE_NOT_FOUND", "One or more model references could not be resolved.", {
-      kind: "reference",
-      issues: sortIssues(issues),
-    });
+    throw new XFrameError(
+      "REFERENCE_NOT_FOUND",
+      "One or more model references could not be resolved.",
+      {
+        kind: "reference",
+        issues: sortIssues(issues),
+      },
+    );
   }
 
   return Object.freeze({

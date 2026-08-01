@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { XFrameError } from "../../src/errors/xframe-error.js";
 import { createModelBuilder } from "../../src/model/model-builder.js";
 
@@ -19,10 +19,16 @@ function completeFrame(reverseInsertion = false) {
     { id: "b", coordinates: [10, 0, 0] as const },
     { id: "a", coordinates: [0, 0, 0] as const },
   ];
-  for (const node of reverseInsertion ? [...nodes].reverse() : nodes) builder.addNode(node);
+  for (const node of reverseInsertion ? nodes.toReversed() : nodes) builder.addNode(node);
   return builder
     .addMaterial({ id: "steel", elasticModulus: 200e9, poissonRatio: 0.3 })
-    .addFrameSection({ id: "section", area: 0.01, torsionalConstant: 1e-5, momentOfInertiaY: 2e-5, momentOfInertiaZ: 3e-5 })
+    .addFrameSection({
+      id: "section",
+      area: 0.01,
+      torsionalConstant: 1e-5,
+      momentOfInertiaY: 2e-5,
+      momentOfInertiaZ: 3e-5,
+    })
     .addFrame({
       id: "frame",
       startNodeId: "a",
@@ -33,6 +39,31 @@ function completeFrame(reverseInsertion = false) {
       orientation: [0, 0, 1],
       rigidOffsets: { start: [1, 0, 0], end: [-2, 0, 0] },
     });
+}
+
+function finalizeUnicodeModel() {
+  return createModelBuilder()
+    .setUnitSystem(units)
+    .addNode({ id: "ä", coordinates: [2, 0, 0] })
+    .addNode({ id: "z", coordinates: [1, 0, 0] })
+    .addNode({ id: "a", coordinates: [0, 0, 0] })
+    .addMaterial({ id: "material", elasticModulus: 200e9, poissonRatio: 0.3 })
+    .addTrussSection({ id: "section", area: 0.01 })
+    .addTruss({
+      id: "ä-truss",
+      startNodeId: "ä",
+      endNodeId: "z",
+      materialId: "material",
+      sectionId: "section",
+    })
+    .addTruss({
+      id: "z-truss",
+      startNodeId: "z",
+      endNodeId: "a",
+      materialId: "material",
+      sectionId: "section",
+    })
+    .finalize();
 }
 
 describe("model finalization", () => {
@@ -50,6 +81,21 @@ describe("model finalization", () => {
     expect(Object.isFrozen(frame.geometry.elasticStart)).toBe(true);
   });
 
+  it("FR-SAFE-010: finalization and physical DOF ordering never consult host collation", () => {
+    const localeCompare = vi.spyOn(String.prototype, "localeCompare").mockImplementation(() => {
+      throw new Error("localeCompare used");
+    });
+    try {
+      const model = finalizeUnicodeModel();
+      expect(model.nodes.map(({ id }) => id)).toEqual(["a", "z", "ä"]);
+      expect(
+        Array.from(model.physicalDofs.values(), ({ nodeId, dof }) => `${nodeId}.${dof}`),
+      ).toEqual(["a.tx", "a.ty", "a.tz", "z.tx", "z.ty", "z.tz", "ä.tx", "ä.ty", "ä.tz"]);
+    } finally {
+      localeCompare.mockRestore();
+    }
+  });
+
   it("NFR-DET-001: canonical ordering and fingerprint ignore insertion order", () => {
     const first = completeFrame(false).finalize();
     const second = completeFrame(true).finalize();
@@ -60,8 +106,17 @@ describe("model finalization", () => {
   });
 
   it("FR-MOD-006: rejects missing units and structurally empty models", () => {
-    expect(() => createModelBuilder().addNode({ id: "a", coordinates: [0, 0, 0] }).finalize()).toThrow(XFrameError);
-    expect(() => createModelBuilder().setUnitSystem(units).addNode({ id: "a", coordinates: [0, 0, 0] }).finalize()).toThrow(XFrameError);
+    expect(() =>
+      createModelBuilder()
+        .addNode({ id: "a", coordinates: [0, 0, 0] })
+        .finalize(),
+    ).toThrow(XFrameError);
+    expect(() =>
+      createModelBuilder()
+        .setUnitSystem(units)
+        .addNode({ id: "a", coordinates: [0, 0, 0] })
+        .finalize(),
+    ).toThrow(XFrameError);
   });
 
   it("FR-SEC-002: checks theory-dependent section completeness at finalization", () => {
@@ -70,8 +125,21 @@ describe("model finalization", () => {
       .addNode({ id: "a", coordinates: [0, 0, 0] })
       .addNode({ id: "b", coordinates: [1, 0, 0] })
       .addMaterial({ id: "m", elasticModulus: 200e9, poissonRatio: 0.3 })
-      .addFrameSection({ id: "s", area: 1, torsionalConstant: 1, momentOfInertiaY: 1, momentOfInertiaZ: 1 })
-      .addFrame({ id: "f", startNodeId: "a", endNodeId: "b", materialId: "m", sectionId: "s", theory: { kind: "timoshenko" } });
+      .addFrameSection({
+        id: "s",
+        area: 1,
+        torsionalConstant: 1,
+        momentOfInertiaY: 1,
+        momentOfInertiaZ: 1,
+      })
+      .addFrame({
+        id: "f",
+        startNodeId: "a",
+        endNodeId: "b",
+        materialId: "m",
+        sectionId: "s",
+        theory: { kind: "timoshenko" },
+      });
     expect(() => builder.finalize()).toThrow(XFrameError);
   });
 });

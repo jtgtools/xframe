@@ -15,11 +15,14 @@ import type {
   ResolvedSpringRecord,
   ResolvedTrussRecord,
 } from "./finalized-model.js";
+import { compareIdentifiers, type EntityId } from "./identifier.js";
 import { computeModelFingerprint } from "./model-fingerprint.js";
 import { resolveModelReferences } from "./reference-resolution.js";
 
-function sortedById<T extends { readonly id: string }>(values: readonly T[]): readonly T[] {
-  return Object.freeze([...values].sort((left, right) => left.id.localeCompare(right.id)));
+function sortedById<T extends { readonly id: EntityId }>(values: readonly T[]): readonly T[] {
+  return Object.freeze(
+    [...values].toSorted((left, right) => compareIdentifiers(left.id, right.id)),
+  );
 }
 
 function canonicalSnapshot(snapshot: ModelSnapshot): ModelSnapshot {
@@ -42,8 +45,20 @@ function tuple3(value: ArrayLike<number>): readonly [number, number, number] {
   return Object.freeze([value[0]!, value[1]!, value[2]!]);
 }
 
-function tuple9(value: ArrayLike<number>): readonly [number, number, number, number, number, number, number, number, number] {
-  return Object.freeze([value[0]!, value[1]!, value[2]!, value[3]!, value[4]!, value[5]!, value[6]!, value[7]!, value[8]!]);
+function tuple9(
+  value: ArrayLike<number>,
+): readonly [number, number, number, number, number, number, number, number, number] {
+  return Object.freeze([
+    value[0]!,
+    value[1]!,
+    value[2]!,
+    value[3]!,
+    value[4]!,
+    value[5]!,
+    value[6]!,
+    value[7]!,
+    value[8]!,
+  ]);
 }
 
 function frozenGeometry(value: ElasticGeometry): FrozenElasticGeometry {
@@ -71,11 +86,15 @@ function frozenAxes(value: LocalAxes): FrozenLocalAxes {
 
 function validateCompleteness(model: ModelSnapshot): void {
   if (model.unitSystem === undefined) {
-    throw new XFrameError("UNITS_INVALID", "A model cannot be finalized without exact unit metadata.", {
-      kind: "units",
-      path: "units",
-      reason: "unit system is missing",
-    });
+    throw new XFrameError(
+      "UNITS_INVALID",
+      "A model cannot be finalized without exact unit metadata.",
+      {
+        kind: "units",
+        path: "units",
+        reason: "unit system is missing",
+      },
+    );
   }
   if (model.nodes.length === 0) {
     throw new XFrameError("INPUT_INVALID", "A model cannot be finalized without nodes.", {
@@ -86,12 +105,16 @@ function validateCompleteness(model: ModelSnapshot): void {
     });
   }
   if (model.frames.length + model.trusses.length + model.springs.length === 0) {
-    throw new XFrameError("INPUT_INVALID", "A model cannot be finalized without structural elements or springs.", {
-      kind: "input",
-      path: "elements",
-      expected: "at least one frame, truss, or spring",
-      actual: "0",
-    });
+    throw new XFrameError(
+      "INPUT_INVALID",
+      "A model cannot be finalized without structural elements or springs.",
+      {
+        kind: "input",
+        path: "elements",
+        expected: "at least one frame, truss, or spring",
+        actual: "0",
+      },
+    );
   }
 }
 
@@ -100,35 +123,62 @@ export function finalizeModel(snapshotInput: ModelSnapshot): FinalizedModel {
   validateCompleteness(snapshot);
   const references = resolveModelReferences(snapshot);
 
-  const resolvedFrames: ResolvedFrameRecord[] = references.frames.map(({ record, startNode, endNode, material, section }) => {
-    assertFrameSectionSupportsTheory(section, record.theory);
-    const geometry = resolveElasticGeometry(
-      startNode.coordinates,
-      endNode.coordinates,
-      record.rigidOffsets?.start,
-      record.rigidOffsets?.end,
-    );
-    const axes = buildLocalAxes(geometry.elasticStart, geometry.elasticEnd, record.orientation);
-    return Object.freeze({ record, startNode, endNode, material, section, geometry: frozenGeometry(geometry), axes: frozenAxes(axes) });
-  });
+  const resolvedFrames: ResolvedFrameRecord[] = references.frames.map(
+    ({ record, startNode, endNode, material, section }) => {
+      assertFrameSectionSupportsTheory(section, record.theory);
+      const geometry = resolveElasticGeometry(
+        startNode.coordinates,
+        endNode.coordinates,
+        record.rigidOffsets?.start,
+        record.rigidOffsets?.end,
+      );
+      const axes = buildLocalAxes(geometry.elasticStart, geometry.elasticEnd, record.orientation);
+      return Object.freeze({
+        record,
+        startNode,
+        endNode,
+        material,
+        section,
+        geometry: frozenGeometry(geometry),
+        axes: frozenAxes(axes),
+      });
+    },
+  );
 
-  const resolvedTrusses: ResolvedTrussRecord[] = references.trusses.map(({ record, startNode, endNode, material, section }) => {
-    const geometry = resolveElasticGeometry(
-      startNode.coordinates,
-      endNode.coordinates,
-      record.rigidOffsets?.start,
-      record.rigidOffsets?.end,
-    );
-    const direction = tuple3(normalizeVector3(subtractVector3(geometry.elasticEnd, geometry.elasticStart)));
-    return Object.freeze({ record, startNode, endNode, material, section, geometry: frozenGeometry(geometry), direction });
-  });
+  const resolvedTrusses: ResolvedTrussRecord[] = references.trusses.map(
+    ({ record, startNode, endNode, material, section }) => {
+      const geometry = resolveElasticGeometry(
+        startNode.coordinates,
+        endNode.coordinates,
+        record.rigidOffsets?.start,
+        record.rigidOffsets?.end,
+      );
+      const direction = tuple3(
+        normalizeVector3(subtractVector3(geometry.elasticEnd, geometry.elasticStart)),
+      );
+      return Object.freeze({
+        record,
+        startNode,
+        endNode,
+        material,
+        section,
+        geometry: frozenGeometry(geometry),
+        direction,
+      });
+    },
+  );
 
-  const resolvedSprings: ResolvedSpringRecord[] = references.springs.map(({ record, startNode, endNode }) =>
-    Object.freeze({ record, startNode, ...(endNode === undefined ? {} : { endNode }) }),
+  const resolvedSprings: ResolvedSpringRecord[] = references.springs.map(
+    ({ record, startNode, endNode }) =>
+      Object.freeze({ record, startNode, ...(endNode === undefined ? {} : { endNode }) }),
   );
 
   const physicalDofs = derivePhysicalDofTopology(snapshot);
-  const structuralFingerprint = computeModelFingerprint({ ...snapshot, loadCases: [], combinations: [] });
+  const structuralFingerprint = computeModelFingerprint({
+    ...snapshot,
+    loadCases: [],
+    combinations: [],
+  });
   const loadCases = finalizeLoadCases(
     snapshot.loadCases,
     resolvedFrames,

@@ -1,4 +1,5 @@
 import { XFrameError } from "../errors/xframe-error.js";
+import { compareIdentifiers, type EntityId } from "../model/identifier.js";
 import type { CanonicalAffineConstraint } from "./affine-equation.js";
 
 const TOLERANCE = 256 * Number.EPSILON;
@@ -23,8 +24,15 @@ function removeScaledZeros(row: Map<number, number>, scale: number): void {
 export function analyzeConstraintRank(
   equationsInput: readonly CanonicalAffineConstraint[],
 ): ConstraintRankAnalysis {
-  const equations = [...equationsInput].sort((left, right) => left.sourceId.localeCompare(right.sourceId));
-  const rows: { sourceId: string; coefficients: Map<number, number>; rightHandSide: number; pivotDof: number }[] = [];
+  const equations = [...equationsInput].toSorted((left, right) =>
+    compareIdentifiers(left.sourceId as EntityId, right.sourceId as EntityId),
+  );
+  const rows: {
+    sourceId: string;
+    coefficients: Map<number, number>;
+    rightHandSide: number;
+    pivotDof: number;
+  }[] = [];
   const redundantSourceIds: string[] = [];
 
   for (const equation of equations) {
@@ -45,12 +53,16 @@ export function analyzeConstraintRank(
     }
     if (coefficients.size === 0) {
       if (rhs !== 0) {
-        throw new XFrameError("CONSTRAINT_CONTRADICTION", "Constraint system contains conflicting dependent equations.", {
-          kind: "analysis",
-          stage: "constraint-rank",
-          detail: `source=${equation.sourceId}, reducedRhs=${String(rhs)}`,
-          entityId: equation.sourceId,
-        });
+        throw new XFrameError(
+          "CONSTRAINT_CONTRADICTION",
+          "Constraint system contains conflicting dependent equations.",
+          {
+            kind: "analysis",
+            stage: "constraint-rank",
+            detail: `source=${equation.sourceId}, reducedRhs=${String(rhs)}`,
+            entityId: equation.sourceId,
+          },
+        );
       }
       redundantSourceIds.push(equation.sourceId);
       continue;
@@ -69,7 +81,14 @@ export function analyzeConstraintRank(
         previous.coefficients.set(dof, (previous.coefficients.get(dof) ?? 0) - factor * value);
       }
       previous.rightHandSide -= factor * rhs;
-      removeScaledZeros(previous.coefficients, Math.max(1, ...[...previous.coefficients.values()].map(Math.abs), Math.abs(previous.rightHandSide)));
+      removeScaledZeros(
+        previous.coefficients,
+        Math.max(
+          1,
+          ...[...previous.coefficients.values()].map(Math.abs),
+          Math.abs(previous.rightHandSide),
+        ),
+      );
     }
     rows.push({ sourceId: equation.sourceId, coefficients, rightHandSide: rhs, pivotDof });
     rows.sort((left, right) => left.pivotDof - right.pivotDof);
@@ -81,7 +100,7 @@ export function analyzeConstraintRank(
       rows.map((row) =>
         Object.freeze({
           sourceId: row.sourceId,
-          coefficients: new Map([...row.coefficients].sort(([left], [right]) => left - right)),
+          coefficients: new Map([...row.coefficients].toSorted(([left], [right]) => left - right)),
           rightHandSide: row.rightHandSide,
           pivotDof: row.pivotDof,
         }),
