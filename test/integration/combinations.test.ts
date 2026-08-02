@@ -38,6 +38,68 @@ function collisionModel(area: number) {
   });
 }
 
+function frameCombinationModel() {
+  const builder = createModelBuilder()
+    .setUnitSystem(units)
+    .addNode({ id: "a", coordinates: [0, 0, 0] })
+    .addNode({ id: "b", coordinates: [10, 0, 0] })
+    .addMaterial({ id: "m", elasticModulus: 200e9, poissonRatio: 0.3 })
+    .addFrameSection({
+      id: "s",
+      area: 0.02,
+      torsionalConstant: 1e-5,
+      momentOfInertiaY: 2e-5,
+      momentOfInertiaZ: 2e-5,
+    })
+    .addFrame({
+      id: "f",
+      startNodeId: "a",
+      endNodeId: "b",
+      materialId: "m",
+      sectionId: "s",
+      theory: { kind: "euler-bernoulli" },
+      orientation: [0, 1, 0],
+    });
+  for (const dof of ["tx", "ty", "tz", "rx", "ry"] as const)
+    builder.addConstraint({
+      id: `a:${dof}`,
+      terms: [{ nodeId: "a", dof, coefficient: 1 }],
+      rightHandSide: 0,
+    });
+  for (const dof of ["ty", "tz", "rx", "ry"] as const)
+    builder.addConstraint({
+      id: `b:${dof}`,
+      terms: [{ nodeId: "b", dof, coefficient: 1 }],
+      rightHandSide: 0,
+    });
+  return builder
+    .addLoadCase({
+      id: "U",
+      loads: [
+        {
+          kind: "member-distributed",
+          frameId: "f",
+          coordinateSystem: "local",
+          startIntensity: [0, -1000, 0],
+          endIntensity: [0, -1000, 0],
+        },
+      ],
+    })
+    .addLoadCase({
+      id: "T",
+      loads: [
+        {
+          kind: "member-distributed",
+          frameId: "f",
+          coordinateSystem: "local",
+          startIntensity: [0, 0, 0],
+          endIntensity: [0, -1000, 0],
+        },
+      ],
+    })
+    .finalize();
+}
+
 it("FR-RES-006: combines compatible results without aliasing and preserves factor provenance", () => {
   const model = createModelBuilder()
     .setUnitSystem({
@@ -68,6 +130,42 @@ it("FR-RES-006: combines compatible results without aliasing and preserves facto
     { resultId: "B", factor: 0.5 },
   ]);
   expect(result.fullDisplacements).not.toBe(a!.fullDisplacements);
+});
+
+it("FR-SAFE-002: combines twelve-component truss reference actions component-wise", () => {
+  const prepared = prepareAnalysis(
+    collisionModel(1)
+      .addLoadCase({ id: "M", loads: [{ kind: "nodal", nodeId: "b", force: [3, 0, 0] }] })
+      .finalize(),
+  );
+  const [first, second] = prepared.solveCases(["L", "M"]);
+  const combined = combineResults("C", [
+    { result: first!, factor: 2 },
+    { result: second!, factor: 0.5 },
+  ]);
+
+  expect(combined.trusses[0]!.globalReferenceEndForces).toEqual([
+    -3.5, 0, 0, 0, 0, 0, 3.5, 0, 0, 0, 0, 0,
+  ]);
+});
+
+it("FR-SAFE-004: combines force polynomials before deriving a new interior extremum", () => {
+  const prepared = prepareAnalysis(frameCombinationModel());
+  const [uniform, triangular] = prepared.solveCases(["U", "T"]);
+  const combined = combineResults("C", [
+    { result: uniform!, factor: 1 },
+    { result: triangular!, factor: 1 },
+  ]);
+  const sourceLocations = [
+    ...uniform!.frames[0]!.internalForces.map(({ x }) => x),
+    ...triangular!.frames[0]!.internalForces.map(({ x }) => x),
+  ];
+  const extremum = combined.frames[0]!.internalForces.find(({ x }) => x > 0 && x < 10);
+
+  expect(extremum).toBeDefined();
+  expect(extremum!.x).toBeCloseTo((-20 + Math.sqrt(2800 / 3)) / 2, 12);
+  expect(extremum!.shearY).toBeCloseTo(0, 9);
+  expect(sourceLocations).not.toContain(extremum!.x);
 });
 
 it("FR-RES-006: rejects duplicate source IDs and a combination ID collision", () => {

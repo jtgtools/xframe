@@ -43,6 +43,11 @@ export type { AnalysisStatistics, CaseSolution } from "./analysis/prepared-analy
 
 export { combineResults } from "./results/combine-results.js";
 export type { ResultFactor } from "./results/combine-results.js";
+export type {
+  FrameForceCoefficients,
+  FrameForceComponents,
+  FrameInternalForceSegment,
+} from "./results/frame-internal-forces.js";
 export { createEnvelopeCompatibility, streamEnvelope } from "./results/stream-envelope.js";
 export type {
   CaseDiagnostics,
@@ -69,5 +74,5 @@ export { MODEL_SCHEMA_VERSION, modelToJsonValue } from "./serialization/model-sc
 export type { ModelJsonV1 } from "./serialization/model-schema.js";
 export { parseModelJson } from "./serialization/parse-model-json.js";
 export { RESULT_SCHEMA_VERSION, resultToJsonValue } from "./serialization/result-schema.js";
-export type { ResultJsonV1 } from "./serialization/result-schema.js";
+export type { ResultJsonV2 } from "./serialization/result-schema.js";
 export { parseResultJson } from "./serialization/parse-result-json.js";

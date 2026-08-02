@@ -20,7 +20,10 @@ import type { SkylineCholeskyFactor } from "../linalg/skyline-cholesky.js";
 import type { SymmetricCoordinateMatrix } from "../linalg/symmetric-coordinate-matrix.js";
 import type { FinalizedLoadCaseRecord, FinalizedModel } from "../model/finalized-model.js";
 import { createCaseDiagnostics } from "./case-diagnostics.js";
-import { frameStationLayout, recoverFrameInternalForces } from "./frame-internal-forces.js";
+import {
+  buildFrameInternalForceSegments,
+  deriveFrameInternalForceStations,
+} from "./frame-internal-forces.js";
 import type {
   CaseResult,
   FrameResult,
@@ -85,17 +88,20 @@ function frameResults(
       const currentLoads = loadCase.loads
         .map((load) => resolvedFrameMemberLoad(frame, load))
         .filter((load) => load !== undefined);
+      const internalForceSegments = buildFrameInternalForceSegments(
+        frame.geometry.elasticLength,
+        localEndForces,
+        currentLoads,
+        allLoads,
+      );
       return Object.freeze({
         id: frame.record.id,
         localEndDisplacements: frozenNumbers(localDisplacements),
         globalEndDisplacements: frozenNumbers(globalDisplacements),
         localEndForces: frozenNumbers(localEndForces),
         globalEndForces: frozenNumbers(transform.forceToGlobal(localEndForces)),
-        internalForces: recoverFrameInternalForces(
-          localEndForces,
-          currentLoads,
-          frameStationLayout(frame.geometry.elasticLength, allLoads),
-        ),
+        internalForceSegments,
+        internalForces: deriveFrameInternalForceStations(internalForceSegments),
       });
     }),
   );
@@ -121,12 +127,18 @@ function trussResults(
           gathered(fullDisplacements, trussEquationMap(model, truss)),
         ),
       });
+      const globalReferenceEndForces = new Float64Array(12);
+      const activeReferenceActions = kinematics.referenceActions(value.globalEndForces);
+      for (let index = 0; index < activeReferenceActions.length; index += 1)
+        globalReferenceEndForces[kinematics.activeReferenceComponents[index]!] =
+          activeReferenceActions[index]!;
       return Object.freeze({
         id: truss.record.id,
         extension: value.extension,
         strain: value.strain,
         axialForce: value.axialForce,
         globalEndForces: frozenNumbers(value.globalEndForces),
+        globalReferenceEndForces: frozenNumbers(globalReferenceEndForces),
       });
     }),
   );

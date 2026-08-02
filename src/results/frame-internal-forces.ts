@@ -3,7 +3,7 @@ import { finiteNumber } from "../geometry/finite.js";
 import type { FrameInternalForceStation } from "./result-types.js";
 
 export type FrameForceCoefficients = readonly [number, number, number, number];
-type FrameForceComponents = readonly [number, number, number, number, number, number];
+export type FrameForceComponents = readonly [number, number, number, number, number, number];
 type MutableFrameForceComponents = [number, number, number, number, number, number];
 
 export interface FrameInternalForceSegment {

@@ -2,7 +2,17 @@ import { expect, it } from "vitest";
 import { prepareAnalysis } from "../../src/analysis/prepare-analysis.js";
 import { createModelBuilder } from "../../src/model/model-builder.js";
 
-function fixedFrame(length: number) {
+function fixedFrame(
+  length: number,
+  startDofs: readonly ("tx" | "ty" | "tz" | "rx" | "ry" | "rz")[] = [
+    "tx",
+    "ty",
+    "tz",
+    "rx",
+    "ry",
+    "rz",
+  ],
+) {
   const builder = createModelBuilder()
     .setUnitSystem({
       version: "1",
@@ -33,7 +43,7 @@ function fixedFrame(length: number) {
       theory: { kind: "euler-bernoulli" },
       orientation: [0, 1, 0],
     });
-  for (const dof of ["tx", "ty", "tz", "rx", "ry", "rz"] as const)
+  for (const dof of startDofs)
     builder.addConstraint({
       id: `a:${dof}`,
       terms: [{ nodeId: "a", dof, coefficient: 1 }],
@@ -41,6 +51,44 @@ function fixedFrame(length: number) {
     });
   return builder;
 }
+
+it("FR-SAFE-004: publishes frozen contiguous force polynomials with the simply-supported midspan extremum", () => {
+  const length = 10;
+  const builder = fixedFrame(length, ["tx", "ty", "tz", "rx", "ry"]);
+  for (const dof of ["ty", "tz", "rx", "ry"] as const)
+    builder.addConstraint({
+      id: `b:${dof}`,
+      terms: [{ nodeId: "b", dof, coefficient: 1 }],
+      rightHandSide: 0,
+    });
+  const frame = prepareAnalysis(
+    builder
+      .addLoadCase({
+        id: "q",
+        loads: [
+          {
+            kind: "member-distributed",
+            frameId: "f",
+            coordinateSystem: "local",
+            startIntensity: [0, -1000, 0],
+            endIntensity: [0, -1000, 0],
+          },
+        ],
+      })
+      .finalize(),
+  ).solveCase("q").frames[0]!;
+
+  const segments = frame.internalForceSegments;
+  expect(segments.map(({ start, end }) => [start, end])).toEqual([[0, length]]);
+  expect(Object.isFrozen(segments)).toBe(true);
+  expect(Object.isFrozen(segments[0])).toBe(true);
+  expect(Object.isFrozen(segments[0]!.coefficients)).toBe(true);
+  expect(Object.isFrozen(segments[0]!.coefficients[0])).toBe(true);
+  const midspan = frame.internalForces.find(({ x }) => x > 0 && x < length);
+  expect(midspan).toBeDefined();
+  expect(midspan!.x).toBeCloseTo(5, 12);
+  expect(Math.abs(midspan!.bendingZ)).toBeCloseTo(12500, 9);
+});
 
 it("FR-RES-002: recovers frame end forces and balanced internal-force stations for a uniform load", () => {
   const length = 4;

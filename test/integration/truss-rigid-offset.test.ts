@@ -90,6 +90,20 @@ describe("eccentric truss integration", () => {
     expect(result.diagnostics.momentEquilibrium).toEqual([0, 0, 0]);
   });
 
+  it("FR-SAFE-002: publishes immutable twelve-component reference actions without changing elastic forces", () => {
+    const truss = prepareAnalysis(rotationalSpringModel(true)).solveCase("M").trusses[0]!;
+
+    expect(truss.globalEndForces).toHaveLength(6);
+    expect(truss.globalReferenceEndForces).toHaveLength(12);
+    const expected = [
+      -333.3333333333333, 0, 0, 0, 0, 333.3333333333333, 333.3333333333333, 0, 0, 0, 0,
+      -333.3333333333333,
+    ] as const;
+    for (let component = 0; component < expected.length; component += 1)
+      expect(truss.globalReferenceEndForces[component]).toBeCloseTo(expected[component]!, 12);
+    expect(Object.isFrozen(truss.globalReferenceEndForces)).toBe(true);
+  });
+
   it("FR-SAFE-002: preserves the compatible free-B response without adding rotational restraint", () => {
     const result = prepareAnalysis(rotationalSpringModel(false)).solveCase("M");
 

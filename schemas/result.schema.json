@@ -4,13 +4,10 @@
   "title": "xframe structural result artifact",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "schemaVersion",
-    "result"
-  ],
+  "required": ["schemaVersion", "result"],
   "properties": {
     "schemaVersion": {
-      "const": "1"
+      "const": "2"
     },
     "result": {
       "$ref": "#/$defs/structuralResult"
@@ -114,15 +111,28 @@
       "minItems": 12,
       "maxItems": 12
     },
+    "forcePolynomial": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "items": false,
+      "minItems": 4,
+      "maxItems": 4
+    },
     "dof": {
-      "enum": [
-        "tx",
-        "ty",
-        "tz",
-        "rx",
-        "ry",
-        "rz"
-      ]
+      "enum": ["tx", "ty", "tz", "rx", "ry", "rz"]
     },
     "unitSystem": {
       "type": "object",
@@ -173,10 +183,7 @@
     "dofValue": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "dof",
-        "value"
-      ],
+      "required": ["dof", "value"],
       "properties": {
         "dof": {
           "$ref": "#/$defs/dof"
@@ -189,12 +196,7 @@
     "nodeResult": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "id",
-        "coordinates",
-        "displacements",
-        "reactions"
-      ],
+      "required": ["id", "coordinates", "displacements", "reactions"],
       "properties": {
         "id": {
           "$ref": "#/$defs/identifier"
@@ -219,26 +221,13 @@
     "frameStation": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "x",
-        "side",
-        "axial",
-        "shearY",
-        "shearZ",
-        "torsion",
-        "bendingY",
-        "bendingZ"
-      ],
+      "required": ["x", "side", "axial", "shearY", "shearZ", "torsion", "bendingY", "bendingZ"],
       "properties": {
         "x": {
           "type": "number"
         },
         "side": {
-          "enum": [
-            "single",
-            "left",
-            "right"
-          ]
+          "enum": ["single", "left", "right"]
         },
         "axial": {
           "type": "number"
@@ -260,6 +249,33 @@
         }
       }
     },
+    "frameInternalForceSegment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end", "coefficients"],
+      "properties": {
+        "start": {
+          "type": "number"
+        },
+        "end": {
+          "type": "number"
+        },
+        "coefficients": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/forcePolynomial"
+          },
+          "minItems": 6,
+          "maxItems": 6
+        },
+        "startLeft": {
+          "$ref": "#/$defs/vector6"
+        },
+        "endRight": {
+          "$ref": "#/$defs/vector6"
+        }
+      }
+    },
     "frameResult": {
       "type": "object",
       "additionalProperties": false,
@@ -269,6 +285,7 @@
         "globalEndDisplacements",
         "localEndForces",
         "globalEndForces",
+        "internalForceSegments",
         "internalForces"
       ],
       "properties": {
@@ -287,6 +304,13 @@
         "globalEndForces": {
           "$ref": "#/$defs/vector12"
         },
+        "internalForceSegments": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/frameInternalForceSegment"
+          }
+        },
         "internalForces": {
           "type": "array",
           "items": {
@@ -303,7 +327,8 @@
         "extension",
         "strain",
         "axialForce",
-        "globalEndForces"
+        "globalEndForces",
+        "globalReferenceEndForces"
       ],
       "properties": {
         "id": {
@@ -320,6 +345,9 @@
         },
         "globalEndForces": {
           "$ref": "#/$defs/vector6"
+        },
+        "globalReferenceEndForces": {
+          "$ref": "#/$defs/vector12"
         }
       }
     },
@@ -328,11 +356,7 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "id",
-            "grounded",
-            "globalEndForces"
-          ],
+          "required": ["id", "grounded", "globalEndForces"],
           "properties": {
             "id": {
               "$ref": "#/$defs/identifier"
@@ -348,11 +372,7 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "id",
-            "grounded",
-            "globalEndForces"
-          ],
+          "required": ["id", "grounded", "globalEndForces"],
           "properties": {
             "id": {
               "$ref": "#/$defs/identifier"
@@ -370,12 +390,7 @@
     "conventions": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "coordinateSystem",
-        "rotations",
-        "frameEndForces",
-        "internalForces"
-      ],
+      "required": ["coordinateSystem", "rotations", "frameEndForces", "internalForces"],
       "properties": {
         "coordinateSystem": {
           "const": "global-node-local-member"
@@ -419,12 +434,7 @@
       ],
       "properties": {
         "status": {
-          "enum": [
-            "pass",
-            "warn",
-            "fail",
-            "not-applicable"
-          ]
+          "enum": ["pass", "warn", "fail", "not-applicable"]
         },
         "forceEquilibrium": {
           "$ref": "#/$defs/vector3"
@@ -499,11 +509,7 @@
     "provenance": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "loadIndex",
-        "kind",
-        "targetIds"
-      ],
+      "required": ["loadIndex", "kind", "targetIds"],
       "properties": {
         "loadIndex": {
           "type": "integer",
@@ -529,10 +535,7 @@
     "resultFactor": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "resultId",
-        "factor"
-      ],
+      "required": ["resultId", "factor"],
       "properties": {
         "resultId": {
           "$ref": "#/$defs/identifier"
@@ -571,7 +574,7 @@
         },
         "modelFingerprint": {
           "type": "string",
-          "minLength": 1
+          "pattern": "^sha256:[0-9a-f]{64}$"
         },
         "unitSystem": {
           "$ref": "#/$defs/unitSystem"
@@ -667,7 +670,7 @@
         },
         "modelFingerprint": {
           "type": "string",
-          "minLength": 1
+          "pattern": "^sha256:[0-9a-f]{64}$"
         },
         "unitSystem": {
           "$ref": "#/$defs/unitSystem"

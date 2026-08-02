@@ -1,6 +1,7 @@
 import type { DofName } from "../model/domain-records.js";
 import type { EntityId } from "../model/identifier.js";
 import type { UnitSystem } from "../units/unit-system.js";
+import type { FrameInternalForceSegment } from "./frame-internal-forces.js";
 
 export interface DofValueResult {
   readonly dof: DofName;
@@ -31,6 +32,7 @@ export interface FrameResult {
   readonly globalEndDisplacements: readonly number[];
   readonly localEndForces: readonly number[];
   readonly globalEndForces: readonly number[];
+  readonly internalForceSegments: readonly FrameInternalForceSegment[];
   readonly internalForces: readonly FrameInternalForceStation[];
 }
 
@@ -40,6 +42,7 @@ export interface TrussElementResult {
   readonly strain: number;
   readonly axialForce: number;
   readonly globalEndForces: readonly number[];
+  readonly globalReferenceEndForces: readonly number[];
 }
 
 export interface SpringElementResult {
