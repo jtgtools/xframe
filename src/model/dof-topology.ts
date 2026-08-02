@@ -1,4 +1,5 @@
 import { XFrameError } from "../errors/xframe-error.js";
+import { hasNonzeroTrussRigidOffset } from "../elements/truss/rigid-offset-kinematics.js";
 import type { ConstraintRecord, DofName, ModelSnapshot } from "./domain-records.js";
 import { createDofKey, DOF_NAMES, TRANSLATIONAL_DOF_NAMES, type DofKey } from "./dof-key.js";
 import { compareIdentifiers, type EntityId } from "./identifier.js";
@@ -120,8 +121,18 @@ export function derivePhysicalDofTopology(model: ModelSnapshot): PhysicalDofTabl
     requestComponents(requests, frame.endNodeId, DOF_NAMES, `frame:${frame.id}`);
   }
   for (const truss of model.trusses) {
-    requestComponents(requests, truss.startNodeId, TRANSLATIONAL_DOF_NAMES, `truss:${truss.id}`);
-    requestComponents(requests, truss.endNodeId, TRANSLATIONAL_DOF_NAMES, `truss:${truss.id}`);
+    requestComponents(
+      requests,
+      truss.startNodeId,
+      hasNonzeroTrussRigidOffset(truss.rigidOffsets?.start) ? DOF_NAMES : TRANSLATIONAL_DOF_NAMES,
+      `truss:${truss.id}`,
+    );
+    requestComponents(
+      requests,
+      truss.endNodeId,
+      hasNonzeroTrussRigidOffset(truss.rigidOffsets?.end) ? DOF_NAMES : TRANSLATIONAL_DOF_NAMES,
+      `truss:${truss.id}`,
+    );
   }
   for (const spring of model.springs) {
     for (let component = 0; component < DOF_NAMES.length; component += 1) {
