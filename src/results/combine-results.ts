@@ -3,6 +3,7 @@ import { parseIdentifier } from "../model/identifier.js";
 import {
   addFrameInternalForceSegments,
   deriveFrameInternalForceStations,
+  scaleFrameInternalForceSegments,
 } from "./frame-internal-forces.js";
 import type { CaseDiagnostics, CombinationResult, StructuralResult } from "./result-types.js";
 
@@ -208,10 +209,9 @@ export function combineResults(
 
   const frames = Object.freeze(
     first.frames.map((frame, frameIndex) => {
-      let internalForceSegments = addFrameInternalForceSegments(
+      let internalForceSegments = scaleFrameInternalForceSegments(
         frame.internalForceSegments,
-        frame.internalForceSegments,
-        factors[0]!.factor - 1,
+        factors[0]!.factor,
       );
       for (const { result, factor } of factors.slice(1)) {
         internalForceSegments = addFrameInternalForceSegments(

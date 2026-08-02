@@ -331,32 +331,100 @@ export function frameForceDerivativeRoots(
   return Object.freeze([...new Set(roots)].toSorted((left, right) => left - right));
 }
 
+function scaledNumber(value: number, factor: number, path: string): number {
+  return finiteNumber(value * factor, path);
+}
+
+function addedNumber(left: number, right: number, rightFactor: number, path: string): number {
+  return finiteNumber(left + scaledNumber(right, rightFactor, path), path);
+}
+
+function scaledCoefficients(
+  value: FrameForceCoefficients,
+  factor: number,
+  path: string,
+): FrameForceCoefficients {
+  return forcePolynomial(
+    scaledNumber(value[0], factor, `${path}[0]`),
+    scaledNumber(value[1], factor, `${path}[1]`),
+    scaledNumber(value[2], factor, `${path}[2]`),
+    scaledNumber(value[3], factor, `${path}[3]`),
+  );
+}
+
 function addedCoefficients(
   left: FrameForceCoefficients,
   right: FrameForceCoefficients,
   rightFactor: number,
+  path: string,
 ): FrameForceCoefficients {
   return forcePolynomial(
-    left[0] + rightFactor * right[0],
-    left[1] + rightFactor * right[1],
-    left[2] + rightFactor * right[2],
-    left[3] + rightFactor * right[3],
+    addedNumber(left[0], right[0], rightFactor, `${path}[0]`),
+    addedNumber(left[1], right[1], rightFactor, `${path}[1]`),
+    addedNumber(left[2], right[2], rightFactor, `${path}[2]`),
+    addedNumber(left[3], right[3], rightFactor, `${path}[3]`),
   );
+}
+
+function scaledComponents(
+  value: FrameForceComponents,
+  factor: number,
+  path: string,
+): FrameForceComponents {
+  return frozenComponents([
+    scaledNumber(value[0], factor, `${path}[0]`),
+    scaledNumber(value[1], factor, `${path}[1]`),
+    scaledNumber(value[2], factor, `${path}[2]`),
+    scaledNumber(value[3], factor, `${path}[3]`),
+    scaledNumber(value[4], factor, `${path}[4]`),
+    scaledNumber(value[5], factor, `${path}[5]`),
+  ]);
 }
 
 function addedComponents(
   left: FrameForceComponents,
   right: FrameForceComponents,
   rightFactor: number,
+  path: string,
 ): FrameForceComponents {
   return frozenComponents([
-    left[0] + rightFactor * right[0],
-    left[1] + rightFactor * right[1],
-    left[2] + rightFactor * right[2],
-    left[3] + rightFactor * right[3],
-    left[4] + rightFactor * right[4],
-    left[5] + rightFactor * right[5],
+    addedNumber(left[0], right[0], rightFactor, `${path}[0]`),
+    addedNumber(left[1], right[1], rightFactor, `${path}[1]`),
+    addedNumber(left[2], right[2], rightFactor, `${path}[2]`),
+    addedNumber(left[3], right[3], rightFactor, `${path}[3]`),
+    addedNumber(left[4], right[4], rightFactor, `${path}[4]`),
+    addedNumber(left[5], right[5], rightFactor, `${path}[5]`),
   ]);
+}
+
+export function scaleFrameInternalForceSegments(
+  segments: readonly FrameInternalForceSegment[],
+  factor: number,
+): readonly FrameInternalForceSegment[] {
+  return Object.freeze(
+    segments.map((segment, index) => {
+      const path = `frameForce.segments[${index}]`;
+      const coefficients = Object.freeze([
+        scaledCoefficients(segment.coefficients[0], factor, `${path}.coefficients[0]`),
+        scaledCoefficients(segment.coefficients[1], factor, `${path}.coefficients[1]`),
+        scaledCoefficients(segment.coefficients[2], factor, `${path}.coefficients[2]`),
+        scaledCoefficients(segment.coefficients[3], factor, `${path}.coefficients[3]`),
+        scaledCoefficients(segment.coefficients[4], factor, `${path}.coefficients[4]`),
+        scaledCoefficients(segment.coefficients[5], factor, `${path}.coefficients[5]`),
+      ]) as FrameInternalForceSegment["coefficients"];
+      return Object.freeze({
+        start: segment.start,
+        end: segment.end,
+        coefficients,
+        ...(segment.startLeft === undefined
+          ? {}
+          : { startLeft: scaledComponents(segment.startLeft, factor, `${path}.startLeft`) }),
+        ...(segment.endRight === undefined
+          ? {}
+          : { endRight: scaledComponents(segment.endRight, factor, `${path}.endRight`) }),
+      });
+    }),
+  );
 }
 
 export function addFrameInternalForceSegments(
@@ -371,16 +439,47 @@ export function addFrameInternalForceSegments(
   for (let index = 0; index < left.length; index += 1) {
     const segment = left[index]!;
     const other = right[index]!;
+    const path = `frameForce.segments[${index}]`;
     if (segment.start !== other.start || segment.end !== other.end) {
       throw new RangeError("Frame internal-force segment boundaries must match.");
     }
     const coefficients = [
-      addedCoefficients(segment.coefficients[0], other.coefficients[0], rightFactor),
-      addedCoefficients(segment.coefficients[1], other.coefficients[1], rightFactor),
-      addedCoefficients(segment.coefficients[2], other.coefficients[2], rightFactor),
-      addedCoefficients(segment.coefficients[3], other.coefficients[3], rightFactor),
-      addedCoefficients(segment.coefficients[4], other.coefficients[4], rightFactor),
-      addedCoefficients(segment.coefficients[5], other.coefficients[5], rightFactor),
+      addedCoefficients(
+        segment.coefficients[0],
+        other.coefficients[0],
+        rightFactor,
+        `${path}.coefficients[0]`,
+      ),
+      addedCoefficients(
+        segment.coefficients[1],
+        other.coefficients[1],
+        rightFactor,
+        `${path}.coefficients[1]`,
+      ),
+      addedCoefficients(
+        segment.coefficients[2],
+        other.coefficients[2],
+        rightFactor,
+        `${path}.coefficients[2]`,
+      ),
+      addedCoefficients(
+        segment.coefficients[3],
+        other.coefficients[3],
+        rightFactor,
+        `${path}.coefficients[3]`,
+      ),
+      addedCoefficients(
+        segment.coefficients[4],
+        other.coefficients[4],
+        rightFactor,
+        `${path}.coefficients[4]`,
+      ),
+      addedCoefficients(
+        segment.coefficients[5],
+        other.coefficients[5],
+        rightFactor,
+        `${path}.coefficients[5]`,
+      ),
     ];
     if (index > 0) {
       const previousLeft = left[index - 1]!;
@@ -417,9 +516,15 @@ export function addFrameInternalForceSegments(
         start: segment.start,
         end: segment.end,
         coefficients: values,
-        ...(index === 0 ? { startLeft: addedComponents(leftStart, rightStart, rightFactor) } : {}),
+        ...(index === 0
+          ? {
+              startLeft: addedComponents(leftStart, rightStart, rightFactor, `${path}.startLeft`),
+            }
+          : {}),
         ...(index + 1 === left.length
-          ? { endRight: addedComponents(leftEnd, rightEnd, rightFactor) }
+          ? {
+              endRight: addedComponents(leftEnd, rightEnd, rightFactor, `${path}.endRight`),
+            }
           : {}),
       }),
     );

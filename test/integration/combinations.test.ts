@@ -168,6 +168,78 @@ it("FR-SAFE-004: combines force polynomials before deriving a new interior extre
   expect(sourceLocations).not.toContain(extremum!.x);
 });
 
+it("FR-SAFE-004/NFR-COR-002: directly scales first frame segments for tiny, zero, and negative factors", () => {
+  const source = prepareAnalysis(frameCombinationModel()).solveCase("U");
+  const sourceFrame = source.frames[0]!;
+  const sourceSegment = sourceFrame.internalForceSegments[0]!;
+  for (const [id, factor] of [
+    ["CT", 1e-20],
+    ["CZ", 0],
+    ["CN", -2],
+  ] as const) {
+    const frame = combineResults(id, [{ result: source, factor }]).frames[0]!;
+    const segment = frame.internalForceSegments[0]!;
+    for (let component = 0; component < segment.coefficients.length; component += 1) {
+      for (let term = 0; term < segment.coefficients[component]!.length; term += 1) {
+        const expected = sourceSegment.coefficients[component]![term]! * factor;
+        expect(segment.coefficients[component]![term]).toBe(expected === 0 ? 0 : expected);
+      }
+    }
+    expect(segment.coefficients[1][0]).toBe(frame.localEndForces[1]);
+    expect(frame.internalForces[0]!.shearY).toBe(frame.localEndForces[1]);
+    expect(Object.isFrozen(frame.internalForceSegments)).toBe(true);
+    expect(Object.isFrozen(segment)).toBe(true);
+    expect(Object.isFrozen(segment.coefficients)).toBe(true);
+  }
+});
+
+it("FR-SAFE-004/NFR-COR-002: rejects non-finite sided endpoint combinations with structured context", () => {
+  const source = prepareAnalysis(frameCombinationModel()).solveCase("U");
+  const frame = source.frames[0]!;
+  const segment = frame.internalForceSegments[0]!;
+  const startLeft = segment.startLeft!;
+  const fabricated = {
+    ...source,
+    frames: [
+      {
+        ...frame,
+        internalForceSegments: [
+          {
+            ...segment,
+            startLeft: [
+              Number.MAX_VALUE,
+              startLeft[1],
+              startLeft[2],
+              startLeft[3],
+              startLeft[4],
+              startLeft[5],
+            ],
+          },
+          ...frame.internalForceSegments.slice(1),
+        ],
+      },
+    ],
+  } as unknown as typeof source;
+
+  let error: unknown;
+  try {
+    combineResults("CO", [{ result: fabricated, factor: 2 }]);
+  } catch (caught) {
+    error = caught;
+  }
+
+  expect(error).toBeInstanceOf(XFrameError);
+  expect(error).toMatchObject({
+    code: "NON_FINITE_VALUE",
+    context: {
+      kind: "numeric",
+      path: "frameForce.segments[0].startLeft[0]",
+      value: "Infinity",
+      expected: "finite number",
+    },
+  });
+});
+
 it("FR-RES-006: rejects duplicate source IDs and a combination ID collision", () => {
   const model = createModelBuilder()
     .setUnitSystem({
