@@ -1,4 +1,5 @@
 import type { FrameMemberLoad } from "../elements/frame/member-load-vector.js";
+import { finiteNumber } from "../geometry/finite.js";
 import type { FrameInternalForceStation } from "./result-types.js";
 
 export type FrameForceCoefficients = readonly [number, number, number, number];
@@ -300,24 +301,33 @@ export function frameForceDerivativeRoots(
   coefficients: FrameForceCoefficients,
   segmentLength: number,
 ): readonly number[] {
-  const constant = coefficients[1];
-  const linear = 2 * coefficients[2];
-  const quadratic = 3 * coefficients[3];
-  if (quadratic === 0) {
-    if (linear === 0) return Object.freeze([]);
-    return Object.freeze(interiorRoot(-constant / linear, segmentLength));
+  for (let index = 0; index < coefficients.length; index += 1)
+    finiteNumber(coefficients[index], `frameForce.coefficients[${index}]`);
+  const length = finiteNumber(segmentLength, "frameForce.segmentLength");
+  const linearDegree = coefficients[2];
+  const quadraticDegree = coefficients[3];
+  const magnitude = Math.max(
+    Math.abs(coefficients[1]),
+    Math.abs(linearDegree),
+    Math.abs(quadraticDegree),
+  );
+  if (magnitude === 0) return Object.freeze([]);
+  const scale = 2 ** Math.min(1023, Math.floor(Math.log2(magnitude)));
+  const constant = coefficients[1] / scale;
+  const linear = 2 * (linearDegree / scale);
+  const quadratic = 3 * (quadraticDegree / scale);
+  if (quadraticDegree === 0) {
+    if (linearDegree === 0) return Object.freeze([]);
+    return Object.freeze(interiorRoot(-constant / linear, length));
   }
   const discriminant = linear ** 2 - 4 * quadratic * constant;
   if (discriminant < 0) return Object.freeze([]);
   if (discriminant === 0) {
-    return Object.freeze(interiorRoot(-linear / (2 * quadratic), segmentLength));
+    return Object.freeze(interiorRoot(-linear / (2 * quadratic), length));
   }
   const root = Math.sqrt(discriminant);
   const q = -0.5 * (linear + (linear < 0 ? -root : root));
-  const roots = [
-    ...interiorRoot(q / quadratic, segmentLength),
-    ...interiorRoot(constant / q, segmentLength),
-  ];
+  const roots = [...interiorRoot(q / quadratic, length), ...interiorRoot(constant / q, length)];
   return Object.freeze([...new Set(roots)].toSorted((left, right) => left - right));
 }
 
@@ -357,36 +367,64 @@ export function addFrameInternalForceSegments(
   if (left.length !== right.length) {
     throw new RangeError("Frame internal-force segment layouts must have equal lengths.");
   }
-  return Object.freeze(
-    left.map((segment, index) => {
-      const other = right[index]!;
-      if (segment.start !== other.start || segment.end !== other.end) {
-        throw new RangeError("Frame internal-force segment boundaries must match.");
+  const result: FrameInternalForceSegment[] = [];
+  for (let index = 0; index < left.length; index += 1) {
+    const segment = left[index]!;
+    const other = right[index]!;
+    if (segment.start !== other.start || segment.end !== other.end) {
+      throw new RangeError("Frame internal-force segment boundaries must match.");
+    }
+    const coefficients = [
+      addedCoefficients(segment.coefficients[0], other.coefficients[0], rightFactor),
+      addedCoefficients(segment.coefficients[1], other.coefficients[1], rightFactor),
+      addedCoefficients(segment.coefficients[2], other.coefficients[2], rightFactor),
+      addedCoefficients(segment.coefficients[3], other.coefficients[3], rightFactor),
+      addedCoefficients(segment.coefficients[4], other.coefficients[4], rightFactor),
+      addedCoefficients(segment.coefficients[5], other.coefficients[5], rightFactor),
+    ];
+    if (index > 0) {
+      const previousLeft = left[index - 1]!;
+      const previousRight = right[index - 1]!;
+      const previousLength = previousLeft.end - previousLeft.start;
+      const leftBefore = evaluateSegment(previousLeft, previousLength);
+      const rightBefore = evaluateSegment(previousRight, previousLength);
+      const leftAfter = evaluateSegment(segment, 0);
+      const rightAfter = evaluateSegment(other, 0);
+      const combinedBefore = evaluateSegment(result[index - 1]!, previousLength);
+      for (let component = 0; component < coefficients.length; component += 1) {
+        if (
+          leftBefore[component] === leftAfter[component] &&
+          rightBefore[component] === rightAfter[component]
+        ) {
+          const value = coefficients[component]!;
+          coefficients[component] = forcePolynomial(
+            combinedBefore[component]!,
+            value[1],
+            value[2],
+            value[3],
+          );
+        }
       }
-      const coefficients = Object.freeze([
-        addedCoefficients(segment.coefficients[0], other.coefficients[0], rightFactor),
-        addedCoefficients(segment.coefficients[1], other.coefficients[1], rightFactor),
-        addedCoefficients(segment.coefficients[2], other.coefficients[2], rightFactor),
-        addedCoefficients(segment.coefficients[3], other.coefficients[3], rightFactor),
-        addedCoefficients(segment.coefficients[4], other.coefficients[4], rightFactor),
-        addedCoefficients(segment.coefficients[5], other.coefficients[5], rightFactor),
-      ]) as FrameInternalForceSegment["coefficients"];
-      const leftStart = segment.startLeft ?? evaluateSegment(segment, 0);
-      const rightStart = other.startLeft ?? evaluateSegment(other, 0);
-      const length = segment.end - segment.start;
-      const leftEnd = segment.endRight ?? evaluateSegment(segment, length);
-      const rightEnd = other.endRight ?? evaluateSegment(other, length);
-      return Object.freeze({
+    }
+    const values = Object.freeze(coefficients) as FrameInternalForceSegment["coefficients"];
+    const leftStart = segment.startLeft ?? evaluateSegment(segment, 0);
+    const rightStart = other.startLeft ?? evaluateSegment(other, 0);
+    const length = segment.end - segment.start;
+    const leftEnd = segment.endRight ?? evaluateSegment(segment, length);
+    const rightEnd = other.endRight ?? evaluateSegment(other, length);
+    result.push(
+      Object.freeze({
         start: segment.start,
         end: segment.end,
-        coefficients,
+        coefficients: values,
         ...(index === 0 ? { startLeft: addedComponents(leftStart, rightStart, rightFactor) } : {}),
         ...(index + 1 === left.length
           ? { endRight: addedComponents(leftEnd, rightEnd, rightFactor) }
           : {}),
-      });
-    }),
-  );
+      }),
+    );
+  }
+  return Object.freeze(result);
 }
 
 function equalComponents(left: FrameForceComponents, right: FrameForceComponents): boolean {
