@@ -6,8 +6,9 @@ export interface MatrixOrdering {
 }
 
 function ordering(permutation: readonly number[]): MatrixOrdering {
-  const inverse = new Array<number>(permutation.length);
-  for (let newIndex = 0; newIndex < permutation.length; newIndex += 1) inverse[permutation[newIndex]!] = newIndex;
+  const inverse = Array.from({ length: permutation.length }, () => 0);
+  for (let newIndex = 0; newIndex < permutation.length; newIndex += 1)
+    inverse[permutation[newIndex]!] = newIndex;
   return Object.freeze({
     permutation: Object.freeze([...permutation]),
     inversePermutation: Object.freeze(inverse),
@@ -27,7 +28,12 @@ export function reverseCuthillMcKee(adjacency: Adjacency): MatrixOrdering {
     let start = -1;
     for (let index = 0; index < size; index += 1) {
       if (visited[index] !== 0) continue;
-      if (start < 0 || adjacency[index]!.length < adjacency[start]!.length || (adjacency[index]!.length === adjacency[start]!.length && index < start)) start = index;
+      if (
+        start < 0 ||
+        adjacency[index]!.length < adjacency[start]!.length ||
+        (adjacency[index]!.length === adjacency[start]!.length && index < start)
+      )
+        start = index;
     }
 
     const component: number[] = [];
@@ -36,16 +42,16 @@ export function reverseCuthillMcKee(adjacency: Adjacency): MatrixOrdering {
     for (let head = 0; head < queue.length; head += 1) {
       const node = queue[head]!;
       component.push(node);
-      const next = adjacency[node]!
-        .filter((neighbor) => visited[neighbor] === 0)
-        .sort((left, right) => adjacency[left]!.length - adjacency[right]!.length || left - right);
+      const next = adjacency[node]!.filter((neighbor) => visited[neighbor] === 0).toSorted(
+        (left, right) => adjacency[left]!.length - adjacency[right]!.length || left - right,
+      );
       for (const neighbor of next) {
         visited[neighbor] = 1;
         queue.push(neighbor);
       }
     }
     component.reverse();
-    permutation.push(...component);
+    for (const node of component) permutation.push(node);
   }
 
   return ordering(permutation);

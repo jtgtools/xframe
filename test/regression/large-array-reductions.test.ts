@@ -3,6 +3,7 @@ import { analyzeConstraintRank } from "../../src/constraints/constraint-rank.js"
 import { canonicalizeConstraint } from "../../src/constraints/canonicalize-constraint.js";
 import { compileConstraints } from "../../src/constraints/compile-constraints.js";
 import { XFrameError } from "../../src/errors/xframe-error.js";
+import { reverseCuthillMcKee } from "../../src/linalg/reverse-cuthill-mckee.js";
 import { maximumSkylineRowWidth } from "../../src/linalg/skyline-profile.js";
 
 const TERM_COUNT = 250_000;
@@ -47,5 +48,15 @@ describe("large array reductions", () => {
       row % 1024 === 0 ? 0 : row,
     );
     expect(maximumSkylineRowWidth(firstColumns)).toBe(249_857);
+  });
+
+  it("FR-SAFE-013: reorders a single 250000-node connected component without a native RangeError", () => {
+    const adjacency = Array.from({ length: TERM_COUNT }, (_, node) => {
+      if (node === 0) return [1];
+      if (node === TERM_COUNT - 1) return [TERM_COUNT - 2];
+      return [node - 1, node + 1];
+    });
+    const ordering = reverseCuthillMcKee(adjacency);
+    expect(ordering.permutation).toHaveLength(TERM_COUNT);
   });
 });
