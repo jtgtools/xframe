@@ -47,7 +47,7 @@ function checkedCount(value: number): number {
 }
 
 function detectEqualDofCycle(equations: readonly CanonicalAffineConstraint[]): void {
-  const graph = new Map<number, Set<number>>();
+  const graph = new Map<number, number[]>();
   const seenEdges = new Set<string>();
   for (const equation of equations) {
     if (equation.rightHandSide !== 0 || equation.terms.length !== 2) continue;
@@ -63,31 +63,39 @@ function detectEqualDofCycle(equations: readonly CanonicalAffineConstraint[]): v
     const key = `${a}:${b}`;
     if (seenEdges.has(key)) continue;
     seenEdges.add(key);
-    const leftSet = graph.get(a) ?? new Set<number>();
-    const rightSet = graph.get(b) ?? new Set<number>();
-    leftSet.add(b);
-    rightSet.add(a);
-    graph.set(a, leftSet);
-    graph.set(b, rightSet);
+    const leftList = graph.get(a) ?? [];
+    const rightList = graph.get(b) ?? [];
+    leftList.push(b);
+    rightList.push(a);
+    graph.set(a, leftList);
+    graph.set(b, rightList);
   }
   const visited = new Set<number>();
-  const walk = (node: number, parent: number): boolean => {
-    visited.add(node);
-    for (const next of graph.get(node) ?? []) {
-      if (!visited.has(next)) {
-        if (walk(next, node)) return true;
-      } else if (next !== parent) return true;
-    }
-    return false;
-  };
-  for (const node of [...graph.keys()].toSorted((a, b) => a - b)) {
-    if (!visited.has(node) && walk(node, -1)) {
-      throw new XFrameError("CONSTRAINT_CYCLE", "Equal-DOF constraint graph contains a cycle.", {
-        kind: "analysis",
-        stage: "constraint-cycle",
-        detail: `cycle touches dof ${node}`,
-        equation: node,
-      });
+  const stack: Array<{ node: number; parent: number; neighborIndex: number }> = [];
+  for (const start of [...graph.keys()].toSorted((a, b) => a - b)) {
+    if (visited.has(start)) continue;
+    visited.add(start);
+    stack.push({ node: start, parent: -1, neighborIndex: 0 });
+    while (stack.length > 0) {
+      const frame = stack[stack.length - 1]!;
+      const neighbors = graph.get(frame.node)!;
+      if (frame.neighborIndex >= neighbors.length) {
+        stack.pop();
+        continue;
+      }
+      const next = neighbors[frame.neighborIndex]!;
+      frame.neighborIndex += 1;
+      if (next === frame.parent) continue;
+      if (visited.has(next)) {
+        throw new XFrameError("CONSTRAINT_CYCLE", "Equal-DOF constraint graph contains a cycle.", {
+          kind: "analysis",
+          stage: "constraint-cycle",
+          detail: `cycle touches dof ${start}`,
+          equation: start,
+        });
+      }
+      visited.add(next);
+      stack.push({ node: next, parent: frame.node, neighborIndex: 0 });
     }
   }
 }

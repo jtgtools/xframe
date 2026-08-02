@@ -52,6 +52,15 @@ export class SkylineProfile {
   }
 }
 
+export function maximumSkylineRowWidth(firstColumns: readonly number[]): number {
+  let maximum = 0;
+  for (let row = 0; row < firstColumns.length; row += 1) {
+    const width = row - firstColumns[row]! + 1;
+    if (width > maximum) maximum = width;
+  }
+  return maximum;
+}
+
 export function createSkylineProfile(
   matrix: SymmetricCoordinateMatrix,
   ordering: MatrixOrdering,
@@ -68,8 +77,9 @@ export function createSkylineProfile(
   }
 
   const estimate = estimateSkylineMemory(firstColumns, memoryLimitBytes);
-  const rowStarts = new Array<number>(matrix.size + 1).fill(0);
-  for (let row = 0; row < matrix.size; row += 1) rowStarts[row + 1] = rowStarts[row]! + row - firstColumns[row]! + 1;
+  const rowStarts = Array.from({ length: matrix.size + 1 }, () => 0);
+  for (let row = 0; row < matrix.size; row += 1)
+    rowStarts[row + 1] = rowStarts[row]! + row - firstColumns[row]! + 1;
   const values = new Float64Array(estimate.storageCount);
   for (const { row: oldRow, column: oldColumn, value } of matrix.entries()) {
     const mappedRow = ordering.inversePermutation[oldRow]!;
