@@ -71,7 +71,7 @@ describe("physical DOF topology", () => {
     expect(model.physicalDofs.keyByPhysicalIndex(15)).toBe(createDofKey("n3", "rz"));
   });
 
-  it("FR-DOF-002: truss-only nodes have translations and no rotations", () => {
+  it("FR-SAFE-002/FR-DOF-002: truss-only nodes have translations and no rotations", () => {
     const model = createModelBuilder()
       .setUnitSystem(units)
       .addNode({ id: "a", coordinates: [0, 0, 0] })
