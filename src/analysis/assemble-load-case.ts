@@ -1,12 +1,24 @@
 import { computeFrameLocalStiffness } from "../elements/frame/local-stiffness.js";
-import { computeFrameEquivalentLoad, type FrameMemberLoad, type LocalLoadVector } from "../elements/frame/member-load-vector.js";
-import { condenseFrameEndReleases, frameReleaseMask } from "../elements/frame/release-condensation.js";
+import {
+  computeFrameEquivalentLoad,
+  type FrameMemberLoad,
+  type LocalLoadVector,
+} from "../elements/frame/member-load-vector.js";
+import {
+  condenseFrameEndReleases,
+  frameReleaseMask,
+} from "../elements/frame/release-condensation.js";
 import { createFrameRigidOffsetTransform } from "../elements/frame/rigid-offset-transform.js";
+import { createTrussRigidOffsetKinematics } from "../elements/truss/rigid-offset-kinematics.js";
 import { XFrameError } from "../errors/xframe-error.js";
 import { multiplyMatrix3Vector3 } from "../geometry/matrix-3.js";
 import type { ResolvedLoadRecord } from "../loads/load-types.js";
 import { createDofKey, DOF_NAMES } from "../model/dof-key.js";
-import type { FinalizedLoadCaseRecord, FinalizedModel, ResolvedFrameRecord } from "../model/finalized-model.js";
+import type {
+  FinalizedLoadCaseRecord,
+  FinalizedModel,
+  ResolvedFrameRecord,
+} from "../model/finalized-model.js";
 import type { EntityId } from "../model/identifier.js";
 import type { CompiledConstraints } from "../constraints/compile-constraints.js";
 import type { SymmetricCoordinateMatrix } from "../linalg/symmetric-coordinate-matrix.js";
@@ -16,32 +28,56 @@ function addAt(vector: Float64Array, index: number, value: number): void {
   vector[index] = vector[index]! + value;
 }
 
-function dofIndex(model: FinalizedModel, nodeId: EntityId, dofIndex: number, value: number): number | undefined {
-  const dof = DOF_NAMES[dofIndex]!;
+function dofIndex(
+  model: FinalizedModel,
+  nodeId: EntityId,
+  dofComponent: number,
+  value: number,
+): number | undefined {
+  const dof = DOF_NAMES[dofComponent]!;
   const index = model.physicalDofs.get(createDofKey(nodeId, dof))?.physicalIndex;
   if (index === undefined && value !== 0) {
-    throw new XFrameError("LOAD_INVALID", "Nodal load targets a physically unavailable degree of freedom.", {
-      kind: "input",
-      path: `load.node[${nodeId}].${dof}`,
-      expected: "physically available DOF",
-      actual: String(value),
-    });
+    throw new XFrameError(
+      "LOAD_INVALID",
+      "Nodal load targets a physically unavailable degree of freedom.",
+      {
+        kind: "input",
+        path: `load.node[${nodeId}].${dof}`,
+        expected: "physically available DOF",
+        actual: String(value),
+      },
+    );
   }
   return index;
 }
 
-function localVector(frame: ResolvedFrameRecord, vector: readonly [number, number, number], system: "local" | "global"): LocalLoadVector {
+function localVector(
+  frame: ResolvedFrameRecord,
+  vector: readonly [number, number, number],
+  system: "local" | "global",
+): LocalLoadVector {
   if (system === "local") return vector;
   const value = multiplyMatrix3Vector3(frame.axes.globalToLocal, vector);
   return [value[0]!, value[1]!, value[2]!];
 }
 
-export function resolvedFrameMemberLoad(frame: ResolvedFrameRecord, load: ResolvedLoadRecord): FrameMemberLoad | undefined {
+export function resolvedFrameMemberLoad(
+  frame: ResolvedFrameRecord,
+  load: ResolvedLoadRecord,
+): FrameMemberLoad | undefined {
   if (load.kind === "member-point-force" && load.frameId === frame.record.id) {
-    return { kind: "point-force", distance: load.distanceFromElasticStart, vector: localVector(frame, load.force, load.coordinateSystem) };
+    return {
+      kind: "point-force",
+      distance: load.distanceFromElasticStart,
+      vector: localVector(frame, load.force, load.coordinateSystem),
+    };
   }
   if (load.kind === "member-point-moment" && load.frameId === frame.record.id) {
-    return { kind: "point-moment", distance: load.distanceFromElasticStart, vector: localVector(frame, load.moment, load.coordinateSystem) };
+    return {
+      kind: "point-moment",
+      distance: load.distanceFromElasticStart,
+      vector: localVector(frame, load.moment, load.coordinateSystem),
+    };
   }
   if (load.kind === "member-distributed" && load.frameId === frame.record.id) {
     return {
@@ -60,7 +96,13 @@ export function resolvedFrameMemberLoad(frame: ResolvedFrameRecord, load: Resolv
       density * frame.section.area * load.gravity[2],
     ];
     const intensity = localVector(frame, intensityGlobal, "global");
-    return { kind: "distributed", start: 0, end: frame.geometry.elasticLength, startIntensity: intensity, endIntensity: intensity };
+    return {
+      kind: "distributed",
+      start: 0,
+      end: frame.geometry.elasticLength,
+      startIntensity: intensity,
+      endIntensity: intensity,
+    };
   }
   return undefined;
 }
@@ -78,13 +120,20 @@ function equivalentLoadInput(frame: ResolvedFrameRecord) {
   } as const;
 }
 
-export function assembleFrameLocalLoad(frame: ResolvedFrameRecord, loads: readonly ResolvedLoadRecord[]): Float64Array {
+export function assembleFrameLocalLoad(
+  frame: ResolvedFrameRecord,
+  loads: readonly ResolvedLoadRecord[],
+): Float64Array {
   const result = new Float64Array(12);
   for (const load of loads) {
     const memberLoad = resolvedFrameMemberLoad(frame, load);
     if (memberLoad === undefined) continue;
-    const contribution = computeFrameEquivalentLoad({ ...equivalentLoadInput(frame), load: memberLoad });
-    for (let index = 0; index < 12; index += 1) result[index] = result[index]! + contribution[index]!;
+    const contribution = computeFrameEquivalentLoad({
+      ...equivalentLoadInput(frame),
+      load: memberLoad,
+    });
+    for (let index = 0; index < 12; index += 1)
+      result[index] = result[index]! + contribution[index]!;
   }
   return result;
 }
@@ -118,23 +167,42 @@ function assembleFullLoad(model: FinalizedModel, loadCase: FinalizedLoadCaseReco
       ...(frame.section.shearAreaY === undefined ? {} : { shearAreaY: frame.section.shearAreaY }),
       ...(frame.section.shearAreaZ === undefined ? {} : { shearAreaZ: frame.section.shearAreaZ }),
     });
-    const condensed = condenseFrameEndReleases(localStiffness, localLoad, frameReleaseMask(frame.record.releases));
-    const transform = createFrameRigidOffsetTransform(frame.axes.globalToLocal, frame.geometry.startOffset, frame.geometry.endOffset);
+    const condensed = condenseFrameEndReleases(
+      localStiffness,
+      localLoad,
+      frameReleaseMask(frame.record.releases),
+    );
+    const transform = createFrameRigidOffsetTransform(
+      frame.axes.globalToLocal,
+      frame.geometry.startOffset,
+      frame.geometry.endOffset,
+    );
     const global = transform.forceToGlobal(condensed.load);
     const equations = frameEquationMap(model, frame);
-    for (let index = 0; index < equations.length; index += 1) addAt(full, equations[index]!, global[index]!);
+    for (let index = 0; index < equations.length; index += 1)
+      addAt(full, equations[index]!, global[index]!);
   }
 
   for (const load of loadCase.loads) {
     if (load.kind !== "self-weight") continue;
     for (const truss of model.resolvedTrusses) {
       if (!load.trussIds.includes(truss.record.id)) continue;
-      const scale = 0.5 * truss.material.density! * truss.section.area * truss.geometry.elasticLength;
+      const scale =
+        0.5 * truss.material.density! * truss.section.area * truss.geometry.elasticLength;
       const equations = trussEquationMap(model, truss);
+      const kinematics = createTrussRigidOffsetKinematics(
+        truss.direction,
+        truss.geometry.startOffset,
+        truss.geometry.endOffset,
+      );
+      const elasticEndForces = new Float64Array(6);
       for (let component = 0; component < 3; component += 1) {
-        addAt(full, equations[component]!, scale * load.gravity[component]!);
-        addAt(full, equations[component + 3]!, scale * load.gravity[component]!);
+        elasticEndForces[component] = scale * load.gravity[component]!;
+        elasticEndForces[component + 3] = scale * load.gravity[component]!;
       }
+      const referenceActions = kinematics.referenceActions(elasticEndForces);
+      for (let component = 0; component < equations.length; component += 1)
+        addAt(full, equations[component]!, referenceActions[component]!);
     }
   }
   return full;
