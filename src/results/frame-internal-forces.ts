@@ -401,30 +401,50 @@ export function scaleFrameInternalForceSegments(
   segments: readonly FrameInternalForceSegment[],
   factor: number,
 ): readonly FrameInternalForceSegment[] {
-  return Object.freeze(
-    segments.map((segment, index) => {
-      const path = `frameForce.segments[${index}]`;
-      const coefficients = Object.freeze([
-        scaledCoefficients(segment.coefficients[0], factor, `${path}.coefficients[0]`),
-        scaledCoefficients(segment.coefficients[1], factor, `${path}.coefficients[1]`),
-        scaledCoefficients(segment.coefficients[2], factor, `${path}.coefficients[2]`),
-        scaledCoefficients(segment.coefficients[3], factor, `${path}.coefficients[3]`),
-        scaledCoefficients(segment.coefficients[4], factor, `${path}.coefficients[4]`),
-        scaledCoefficients(segment.coefficients[5], factor, `${path}.coefficients[5]`),
-      ]) as FrameInternalForceSegment["coefficients"];
-      return Object.freeze({
+  const result: FrameInternalForceSegment[] = [];
+  for (let index = 0; index < segments.length; index += 1) {
+    const segment = segments[index]!;
+    const path = `frameForce.segments[${index}]`;
+    const coefficients = [
+      scaledCoefficients(segment.coefficients[0], factor, `${path}.coefficients[0]`),
+      scaledCoefficients(segment.coefficients[1], factor, `${path}.coefficients[1]`),
+      scaledCoefficients(segment.coefficients[2], factor, `${path}.coefficients[2]`),
+      scaledCoefficients(segment.coefficients[3], factor, `${path}.coefficients[3]`),
+      scaledCoefficients(segment.coefficients[4], factor, `${path}.coefficients[4]`),
+      scaledCoefficients(segment.coefficients[5], factor, `${path}.coefficients[5]`),
+    ];
+    if (index > 0) {
+      const previous = segments[index - 1]!;
+      const previousLength = previous.end - previous.start;
+      const originalBefore = evaluateSegment(previous, previousLength);
+      const scaledBefore = evaluateSegment(result[index - 1]!, previousLength);
+      for (let component = 0; component < coefficients.length; component += 1) {
+        if (originalBefore[component] === segment.coefficients[component]![0]) {
+          const value = coefficients[component]!;
+          coefficients[component] = forcePolynomial(
+            finiteNumber(scaledBefore[component], `${path}.coefficients[${component}][0]`),
+            value[1],
+            value[2],
+            value[3],
+          );
+        }
+      }
+    }
+    result.push(
+      Object.freeze({
         start: segment.start,
         end: segment.end,
-        coefficients,
+        coefficients: Object.freeze(coefficients) as FrameInternalForceSegment["coefficients"],
         ...(segment.startLeft === undefined
           ? {}
           : { startLeft: scaledComponents(segment.startLeft, factor, `${path}.startLeft`) }),
         ...(segment.endRight === undefined
           ? {}
           : { endRight: scaledComponents(segment.endRight, factor, `${path}.endRight`) }),
-      });
-    }),
-  );
+      }),
+    );
+  }
+  return Object.freeze(result);
 }
 
 export function addFrameInternalForceSegments(

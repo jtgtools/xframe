@@ -2,6 +2,7 @@ import { expect, it } from "vitest";
 import { XFrameError } from "../../src/errors/xframe-error.js";
 import { prepareAnalysis } from "../../src/analysis/prepare-analysis.js";
 import { combineResults } from "../../src/results/combine-results.js";
+import { deriveFrameInternalForceStations } from "../../src/results/frame-internal-forces.js";
 import { createModelBuilder } from "../../src/model/model-builder.js";
 
 const units = {
@@ -100,6 +101,10 @@ function frameCombinationModel() {
     .finalize();
 }
 
+function axialCoefficients(axial: readonly [number, number, number, number]) {
+  return [axial, [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]] as const;
+}
+
 it("FR-RES-006: combines compatible results without aliasing and preserves factor provenance", () => {
   const model = createModelBuilder()
     .setUnitSystem({
@@ -193,6 +198,52 @@ it("FR-SAFE-004/NFR-COR-002: directly scales first frame segments for tiny, zero
   }
 });
 
+it("FR-SAFE-004/NFR-COR-002: preserves exact continuity and genuine jumps while scaling multiple segments", () => {
+  const segments = [
+    {
+      start: 0,
+      end: 1,
+      coefficients: axialCoefficients([1e16, -9999999999999998, 0, 0]),
+      startLeft: [1e16, 0, 0, 0, 0, 0],
+    },
+    { start: 1, end: 2, coefficients: axialCoefficients([2, 0, 0, 0]) },
+    {
+      start: 2,
+      end: 3,
+      coefficients: axialCoefficients([3, 0, 0, 0]),
+      endRight: [3, 0, 0, 0, 0, 0],
+    },
+  ] as const;
+  const base = prepareAnalysis(frameCombinationModel()).solveCase("U");
+  const source = {
+    ...base,
+    frames: [
+      {
+        ...base.frames[0]!,
+        internalForceSegments: segments,
+        internalForces: deriveFrameInternalForceStations(segments),
+      },
+    ],
+  } as unknown as typeof base;
+  expect(source.frames[0]!.internalForces.filter(({ x }) => x === 1)).toMatchObject([
+    { side: "single", axial: 2 },
+  ]);
+
+  const frame = combineResults("CC", [{ result: source, factor: 1e-20 }]).frames[0]!;
+  const scaled = frame.internalForceSegments;
+  const carried = scaled[0]!.coefficients[0][0] + scaled[0]!.coefficients[0][1];
+
+  expect(carried).toBe(1.3552527156068805e-20);
+  expect(scaled[1]!.coefficients[0][0]).toBe(carried);
+  expect(frame.internalForces.filter(({ x }) => x === 1)).toMatchObject([
+    { side: "single", axial: carried },
+  ]);
+  expect(frame.internalForces.filter(({ x }) => x === 2)).toMatchObject([
+    { side: "left", axial: carried },
+    { side: "right", axial: 2.9999999999999997e-20 },
+  ]);
+});
+
 it("FR-SAFE-004/NFR-COR-002: rejects non-finite sided endpoint combinations with structured context", () => {
   const source = prepareAnalysis(frameCombinationModel()).solveCase("U");
   const frame = source.frames[0]!;
@@ -224,6 +275,61 @@ it("FR-SAFE-004/NFR-COR-002: rejects non-finite sided endpoint combinations with
   let error: unknown;
   try {
     combineResults("CO", [{ result: fabricated, factor: 2 }]);
+  } catch (caught) {
+    error = caught;
+  }
+
+  expect(error).toBeInstanceOf(XFrameError);
+  expect(error).toMatchObject({
+    code: "NON_FINITE_VALUE",
+    context: {
+      kind: "numeric",
+      path: "frameForce.segments[0].startLeft[0]",
+      value: "Infinity",
+      expected: "finite number",
+    },
+  });
+});
+
+it("FR-SAFE-004/NFR-COR-002: rejects overflow from adding individually finite sided endpoints", () => {
+  const prepared = prepareAnalysis(frameCombinationModel());
+  const first = prepared.solveCase("U");
+  const second = prepared.solveCase("T");
+  const withMaximumStartAxial = (source: typeof first): typeof first => {
+    const frame = source.frames[0]!;
+    const segment = frame.internalForceSegments[0]!;
+    const startLeft = segment.startLeft!;
+    return {
+      ...source,
+      frames: [
+        {
+          ...frame,
+          internalForceSegments: [
+            {
+              ...segment,
+              startLeft: [
+                Number.MAX_VALUE,
+                startLeft[1],
+                startLeft[2],
+                startLeft[3],
+                startLeft[4],
+                startLeft[5],
+              ],
+            },
+            ...frame.internalForceSegments.slice(1),
+          ],
+        },
+      ],
+    } as unknown as typeof first;
+  };
+  expect(Number.isFinite(Number.MAX_VALUE * 0.75)).toBe(true);
+
+  let error: unknown;
+  try {
+    combineResults("CA", [
+      { result: withMaximumStartAxial(first), factor: 0.75 },
+      { result: withMaximumStartAxial(second), factor: 0.75 },
+    ]);
   } catch (caught) {
     error = caught;
   }
