@@ -90,7 +90,7 @@ describe("truss rigid-offset kinematics", () => {
 
   it("FR-SAFE-002: orders active eccentric truss equations by reference endpoint", () => {
     const zeroOffsetModel = trussModel({ start: [0, 0, 0], end: [-0, 0, 0] });
-    const eccentricModel = trussModel({ start: [0, 2, 0], end: [0, 0, 0] });
+    const eccentricModel = trussModel({ start: [-Number.MIN_VALUE, 0, 0], end: [0, 0, 0] });
 
     expect(trussEquationMap(zeroOffsetModel, zeroOffsetModel.resolvedTrusses[0]!)).toEqual([
       0, 1, 2, 3, 4, 5,
