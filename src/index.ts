@@ -66,6 +66,7 @@ export type {
   StreamingEnvelope,
   StructuralResult,
   TrussElementResult,
+  TrussReferenceEndForces,
 } from "./results/result-types.js";
 
 export { canonicalJson } from "./serialization/canonical-json.js";

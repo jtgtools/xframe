@@ -30,6 +30,7 @@ import type {
   NodeResult,
   SpringElementResult,
   TrussElementResult,
+  TrussReferenceEndForces,
 } from "./result-types.js";
 
 const CONVENTIONS = Object.freeze({
@@ -127,18 +128,22 @@ function trussResults(
           gathered(fullDisplacements, trussEquationMap(model, truss)),
         ),
       });
-      const globalReferenceEndForces = new Float64Array(12);
+      const globalReferenceEndForces = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      ] satisfies TrussReferenceEndForces;
       const activeReferenceActions = kinematics.referenceActions(value.globalEndForces);
-      for (let index = 0; index < activeReferenceActions.length; index += 1)
+      for (let index = 0; index < activeReferenceActions.length; index += 1) {
+        const action = activeReferenceActions[index]!;
         globalReferenceEndForces[kinematics.activeReferenceComponents[index]!] =
-          activeReferenceActions[index]!;
+          action === 0 ? 0 : action;
+      }
       return Object.freeze({
         id: truss.record.id,
         extension: value.extension,
         strain: value.strain,
         axialForce: value.axialForce,
         globalEndForces: frozenNumbers(value.globalEndForces),
-        globalReferenceEndForces: frozenNumbers(globalReferenceEndForces),
+        globalReferenceEndForces: Object.freeze(globalReferenceEndForces),
       });
     }),
   );

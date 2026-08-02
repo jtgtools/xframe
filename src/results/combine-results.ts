@@ -95,11 +95,11 @@ function assertLayout(
   }
 }
 
-function combineArray(
+function combineArray<T extends readonly number[]>(
   factors: readonly { readonly result: StructuralResult; readonly factor: number }[],
-  select: (result: StructuralResult) => readonly number[],
+  select: (result: StructuralResult) => T,
   label: string,
-): readonly number[] {
+): T {
   const results = factors.map(({ result }) => result);
   const length = select(factors[0]!.result).length;
   const values = Array.from({ length }, () => 0);
@@ -113,7 +113,7 @@ function combineArray(
         `${label}[${index}]`,
       );
   }
-  return Object.freeze(values);
+  return Object.freeze(values) as T;
 }
 
 function combineScalar(

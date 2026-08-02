@@ -36,13 +36,28 @@ export interface FrameResult {
   readonly internalForces: readonly FrameInternalForceStation[];
 }
 
+export type TrussReferenceEndForces = readonly [
+  startFx: number,
+  startFy: number,
+  startFz: number,
+  startMx: number,
+  startMy: number,
+  startMz: number,
+  endFx: number,
+  endFy: number,
+  endFz: number,
+  endMx: number,
+  endMy: number,
+  endMz: number,
+];
+
 export interface TrussElementResult {
   readonly id: EntityId;
   readonly extension: number;
   readonly strain: number;
   readonly axialForce: number;
   readonly globalEndForces: readonly number[];
-  readonly globalReferenceEndForces: readonly number[];
+  readonly globalReferenceEndForces: TrussReferenceEndForces;
 }
 
 export interface SpringElementResult {

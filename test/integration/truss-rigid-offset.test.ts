@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import { prepareAnalysis } from "../../src/analysis/prepare-analysis.js";
+import type { TrussReferenceEndForces } from "../../src/index.js";
 import { createDofKey } from "../../src/model/dof-key.js";
 import { createModelBuilder } from "../../src/model/model-builder.js";
 
@@ -93,6 +94,23 @@ describe("eccentric truss integration", () => {
   it("FR-SAFE-002: publishes immutable twelve-component reference actions without changing elastic forces", () => {
     const truss = prepareAnalysis(rotationalSpringModel(true)).solveCase("M").trusses[0]!;
 
+    expectTypeOf(truss.globalReferenceEndForces).toEqualTypeOf<TrussReferenceEndForces>();
+    expectTypeOf<TrussReferenceEndForces>().toEqualTypeOf<
+      readonly [
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+      ]
+    >();
     expect(truss.globalEndForces).toHaveLength(6);
     expect(truss.globalReferenceEndForces).toHaveLength(12);
     const expected = [

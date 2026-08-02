@@ -16,6 +16,7 @@ import type {
   SpringElementResult,
   StructuralResult,
   TrussElementResult,
+  TrussReferenceEndForces,
 } from "../results/result-types.js";
 import { RESULT_SCHEMA_VERSION } from "./result-schema.js";
 import {
@@ -47,6 +48,10 @@ function id(value: unknown, path: string): EntityId {
 function numberArray(value: unknown, path: string, length?: number): readonly number[] {
   const array = length === undefined ? arrayAt(value, path) : finiteVector(value, path, length);
   return Object.freeze(array.map((entry, index) => finiteAt(entry, `${path}[${index}]`)));
+}
+
+function trussReferenceEndForces(value: unknown, path: string): TrussReferenceEndForces {
+  return finiteVector(value, path, 12) as TrussReferenceEndForces;
 }
 
 function components(value: unknown, path: string): FrameForceComponents {
@@ -250,10 +255,9 @@ function trusses(value: unknown): readonly TrussElementResult[] {
         strain: finiteAt(record["strain"], `${path}.strain`),
         axialForce: finiteAt(record["axialForce"], `${path}.axialForce`),
         globalEndForces: numberArray(record["globalEndForces"], `${path}.globalEndForces`, 6),
-        globalReferenceEndForces: numberArray(
+        globalReferenceEndForces: trussReferenceEndForces(
           record["globalReferenceEndForces"],
           `${path}.globalReferenceEndForces`,
-          12,
         ),
       });
     }),
