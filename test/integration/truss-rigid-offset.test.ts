@@ -75,7 +75,13 @@ describe("eccentric truss integration", () => {
 
     expect(rotation(result, "a")).toBeCloseTo(2 / 3, 14);
     expect(rotation(result, "b")).toBeCloseTo(1 / 3, 14);
-    expect(Math.abs(result.trusses[0]!.axialForce)).toBeCloseTo(1000 / 3, 12);
+    expect(result.trusses[0]!.axialForce).toBeCloseTo(333.3333333333333, 12);
+    const expectedGlobalEndForces = [-333.3333333333333, 0, 0, 333.3333333333333, 0, 0] as const;
+    for (let component = 0; component < 6; component += 1)
+      expect(result.trusses[0]!.globalEndForces[component]).toBeCloseTo(
+        expectedGlobalEndForces[component]!,
+        12,
+      );
     expect(result.springs.reduce((sum, spring) => sum + spring.globalEndForces[5]!, 0)).toBeCloseTo(
       1000,
       12,
