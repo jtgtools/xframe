@@ -7,8 +7,10 @@ import {
   createModelBuilder,
   prepareAnalysis,
   combineResults,
+  createEnvelopeCompatibility,
   streamEnvelope,
   modelToJsonValue,
+  resultToJsonValue,
   parseModelJson,
 } from "@jtgtools/xframe";
 ```
@@ -56,19 +58,21 @@ A `CaseResult` is immutable and includes:
 
 - full and reduced displacement/load vectors;
 - nodal coordinates, active-DOF displacements, and reactions;
-- frame local/global end displacements and forces plus internal-force stations;
-- truss extension, strain, axial force, and end forces;
+- frame local/global end displacements and forces, exact internal-force segments, and derived stations;
+- truss extension, strain, axial force, `globalEndForces` (six elastic-end force components), and `globalReferenceEndForces` (twelve reference-node force/moment components);
 - spring end forces;
 - residual, equilibrium, energy, pivot, and sparse-storage diagnostics;
 - model fingerprint, unit metadata, conventions, and load provenance.
 
-`combineResults(id, factors, results)` linearly combines compatible case or combination results. `streamEnvelope(components, records)` consumes values incrementally and retains all tied minimum and maximum governors with complete provenance.
+`combineResults(id, factors, results)` linearly combines compatible case or combination results. For frames it combines segment coefficients before deriving stations, so extrema from a new linear combination are retained. `createEnvelopeCompatibility(result, components)` produces the required immutable metadata. `streamEnvelope(records, components)` consumes records incrementally and retains all tied minimum and maximum governors with complete provenance.
+
+Every envelope record carries strict compatibility metadata: the `sha256` model fingerprint, the complete unit system, result conventions, and the exact ordered component layout. `streamEnvelope` compares every record with the first record and the supplied layout before reading values. Bare legacy records and every mismatch fail with `RESULT_INCOMPATIBLE`.
 
 ## JSON and canonical artifacts
 
-- `MODEL_SCHEMA_VERSION` and `RESULT_SCHEMA_VERSION` are both `"1"`.
+- `MODEL_SCHEMA_VERSION` is `"1"`; `RESULT_SCHEMA_VERSION` is `"2"`.
 - `modelToJsonValue(model)` and `resultToJsonValue(result)` create complete plain-data artifacts.
-- `parseModelJson(value)` and `parseResultJson(value)` validate and reconstruct immutable values.
+- `parseModelJson(value)` validates model schema version `1`; `parseResultJson(value)` validates result schema version `2` and rejects result schema version `1` with `SCHEMA_UNSUPPORTED`.
 - `canonicalJson(value)` sorts object keys, preserves array order, rejects unsupported/non-finite data, and normalizes negative zero.
 - `artifactHash(value)` returns a lowercase SHA-256 hex digest through Web Crypto.
 

@@ -73,3 +73,19 @@ it("FR-SAFE-002/AUD-REL-005: OpenSees eccentric-truss evidence has a non-destruc
   expect(packageJson.scripts?.["verify:opensees"]).toBe("node scripts/verify-opensees.mjs");
   expect(existsSync("scripts/verify-opensees.mjs")).toBe(true);
 });
+
+it("FR-SAFE-002/AUD-REL-006: published safety-correctness evidence records the OpenSees oracle", () => {
+  const reportPath = "docs/verification/safety-correctness-report.md";
+  expect(existsSync(reportPath)).toBe(true);
+  const report = readFileSync(reportPath, "utf8");
+  for (const phrase of [
+    "OpenSees 3.8.0",
+    "5aa4e9c80c410c510ca62ac3b2f1d64a8e50679f0238e140b5bebcd6d5ddbe6d",
+    "$env:OPENSEES_BIN = 'D:\\DEV\\tools\\OpenSees3.8.0\\bin\\OpenSees.exe'; npm run verify:opensees",
+    "thetaA = 0.6666666666666666",
+    "thetaB = 0.3333333333333333",
+    "axialForceMagnitude = 333.3333333333333",
+    "OpenSees eccentric-truss reference verified non-destructively.",
+  ])
+    expect(report).toContain(phrase);
+});

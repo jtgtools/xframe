@@ -22,7 +22,9 @@ Self-weight requires material density for every selected frame or truss. Omittin
 
 ## Result artifact
 
-A result artifact has `schemaVersion: "1"` and a complete immutable case or combination representation. Use [`../../schemas/result.schema.json`](../../schemas/result.schema.json). `parseResultJson` verifies closed shape, finite values, unit metadata, result conventions, and internal vector lengths; it does not rerun the structural analysis.
+A result artifact has `schemaVersion: "2"` and a complete immutable case or combination representation. Use [`../../schemas/result.schema.json`](../../schemas/result.schema.json). `parseResultJson` verifies closed shape, finite values, unit metadata, result conventions, and internal vector lengths; it does not rerun the structural analysis. A result schema version `1` fails with `SCHEMA_UNSUPPORTED` rather than being reinterpreted.
+
+Result schema version two adds exact frame `internalForceSegments`, including six fixed cubic coefficient arrays per segment, and `globalReferenceEndForces` for every truss. The retained `globalEndForces` array contains the six elastic-end forces; `globalReferenceEndForces` contains twelve start-then-end reference-node force and moment components.
 
 ## Canonical form and hashes
 
@@ -34,7 +36,7 @@ const text = canonicalJson(value);
 const sha256 = await artifactHash(value);
 ```
 
-Canonical JSON sorts object keys lexicographically, retains array order, emits finite JSON numbers, and normalizes `-0` to `0`. It is deterministic for the same artifact and runtime-defined numeric values. Hashing requires `globalThis.crypto.subtle`.
+Canonical JSON sorts object keys lexicographically, retains array order, emits finite JSON numbers, and normalizes `-0` to `0`. It is deterministic for the same artifact and runtime-defined numeric values. `artifactHash` requires `globalThis.crypto.subtle`; finalized structural model fingerprints are separately computed synchronously as `sha256:<64 lowercase hexadecimal digits>` from canonical UTF-8 model JSON.
 
 ## Units
 

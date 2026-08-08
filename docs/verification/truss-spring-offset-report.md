@@ -6,9 +6,9 @@ This report records Part 10 evidence for the 3D truss kernel, six-component grou
 
 ## Truss evidence
 
-The global truss matrix is formed from `EA/L` and the outer product of the normalized global direction vector. The kernel is tested for arbitrary 3D orientation, symmetry, rigid-translation invariance, and recovery of extension, strain, axial force, and equal/opposite global end forces.
+For the zero-offset Part 10 truss cases, the global truss matrix is formed from `EA/L` and the outer product of the normalized global direction vector. The kernel is tested for arbitrary 3D orientation, symmetry, rigid-translation invariance, and recovery of extension, strain, axial force, and equal/opposite global end forces.
 
-The analytical axial-bar case uses `u = PL/(EA)` and recovers `N = EA u/L = P`. Truss-only model finalization creates only `tx`, `ty`, and `tz` at each connected node. It creates no rotational DOFs and no restraints.
+The analytical axial-bar case uses `u = PL/(EA)` and recovers `N = EA u/L = P`. In the zero-offset historical cases, truss-only model finalization creates only `tx`, `ty`, and `tz` at each connected node. It creates no rotational DOFs and no restraints.
 
 ## Spring evidence
 
@@ -34,3 +34,7 @@ All arrays are finite-checked at public numerical boundaries. Element matrices a
 ## Acceptance
 
 The stored unit, analytical, and regression tests establish closed-form agreement, equilibrium, energy consistency, rigid-motion invariance, correct topology, and virtual-work preservation for the Part 10 kernels.
+
+## Safety-correctness supersession (2026-08-08)
+
+This report retains the original Part 10 execution evidence and counts. Current eccentric-truss behavior uses the compatibility vector `B`, activates reference-node rotations at each nonzero rigid offset, transfers self-weight through the same rigid arms, and exposes both six elastic-end and twelve reference-node truss action arrays. Unsupported rotations remain physical mechanisms. The OpenSees oracle evidence is recorded in [`safety-correctness-report.md`](safety-correctness-report.md).

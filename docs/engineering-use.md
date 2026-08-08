@@ -15,7 +15,7 @@ Before relying on a result:
 
 ## Supported scope
 
-Supported behavior is limited to small-displacement, linear-elastic static response of 3D Euler-Bernoulli or Timoshenko frames, axial trusses, and discrete springs under the documented static loads and affine constraints.
+Supported behavior is limited to small-displacement, linear-elastic static response of 3D Euler-Bernoulli or Timoshenko frames, axial trusses, and discrete springs under the documented static loads and affine constraints. A truss with a nonzero rigid offset transfers reference-node rotation through the rigid arm; an unconstrained rotation is a physical mechanism, not a solver-added restraint.
 
 ## Unsupported scope
 
@@ -29,4 +29,4 @@ The skyline solver is appropriate when deterministic sparse direct solution fits
 
 ## External verification
 
-The repository compares overlapping behavior with Frame3DD outputs, including element and assembled stiffness matrices. This is verification evidence, not certification, endorsement, or a guarantee of correctness. Frame3DD does not define every xframe feature; those features have independent analytical/property tests instead.
+The repository compares overlapping behavior with Frame3DD outputs, including element and assembled stiffness matrices. OpenSees 3.8.0 independently checks the eccentric-truss rigid-link case, including both reference-node rotations and axial force. This is verification evidence, not certification, endorsement, or a guarantee of correctness. Frame3DD does not define every xframe feature; those features have independent analytical/property tests instead. See the [safety-correctness verification report](verification/safety-correctness-report.md) for executable identities and tolerances.

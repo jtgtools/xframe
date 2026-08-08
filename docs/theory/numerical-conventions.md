@@ -27,8 +27,10 @@ Assumptions:
   justified formulation, never with epsilon stiffness (implementation-prompt section 14).
 - No silent restraint insertion: zero-stiffness rows are never scanned and auto-restrained
   (implementation-prompt section 15). Physical mechanisms remain in the system and fail
-  closed with structured diagnostics (FR-DOF-003). Truss-only rotations are absent by
-  topology, never created to be auto-restrained (FR-DOF-002).
+  closed with structured diagnostics (FR-DOF-003). Zero-offset truss endpoints request
+  translations only. A nonzero truss rigid offset requests all three reference-node
+  rotations as physical DOFs; an unsupported rotation remains a mechanism rather than an
+  auto-restraint (FR-SAFE-002).
 
 ## 2. Axes, signs, and rotations
 
@@ -137,6 +139,8 @@ Implemented geometry constants:
 - Ordering is fixed everywhere: deterministic identifier ordering, fixed sparse assembly
   order, a deterministic reordering (reverse Cuthill-McKee), and no iteration over object
   key or hash order.
+- Model fingerprints are computed from the canonical structural representation with
+  synchronous SHA-256 and have the form `sha256:<64 lowercase hexadecimal digits>`.
 - Rounding: addition, subtraction, multiplication, division, and square root are exactly
   rounded per IEEE-754 and are therefore bit-deterministic. Transcendental functions
   (sin, cos, exp, and similar) are not specified by IEEE-754; identical results are

@@ -36,14 +36,14 @@ The command regenerates all six datasets in a temporary directory, rejects an ex
 
 Direct element and assembled-global comparisons cover:
 
-| Dataset | Element matrices | Global matrix | Matrix entries compared |
-| --- | ---: | ---: | ---: |
-| Euler cantilever | 1 × 12×12 | 12×12 | 288 |
-| Timoshenko cantilever | 1 × 12×12 | 12×12 | 288 |
-| Two-member chain | 2 × 12×12 | 18×18 | 612 |
-| Single-bay portal | 3 × 12×12 | 24×24 | 1,008 |
-| Two-story two-bay frame | 10 × 12×12 | 54×54 | 4,356 |
-| **Total** | **17 matrices** | **5 matrices** | **6,552** |
+| Dataset                 | Element matrices |  Global matrix | Matrix entries compared |
+| ----------------------- | ---------------: | -------------: | ----------------------: |
+| Euler cantilever        |        1 × 12×12 |          12×12 |                     288 |
+| Timoshenko cantilever   |        1 × 12×12 |          12×12 |                     288 |
+| Two-member chain        |        2 × 12×12 |          18×18 |                     612 |
+| Single-bay portal       |        3 × 12×12 |          24×24 |                   1,008 |
+| Two-story two-bay frame |       10 × 12×12 |          54×54 |                   4,356 |
+| **Total**               |  **17 matrices** | **5 matrices** |               **6,552** |
 
 Matrix comparisons use relative tolerance `2e-7` and absolute tolerance `1e-8`. Frame3DD stores relevant input fields in single precision before writing twelve-digit debug matrices, so a double-roundoff tolerance would not reflect the oracle data path.
 
@@ -67,19 +67,19 @@ Affected displacement components are checked against independent closed forms. U
 All 12 categories are represented by executable cases:
 
 | Category | Cases | Failures | Maximum reported error |
-| ---: | ---: | ---: | ---: |
-| 1 | 17 | 0 | `7.31725e-14%` |
-| 2 | 6 | 0 | `1.10915e-13%` |
-| 3 | 24 | 0 | `1.89045e-13%` |
-| 4 | 6 | 0 | `1.08379e-13%` |
-| 5 | 7 | 0 | `6.96988e-11%` |
-| 6 | 3 | 0 | `6.0633e-14%` |
-| 7 | 5 | 0 | `3e-08%` |
-| 8 | 7 | 0 | `6.46752e-14%` |
-| 9 | 8 | 0 | `7.84463e-12%` |
-| 10 | 6 | 0 | `0.000452115%` |
-| 11 | 7 | 0 | `6.00371e-09%` |
-| 12 | 3 | 0 | `1.58074e-14%` |
+| -------: | ----: | -------: | ---------------------: |
+|        1 |    17 |        0 |         `7.31725e-14%` |
+|        2 |     6 |        0 |         `1.10915e-13%` |
+|        3 |    24 |        0 |         `1.89045e-13%` |
+|        4 |     6 |        0 |         `1.08379e-13%` |
+|        5 |     7 |        0 |         `6.96988e-11%` |
+|        6 |     3 |        0 |          `6.0633e-14%` |
+|        7 |     5 |        0 |               `3e-08%` |
+|        8 |     7 |        0 |         `6.46752e-14%` |
+|        9 |     8 |        0 |         `7.84463e-12%` |
+|       10 |     6 |        0 |         `0.000452115%` |
+|       11 |     7 |        0 |         `6.00371e-09%` |
+|       12 |     3 |        0 |         `1.58074e-14%` |
 
 The suite uses the requested per-case schema: test ID, description, model, supports/releases/springs/offsets, loads, reference method, reference values, library output, numerical error, tolerance rationale, and pass/fail. Direct Frame3DD applicability is classified per case. Features Frame3DD does not define—general affine constraints, native springs, streaming envelopes, JSON artifacts, and identifier safety—use analytical, equivalent-model, algebraic, or adversarial references rather than fabricated Frame3DD equivalence.
 
@@ -107,3 +107,7 @@ The shared reduction operation was repaired, and `FR-CON-003/NFR-COR-001` now ve
 ## Scope boundary
 
 Verification supports the implemented linear-elastic static analysis scope. It does not establish geometric or material nonlinearity, P-Delta, buckling, dynamics, temperature loading, moving loads, design-code checking, or certification-grade fitness for a particular project. Independent engineering review remains required.
+
+## Safety-correctness extension (2026-08-08)
+
+The numerical counts above are retained as the 2026-07-31 historical execution record. Current safety-correctness evidence adds a pinned OpenSees 3.8.0 eccentric-truss rigid-link oracle and current result-schema, envelope, polynomial, and endpoint-limit contracts. The executable identity, hashes, tolerances, and observed output are recorded in [`safety-correctness-report.md`](safety-correctness-report.md).

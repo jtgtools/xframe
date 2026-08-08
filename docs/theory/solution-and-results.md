@@ -30,7 +30,11 @@ After solving reduced coordinates, full displacement is recovered with XF-EQ-011
 
 **XF-EQ-015**: `r = K u - F`.
 
-Constraint reactions are recovered from this residual and traced to source equations. Frame end forces include equivalent member loads and release recovery; truss results include extension, strain, and axial force; spring results contain global end forces. Frame internal-force stations include left/right records at point-load discontinuities.
+Constraint reactions are recovered from this residual and traced to source equations. Frame end forces include equivalent member loads and release recovery. Truss results include extension, strain, axial force, `globalEndForces` (six elastic-end force components), and `globalReferenceEndForces` (twelve reference-node force/moment components). Spring results contain global end forces.
+
+## Exact frame internal-force diagrams
+
+Each frame carries `internalForceSegments` with model-wide load boundaries. Every segment has the fixed six-component order `[axial, shearY, shearZ, torsion, bendingY, bendingZ]`; each component uses a fixed cubic `[c0, c1, c2, c3]` evaluated at local `xi = x - start` as `c0 + c1 xi + c2 xi^2 + c3 xi^3`. The public station list is derived from segment boundaries, both `left` and `right` endpoint limits when a point action produces a jump, and analytical derivative roots strictly inside every segment. At `x = 0`, `right` is the member-interior limit; at `x = L`, `left` is the member-interior limit.
 
 ## Diagnostics
 
@@ -48,6 +52,8 @@ Compatible results combine by linear superposition:
 
 **XF-EQ-017**: `Rc = Σ γi Ri`.
 
-Compatibility requires the same model fingerprint, units, conventions, entity order, and vector shapes. Streaming envelopes consume one value vector at a time and retain all tied governing result IDs, kinds, components, entities, locations, and extrema without retaining the input corpus.
+Compatibility requires the same model fingerprint, units, conventions, entity order, vector shapes, segment boundaries, and coefficient layout. `combineResults` combines segment coefficients before deriving stations, so the derived stations include extrema introduced only by the combination.
+
+`createEnvelopeCompatibility(result, components)` creates strict compatibility metadata from a structural result and ordered components. `streamEnvelope(records, components)` requires that metadata on every record and compares the model fingerprint, complete unit system, result conventions, and exact ordered component layout before reading values. Bare legacy records or any mismatch fail with `RESULT_INCOMPATIBLE`. Streaming envelopes retain all tied governing result IDs, kinds, components, entities, locations, and extrema without retaining the input corpus.
 
 Implementation evidence is summarized in [the verification report](../verification/verification-report.md).

@@ -85,29 +85,29 @@ Version 0.0.1 implements:
 - nodal forces and moments, member point forces and moments, partial or full linearly varying member loads, and density-based self-weight;
 - prescribed displacements, general sparse affine constraints, and principal-plane rigid diaphragms;
 - one factorization reused across compatible load cases;
-- immutable nodal, frame, truss, spring, reaction, internal-force, diagnostic, combination, and streaming-envelope results;
-- strict `schemaVersion: "1"` JSON model and result artifacts;
-- canonical JSON and SHA-256 artifact hashes.
+- immutable nodal, frame, truss, spring, reaction, exact internal-force, diagnostic, combination, and streaming-envelope results;
+- strict `schemaVersion: "1"` model artifacts and `schemaVersion: "2"` result artifacts;
+- canonical JSON, synchronous SHA-256 structural fingerprints, and Web-Crypto SHA-256 artifact hashes.
 
 All quantities must be entered consistently in the declared unit system. Unit labels are metadata; version one performs no unit conversion. Rotations are radians.
 
 ## Results and diagnostics
 
-`prepareAnalysis(model)` validates topology, assembles the sparse global stiffness matrix, compiles affine constraints, applies deterministic reverse Cuthill-McKee ordering, and factorizes a skyline matrix. `solveCase(id)` returns an immutable `CaseResult` containing displacements, reactions, element forces, frame internal-force stations, equilibrium measures, strain energy, residuals, normalized pivots, and sparse-storage statistics.
+`prepareAnalysis(model)` validates topology, assembles the sparse global stiffness matrix, compiles affine constraints, applies deterministic reverse Cuthill-McKee ordering, and factorizes a skyline matrix. `solveCase(id)` returns an immutable `CaseResult` containing displacements, reactions, element forces, exact frame internal-force segments and their derived stations, equilibrium measures, strain energy, residuals, normalized pivots, and sparse-storage statistics.
 
 A physical mechanism, contradictory constraint, invalid release, non-finite value, unsupported schema, or unsafe allocation fails with an `XFrameError`. Use `error.code` for stable machine handling and `error.context` for structured details. The complete code list is documented in [`docs/api/public-api.md`](docs/api/public-api.md).
 
 ## JSON artifacts
 
-Use `modelToJsonValue` and `resultToJsonValue` to produce complete version-one values. Use `canonicalJson` for deterministic text and `artifactHash` for a SHA-256 digest. Use `parseModelJson` and `parseResultJson` only on parsed JSON values; both reject unknown fields, missing fields, non-finite values, unsafe identifiers, and unsupported versions.
+Current JSON contracts: model artifacts use schema version `1` and result artifacts use schema version `2`. Use `modelToJsonValue` and `resultToJsonValue` to produce those complete values. Finalized models and results carry a `sha256:<64 lowercase hexadecimal digits>` model fingerprint. Use `canonicalJson` for deterministic text and `artifactHash` for a Web-Crypto SHA-256 artifact digest. Use `parseModelJson` and `parseResultJson` only on parsed JSON values; both reject unknown fields, missing fields, non-finite values, unsafe identifiers, and unsupported versions.
 
 The distributable schemas are [`schemas/model.schema.json`](schemas/model.schema.json) and [`schemas/result.schema.json`](schemas/result.schema.json). See [`docs/api/json-input.md`](docs/api/json-input.md).
 
 ## Verification
 
-The independent verification corpus includes closed-form solutions, seeded structural properties, metamorphic identities, all 4,096 frame-release masks, sparse benchmarks, and direct Frame3DD comparisons. Frame3DD outputs are compared for overlapping frame/truss behavior, including transformed element stiffness matrices, assembled global stiffness matrices, nodal displacements, reactions, frame-end forces, truss axial force, prescribed movement, and supported static loads. Frame3DD does not define xframe-only springs, general affine constraints, combinations, envelopes, JSON, or identifier policy; those features use independent analytical and adversarial evidence.
+The independent verification corpus includes closed-form solutions, seeded structural properties, metamorphic identities, all 4,096 frame-release masks, sparse benchmarks, direct Frame3DD comparisons, and an OpenSees eccentric-truss oracle. Frame3DD outputs are compared for overlapping frame/truss behavior, including transformed element stiffness matrices, assembled global stiffness matrices, nodal displacements, reactions, frame-end forces, truss axial force, prescribed movement, and supported static loads. OpenSees 3.8.0 independently checks rigid-arm eccentric-truss rotations and axial force. Frame3DD does not define xframe-only springs, general affine constraints, combinations, envelopes, JSON, or identifier policy; those features use independent analytical and adversarial evidence.
 
-See [`docs/verification/verification-report.md`](docs/verification/verification-report.md) and [`docs/verification/benchmark-report.md`](docs/verification/benchmark-report.md).
+See [`docs/verification/verification-report.md`](docs/verification/verification-report.md), [`docs/verification/safety-correctness-report.md`](docs/verification/safety-correctness-report.md), and [`docs/verification/benchmark-report.md`](docs/verification/benchmark-report.md).
 
 ## Explicit exclusions
 

@@ -53,3 +53,45 @@ it("DOC-AUD-003: local Markdown links in public documentation resolve", () => {
     }
   }
 });
+
+it("FR-SAFE-001/002/004/007/014/DOC-AUD-004: current documentation states the remediated safety contracts", () => {
+  const currentDocumentation = [
+    "README.md",
+    "docs/api/public-api.md",
+    "docs/api/json-input.md",
+    "docs/architecture/system-architecture.md",
+    "docs/engineering-use.md",
+    "docs/theory/numerical-conventions.md",
+    "docs/theory/structural-model.md",
+    "docs/theory/solution-and-results.md",
+  ]
+    .map((path) => readFileSync(path, "utf8"))
+    .join("\n");
+  const requiredPhrases = [
+    "sha256:<64 lowercase hexadecimal digits>",
+    "model artifacts use schema version `1` and result artifacts use schema version `2`",
+    "result schema version `1` fails with `SCHEMA_UNSUPPORTED`",
+    "strict compatibility metadata",
+    "createEnvelopeCompatibility(result, components)",
+    "compatibility vector `B`",
+    "`globalEndForces` (six elastic-end force components)",
+    "`globalReferenceEndForces` (twelve reference-node force/moment components)",
+    "fixed cubic `[c0, c1, c2, c3]`",
+    "local `xi = x - start`",
+    "analytical derivative roots",
+    "both `left` and `right` endpoint limits",
+    "combines segment coefficients before deriving stations",
+  ];
+  expect(requiredPhrases.filter((phrase) => !currentDocumentation.includes(phrase))).toEqual([]);
+
+  const supersessionMarker = "Safety-correctness supersession (2026-08-08)";
+  const historicalReports = [
+    "docs/verification/finalization-report.md",
+    "docs/verification/json-api-report.md",
+    "docs/verification/truss-spring-offset-report.md",
+    "docs/verification/result-diagnostics-report.md",
+  ];
+  expect(
+    historicalReports.filter((path) => !readFileSync(path, "utf8").includes(supersessionMarker)),
+  ).toEqual([]);
+});

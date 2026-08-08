@@ -14,7 +14,7 @@ The runtime parser remains authoritative for conditions that JSON Schema cannot 
 - `schemas/model.schema.json`: JSON Schema draft 2020-12, closed root and nested objects, exact unit metadata, every model entity, all five load discriminants, exclusive point-coordinate alternatives, distributed-load span alternatives, constraints, cases, and combinations.
 - `schemas/result.schema.json`: JSON Schema draft 2020-12, closed case/combination unions, units, conventions, full vectors, node and element recovery, internal-force stations, diagnostics, provenance, and combination factors.
 
-Both artifacts use schema version `1`. The TypeScript parsers reject any other version with `SCHEMA_UNSUPPORTED`.
+At the original Part 13 execution, both artifacts used schema version `1`. The TypeScript parsers rejected any other version with `SCHEMA_UNSUPPORTED`.
 
 ## Malformed corpus
 
@@ -74,3 +74,7 @@ The package exposes only `.` as ESM, points declarations to `dist/index.d.ts`, d
 ## Test environment qualification
 
 The repository remains pinned to Vitest 4.1.10, Oxlint 1.76.0, Oxfmt 0.61.0, and TypeScript 5.9.3. This container's configured package mirror omits the pinned Vitest tarballs, so test execution uses the previously disclosed sandbox compatibility harness. Native clean-install verification is reserved for the Part 16 environment audit and will be reported separately.
+
+## Safety-correctness supersession (2026-08-08)
+
+This report preserves the historical Part 13 execution and its test counts. Current model JSON remains schema version `1`; current result JSON is schema version `2`, and result version `1` fails with `SCHEMA_UNSUPPORTED`. Current exports additionally include `createEnvelopeCompatibility`, and envelopes require compatibility metadata rather than accepting bare records. See [`safety-correctness-report.md`](safety-correctness-report.md).

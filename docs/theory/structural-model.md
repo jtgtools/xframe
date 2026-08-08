@@ -40,7 +40,13 @@ For a truss with direction vector `n`:
 
 **XF-EQ-005**: `k = (EA/L) [[nn^T,-nn^T],[-nn^T,nn^T]]`.
 
+For a zero-offset truss, the original translational form is:
+
 Only translations are active; rotational equations are not manufactured. Axial force is `N = EA Δ/L`.
+
+For an endpoint with rigid offset `r`, the elastic-end translation is `ue = un + theta x r`. Let `q` contain the active reference-node DOFs. The compatibility vector `B` gives `delta = B q = n . (ue,end - ue,start)`, so the eccentric local stiffness is `K = (EA/L) B^T B`. A nonzero endpoint offset activates all three reference-node rotations. If those rotations are not physically supported, the resulting `GLOBAL_MECHANISM` is reported rather than silently restrained. Axial force remains `N = EA delta/L`.
+
+`globalEndForces` contains the six elastic-end force components in start-then-end order. `globalReferenceEndForces` contains twelve reference-node force/moment components in start-then-end order. Reference moments include the rigid-arm term `r x F`; equivalent truss self-weight endpoint forces use the same transpose work mapping. These two arrays intentionally coexist because elastic-end force recovery and reference-node equilibrium are different views of the same truss action.
 
 A grounded spring contributes its explicit six component stiffnesses to one node. A two-node spring contributes equal/opposite diagonal component blocks after optional basis rotation. Zero components remain absent rather than stabilized.
 
@@ -56,7 +62,7 @@ The force transform is the transpose of the displacement transform, preserving v
 
 **XF-EQ-007**: `fn^T un = fd^T ud`.
 
-Offsets alter elastic length and the physical coordinates of member loads.
+Offsets alter elastic length and the physical coordinates of member loads. The same work-conjugate transform transfers truss self-weight and recovered truss end actions through eccentric rigid arms.
 
 ## Releases
 

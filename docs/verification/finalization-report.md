@@ -8,26 +8,26 @@ Part 05 resolves references, structural geometry, local axes, and physical kinem
 
 The representative mixed model contains truss `t` on `n1-n2`, frame `f` on `n2-n3`, and a ground spring `s` acting only on `n1.rz`.
 
-| Physical index | DOF |
-| ---: | --- |
-| 0 | `n1.tx` |
-| 1 | `n1.ty` |
-| 2 | `n1.tz` |
-| 3 | `n1.rz` |
-| 4 | `n2.tx` |
-| 5 | `n2.ty` |
-| 6 | `n2.tz` |
-| 7 | `n2.rx` |
-| 8 | `n2.ry` |
-| 9 | `n2.rz` |
-| 10 | `n3.tx` |
-| 11 | `n3.ty` |
-| 12 | `n3.tz` |
-| 13 | `n3.rx` |
-| 14 | `n3.ry` |
-| 15 | `n3.rz` |
+| Physical index | DOF     |
+| -------------: | ------- |
+|              0 | `n1.tx` |
+|              1 | `n1.ty` |
+|              2 | `n1.tz` |
+|              3 | `n1.rz` |
+|              4 | `n2.tx` |
+|              5 | `n2.ty` |
+|              6 | `n2.tz` |
+|              7 | `n2.rx` |
+|              8 | `n2.ry` |
+|              9 | `n2.rz` |
+|             10 | `n3.tx` |
+|             11 | `n3.ty` |
+|             12 | `n3.tz` |
+|             13 | `n3.rx` |
+|             14 | `n3.ry` |
+|             15 | `n3.rz` |
 
-The truss-only endpoint requests translations only. The rotational spring requests exactly `n1.rz`. Request provenance is retained per physical DOF.
+For the zero-offset truss in this historical representative model, the truss-only endpoint requests translations only. The rotational spring requests exactly `n1.rz`. Request provenance is retained per physical DOF.
 
 ## Reference and geometry checks
 
@@ -41,11 +41,15 @@ For a 10 m reference frame with offsets `start=[1,0,0]` and `end=[-2,0,0]`, fina
 
 ## No-auto-restraint regression
 
-A free two-node truss finalizes with six translational physical DOFs, no rotational DOFs, and an empty constraint list. This intentionally preserves the later global mechanism; Part 11 must diagnose it during factorization rather than silently modify topology.
+A free zero-offset two-node truss finalizes with six translational physical DOFs, no rotational DOFs, and an empty constraint list. This intentionally preserves the later global mechanism; Part 11 must diagnose it during factorization rather than silently modify topology.
 
 ## Fingerprint contract
 
-The model fingerprint uses canonical key/entity ordering and FNV-1a 32-bit hashing, labeled `fnv1a32:<hex>`. It is an in-memory deterministic change detector and is explicitly not cryptographic identity.
+At the original Part 05 execution, the model fingerprint used canonical key/entity ordering and FNV-1a 32-bit hashing, labeled `fnv1a32:<hex>`. It was an in-memory deterministic change detector and was explicitly not cryptographic identity.
+
+## Safety-correctness supersession (2026-08-08)
+
+This report retains the original Part 05 observations and counts. Current behavior supersedes its fingerprint and zero-offset-only topology scope: finalized models use `sha256:<64 lowercase hexadecimal digits>`, and each nonzero truss rigid-offset endpoint requests all six reference-node DOFs. The current contract is recorded in [`safety-correctness-report.md`](safety-correctness-report.md).
 
 ## Member-load coordinates
 
