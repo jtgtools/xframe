@@ -21,6 +21,69 @@ interface OpenSeesReference {
   };
 }
 
+interface Frame3ddReference {
+  readonly oracle: {
+    readonly name: "Frame3DD";
+    readonly version: "20140514+";
+    readonly binarySha256?: string;
+    readonly inputSha256: "fixture-input";
+    readonly geometricStiffness: false;
+    readonly command: readonly ["FRAME3DD_BIN"];
+  };
+  readonly units: {
+    readonly length: "m";
+  };
+  readonly tolerances: {
+    readonly matrices: {
+      readonly relative: number;
+      readonly absolute: number;
+    };
+    readonly results: {
+      readonly relative: number;
+      readonly absolute: number;
+    };
+  };
+  readonly elementStiffness: readonly number[];
+}
+
+type Frame3ddComparator = (
+  actual: Frame3ddReference,
+  expected: Frame3ddReference,
+  referenceName: string,
+) => void;
+
+const frame3ddLinuxHash = "53b1dc6628424b156e491e3205f13d58a0e325e33e4746d225b456ab85ac5275";
+const frame3ddWindowsHash = "ad7056c210ad413c37d3627b8e9868fdc40ce09d76f167f2d5f98077d3aad626";
+
+function frame3ddReference(
+  value: number,
+  binarySha256: string | undefined,
+  relative = 1e-3,
+  absolute = 1e-6,
+): Frame3ddReference {
+  return {
+    oracle: {
+      name: "Frame3DD",
+      version: "20140514+",
+      ...(binarySha256 === undefined ? {} : { binarySha256 }),
+      inputSha256: "fixture-input",
+      geometricStiffness: false,
+      command: ["FRAME3DD_BIN"],
+    },
+    units: { length: "m" },
+    tolerances: {
+      matrices: { relative, absolute },
+      results: { relative, absolute },
+    },
+    elementStiffness: [value],
+  };
+}
+
+async function frame3ddComparator(): Promise<Frame3ddComparator> {
+  const module = await import("../../scripts/verify-frame3dd.mjs");
+  return module.compareReference as Frame3ddComparator;
+}
+
 const inputPath = join(process.cwd(), "verification/reference-data/opensees/eccentric-truss.tcl");
 const referencePath = join(
   process.cwd(),
@@ -102,4 +165,48 @@ it("FR-SAFE-002: xframe matches the committed OpenSees eccentric-truss oracle", 
     reference.results.axialForceMagnitude,
     12,
   );
+});
+
+it("FR-SAFE-002: Frame3DD comparator rejects a non-finite committed expected value", async () => {
+  const compareReference = await frame3ddComparator();
+  expect(() =>
+    compareReference(
+      frame3ddReference(0, frame3ddWindowsHash),
+      frame3ddReference(Number.POSITIVE_INFINITY, frame3ddLinuxHash),
+      "non-finite",
+    ),
+  ).toThrow("Frame3DD non-finite.elementStiffness[0] expected value is not finite.");
+});
+
+it("FR-SAFE-002: Frame3DD comparator uses zero expected values as the relative-tolerance scale", async () => {
+  const compareReference = await frame3ddComparator();
+  expect(() =>
+    compareReference(
+      frame3ddReference(2e-6, frame3ddWindowsHash),
+      frame3ddReference(0, frame3ddLinuxHash),
+      "zero-scale",
+    ),
+  ).toThrow("Frame3DD zero-scale.elementStiffness[0] differs:");
+});
+
+it("FR-SAFE-002: Frame3DD comparator rejects a near-zero expected sign reversal beyond its reference tolerance", async () => {
+  const compareReference = await frame3ddComparator();
+  expect(() =>
+    compareReference(
+      frame3ddReference(-1e-6, frame3ddWindowsHash),
+      frame3ddReference(1e-6, frame3ddLinuxHash),
+      "sign-reversal",
+    ),
+  ).toThrow("Frame3DD sign-reversal.elementStiffness[0] differs:");
+});
+
+it("FR-SAFE-002: Frame3DD comparator rejects an unapproved committed binary hash", async () => {
+  const compareReference = await frame3ddComparator();
+  expect(() =>
+    compareReference(
+      frame3ddReference(0, frame3ddWindowsHash),
+      frame3ddReference(0, "unapproved"),
+      "provenance",
+    ),
+  ).toThrow("Frame3DD provenance expected binary SHA-256 is not approved.");
 });
