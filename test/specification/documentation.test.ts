@@ -136,16 +136,30 @@ it("FR-SAFE-001/002/004/007/014/DOC-AUD-004: current documentation states the re
   }
 
   const obsoletePhrasesByFile = [
-    ["README.md", ["FNV-1a", "result artifacts use schema version `1`"]],
+    [
+      "README.md",
+      [
+        "FNV-1a",
+        "result artifacts use schema version `1`",
+        'strict `schemaVersion: "1"` JSON model and result artifacts',
+      ],
+    ],
     [
       "docs/api/public-api.md",
       [
         "`combineResults(id, factors, results)`",
         "`streamEnvelope(records)`",
+        "`streamEnvelope(components, records)`",
         "Bare legacy records are accepted",
       ],
     ],
-    ["docs/theory/numerical-conventions.md", ["A truss endpoint requests translations only."]],
+    [
+      "docs/theory/numerical-conventions.md",
+      [
+        "A truss endpoint requests translations only.",
+        "Truss-only rotations are absent by topology",
+      ],
+    ],
     ["docs/theory/solution-and-results.md", ["Frame results expose stations only."]],
   ];
   for (const [path, phrases] of obsoletePhrasesByFile) {
