@@ -182,7 +182,7 @@ it("FR-SAFE-002: Frame3DD comparator uses zero expected values as the relative-t
   const compareReference = await frame3ddComparator();
   expect(() =>
     compareReference(
-      frame3ddReference(2e-6, frame3ddWindowsHash),
+      frame3ddReference(1.0005e-6, frame3ddWindowsHash),
       frame3ddReference(0, frame3ddLinuxHash),
       "zero-scale",
     ),
@@ -193,8 +193,8 @@ it("FR-SAFE-002: Frame3DD comparator rejects a near-zero expected sign reversal 
   const compareReference = await frame3ddComparator();
   expect(() =>
     compareReference(
-      frame3ddReference(-1e-6, frame3ddWindowsHash),
-      frame3ddReference(1e-6, frame3ddLinuxHash),
+      frame3ddReference(-9.005e-7, frame3ddWindowsHash),
+      frame3ddReference(1e-7, frame3ddLinuxHash),
       "sign-reversal",
     ),
   ).toThrow("Frame3DD sign-reversal.elementStiffness[0] differs:");
