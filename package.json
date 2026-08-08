@@ -13,7 +13,14 @@
   ],
   "license": "MIT",
   "author": "",
+  "files": [
+    "dist",
+    "schemas",
+    "README.md",
+    "LICENSE"
+  ],
   "type": "module",
+  "sideEffects": false,
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -22,13 +29,6 @@
       "import": "./dist/index.js"
     }
   },
-  "files": [
-    "dist",
-    "schemas",
-    "README.md",
-    "LICENSE"
-  ],
-  "sideEffects": false,
   "scripts": {
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
@@ -40,6 +40,7 @@
     "coverage": "vitest run --coverage",
     "verify": "vitest run verification",
     "verify:frame3dd": "node scripts/verify-frame3dd.mjs",
+    "verify:opensees": "node scripts/verify-opensees.mjs",
     "validation:report": "node scripts/write-validation-report.mjs",
     "check:runtime": "node scripts/check-runtime-imports.mjs",
     "benchmark": "npm run build && npm run check:dense && node scripts/run-benchmarks.mjs",

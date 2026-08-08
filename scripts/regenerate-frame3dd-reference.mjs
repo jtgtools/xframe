@@ -2,9 +2,12 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { cpSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, join, resolve } from "node:path";
+import { join, resolve } from "node:path";
 
-const expectedBinaryHash = "53b1dc6628424b156e491e3205f13d58a0e325e33e4746d225b456ab85ac5275";
+const expectedBinaryHashes = new Set([
+  "53b1dc6628424b156e491e3205f13d58a0e325e33e4746d225b456ab85ac5275",
+  "ad7056c210ad413c37d3627b8e9868fdc40ce09d76f167f2d5f98077d3aad626",
+]);
 const root = resolve(import.meta.dirname, "..");
 const binary = process.env.FRAME3DD_BIN;
 if (!binary) throw new Error("FRAME3DD_BIN must point to the Frame3DD executable.");
@@ -19,7 +22,9 @@ function parseMatrix(path, size = 12) {
     .filter((line) => line.trim() && !line.trimStart().startsWith("%"))
     .flatMap((line) => line.trim().split(/\s+/u).map(Number));
   if (values.length !== size * size || values.some((value) => !Number.isFinite(value))) {
-    throw new Error(`Expected a finite ${size}x${size} matrix in ${path}, received ${values.length} values.`);
+    throw new Error(
+      `Expected a finite ${size}x${size} matrix in ${path}, received ${values.length} values.`,
+    );
   }
   return values;
 }
@@ -51,7 +56,9 @@ function parseStaticCases(path, expectedCount, nodeCount, elementStartNodes) {
     const end = matches[index + 1]?.index ?? output.length;
     const chunk = output.slice(start, end);
     if (!chunk.includes("N O D E   D I S P L A C E M E N T S")) continue;
-    const nodeDisplacements = Array.from({ length: nodeCount }, () => new Array(6).fill(0));
+    const nodeDisplacements = Array.from({ length: nodeCount }, () =>
+      Array.from({ length: 6 }, () => 0),
+    );
     for (const row of numericRows(
       section(
         chunk,
@@ -63,7 +70,9 @@ function parseStaticCases(path, expectedCount, nodeCount, elementStartNodes) {
       const node = row[0];
       if (node >= 1 && node <= nodeCount) nodeDisplacements[node - 1] = row.slice(1);
     }
-    const elementEndForces = Array.from({ length: elementStartNodes.length }, () => new Array(12).fill(0));
+    const elementEndForces = Array.from({ length: elementStartNodes.length }, () =>
+      Array.from({ length: 12 }, () => 0),
+    );
     for (const row of numericRows(
       section(chunk, "F R A M E   E L E M E N T   E N D   F O R C E S", "R E A C T I O N S"),
       8,
@@ -74,7 +83,7 @@ function parseStaticCases(path, expectedCount, nodeCount, elementStartNodes) {
       const offset = node === elementStartNodes[element - 1] ? 0 : 6;
       elementEndForces[element - 1].splice(offset, 6, ...row.slice(2));
     }
-    const reactions = Array.from({ length: nodeCount }, () => new Array(6).fill(0));
+    const reactions = Array.from({ length: nodeCount }, () => Array.from({ length: 6 }, () => 0));
     for (const row of numericRows(section(chunk, "R E A C T I O N S", "R M S"), 7)) {
       const node = row[0];
       if (node >= 1 && node <= nodeCount) reactions[node - 1] = row.slice(1);
@@ -108,7 +117,8 @@ function finishTemporary(temporary) {
 }
 
 const binaryHash = sha256(binary);
-if (binaryHash !== expectedBinaryHash) throw new Error(`Unexpected Frame3DD binary SHA-256: ${binaryHash}`);
+if (!expectedBinaryHashes.has(binaryHash))
+  throw new Error(`Unexpected Frame3DD binary SHA-256: ${binaryHash}`);
 execFileSync(binary, ["-v"], { stdio: "ignore" });
 
 const commonOracle = (input, args, note) => ({
@@ -191,7 +201,9 @@ function generateSingleCase({
   const input = join(root, `verification/reference-data/frame3dd/${inputName}`);
   const destination = join(root, `verification/reference-data/frame3dd/${destinationName}`);
   const args = ["-i", "input.3dd", "-o", "output.out", "-d", "-w", "-g", "Off", "-s", "Off", "-q"];
-  const matrixFiles = elementStartNodes.map((_, index) => `k_${String(index + 1).padStart(3, "0")}`);
+  const matrixFiles = elementStartNodes.map(
+    (_, index) => `k_${String(index + 1).padStart(3, "0")}`,
+  );
   const temporary = execute(input, destination, args, [
     "input.3dd",
     "output.out",

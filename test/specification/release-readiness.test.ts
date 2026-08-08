@@ -65,3 +65,11 @@ it("AUD-REL-004: Frame3DD references have a non-destructive executable verificat
   expect(packageJson.scripts?.["verify:frame3dd"]).toBe("node scripts/verify-frame3dd.mjs");
   expect(existsSync("scripts/verify-frame3dd.mjs")).toBe(true);
 });
+
+it("FR-SAFE-002/AUD-REL-005: OpenSees eccentric-truss evidence has a non-destructive executable verification command", () => {
+  const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as {
+    readonly scripts?: Readonly<Record<string, string>>;
+  };
+  expect(packageJson.scripts?.["verify:opensees"]).toBe("node scripts/verify-opensees.mjs");
+  expect(existsSync("scripts/verify-opensees.mjs")).toBe(true);
+});
