@@ -26,7 +26,9 @@ it("DOC-AUD-002: public documentation states scope, units, JSON, CSV, review, an
     "docs/api/public-api.md",
     "docs/api/json-input.md",
     "docs/engineering-use.md",
-  ].map((path) => readFileSync(path, "utf8")).join("\n");
+  ]
+    .map((path) => readFileSync(path, "utf8"))
+    .join("\n");
 
   for (const phrase of [
     "linear-static 3D",
@@ -36,7 +38,8 @@ it("DOC-AUD-002: public documentation states scope, units, JSON, CSV, review, an
     "not formally certified",
     "schemaVersion",
     "Frame3DD",
-  ]) expect(publicText).toContain(phrase);
+  ])
+    expect(publicText).toContain(phrase);
   expect(publicText).not.toMatch(/\b(?:TBD|TODO|FIXME)\b/);
 });
 
@@ -81,6 +84,8 @@ it("FR-SAFE-001/002/004/007/014/DOC-AUD-004: current documentation states the re
     "analytical derivative roots",
     "both `left` and `right` endpoint limits",
     "combines segment coefficients before deriving stations",
+    "`combineResults(id, factors)`",
+    "`{ result, factor }`",
   ];
   expect(requiredPhrases.filter((phrase) => !currentDocumentation.includes(phrase))).toEqual([]);
 

@@ -64,7 +64,13 @@ A `CaseResult` is immutable and includes:
 - residual, equilibrium, energy, pivot, and sparse-storage diagnostics;
 - model fingerprint, unit metadata, conventions, and load provenance.
 
-`combineResults(id, factors, results)` linearly combines compatible case or combination results. For frames it combines segment coefficients before deriving stations, so extrema from a new linear combination are retained. `createEnvelopeCompatibility(result, components)` produces the required immutable metadata. `streamEnvelope(records, components)` consumes records incrementally and retains all tied minimum and maximum governors with complete provenance.
+`combineResults(id, factors)` linearly combines compatible case or combination results. Each `factors` entry is `{ result, factor }`, pairing a `StructuralResult` with its finite scalar multiplier:
+
+```ts
+const combination = combineResults("uls", [{ result: deadLoad, factor: 1.35 }]);
+```
+
+For frames it combines segment coefficients before deriving stations, so extrema from a new linear combination are retained. `createEnvelopeCompatibility(result, components)` produces the required immutable metadata. `streamEnvelope(records, components)` consumes records incrementally and retains all tied minimum and maximum governors with complete provenance.
 
 Every envelope record carries strict compatibility metadata: the `sha256` model fingerprint, the complete unit system, result conventions, and the exact ordered component layout. `streamEnvelope` compares every record with the first record and the supplied layout before reading values. Bare legacy records and every mismatch fail with `RESULT_INCOMPATIBLE`.
 
