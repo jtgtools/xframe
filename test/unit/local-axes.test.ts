@@ -43,12 +43,16 @@ describe("buildLocalAxes", () => {
 
   it("FR-GEO-002: rejects exact and cancellation-scale zero lengths", () => {
     expect(codeOf(() => buildLocalAxes([0, 0, 0], [0, 0, 0]))).toBe("GEOMETRY_INVALID");
-    expect(codeOf(() => buildLocalAxes([1e12, 0, 0], [1e12 + 1e-4, 0, 0]))).toBe("GEOMETRY_INVALID");
+    expect(codeOf(() => buildLocalAxes([1e12, 0, 0], [1e12 + 1e-4, 0, 0]))).toBe(
+      "GEOMETRY_INVALID",
+    );
   });
 
   it("FR-GEO-004: rejects explicit orientation vectors parallel or nearly parallel to the member", () => {
     expect(codeOf(() => buildLocalAxes([0, 0, 0], [1, 0, 0], [1, 0, 0]))).toBe("GEOMETRY_INVALID");
-    expect(codeOf(() => buildLocalAxes([0, 0, 0], [1, 0, 0], [1, 1e-10, 0]))).toBe("GEOMETRY_INVALID");
+    expect(codeOf(() => buildLocalAxes([0, 0, 0], [1, 0, 0], [1, 1e-10, 0]))).toBe(
+      "GEOMETRY_INVALID",
+    );
   });
 
   it("FR-GEO-006: connectivity reversal mirrors x and z while retaining the projected y axis", () => {
@@ -83,10 +87,18 @@ describe("rigid offsets", () => {
     const endpointAction = [4, -5, 6, 0.7, -0.8, 0.9] as const;
     const endpointDisplacement = transferRigidBodyDisplacement(nodalDisplacement, offset);
     const nodalAction = transferRigidEndpointForceToNode(endpointAction, offset);
-    const endpointWork = endpointAction.reduce((sum, value, index) => sum + value * (endpointDisplacement[index] ?? 0), 0);
-    const nodalWork = nodalAction.reduce((sum, value, index) => sum + value * nodalDisplacement[index]!, 0);
+    const endpointWork = endpointAction.reduce(
+      (sum, value, index) => sum + value * (endpointDisplacement[index] ?? 0),
+      0,
+    );
+    const nodalWork = nodalAction.reduce(
+      (sum, value, index) => sum + value * nodalDisplacement[index]!,
+      0,
+    );
 
-    expect(Array.from(endpointDisplacement)).toEqual([0.07, -0.17, 0.32999999999999996, 0.01, -0.02, 0.03]);
+    expect(Array.from(endpointDisplacement)).toEqual([
+      0.07, -0.17, 0.32999999999999996, 0.01, -0.02, 0.03,
+    ]);
     expect(Array.from(nodalAction)).toEqual([4, -5, 6, 9.7, -0.8, -5.1]);
     expect(endpointWork).toBeCloseTo(nodalWork, 12);
   });

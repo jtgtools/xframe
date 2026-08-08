@@ -106,7 +106,11 @@ export function constrain(
 export function affineConstraint(
   builder: ModelBuilder,
   id: string,
-  terms: readonly { readonly nodeId: string; readonly dof: DofName; readonly coefficient: number }[],
+  terms: readonly {
+    readonly nodeId: string;
+    readonly dof: DofName;
+    readonly coefficient: number;
+  }[],
   rightHandSide = 0,
 ): void {
   builder.addConstraint({ id, terms, rightHandSide });
@@ -116,40 +120,40 @@ export function solve(builder: ModelBuilder, caseId = "LC"): CaseResult {
   return prepareAnalysis(builder.finalize()).solveCase(caseId);
 }
 
-export function displacement(result: CaseResult, nodeId: string, dof: DofName): number {
-  const value = result.nodes
+export function displacement(caseResult: CaseResult, nodeId: string, dof: DofName): number {
+  const displacementValue = caseResult.nodes
     .find(({ id }) => id === nodeId)
     ?.displacements.find((entry) => entry.dof === dof)?.value;
-  if (value === undefined) throw new Error(`Missing displacement ${nodeId}.${dof}.`);
-  return value;
+  if (displacementValue === undefined) throw new Error(`Missing displacement ${nodeId}.${dof}.`);
+  return displacementValue;
 }
 
-export function reaction(result: CaseResult, nodeId: string, dof: DofName): number {
-  const value = result.nodes
+export function reaction(caseResult: CaseResult, nodeId: string, dof: DofName): number {
+  const reactionValue = caseResult.nodes
     .find(({ id }) => id === nodeId)
     ?.reactions.find((entry) => entry.dof === dof)?.value;
-  if (value === undefined) throw new Error(`Missing reaction ${nodeId}.${dof}.`);
-  return value;
+  if (reactionValue === undefined) throw new Error(`Missing reaction ${nodeId}.${dof}.`);
+  return reactionValue;
 }
 
-export function frameEndForce(result: CaseResult, frameId: string, index: number): number {
-  const frame = result.frames.find(({ id }) => id === frameId);
+export function frameEndForce(caseResult: CaseResult, frameId: string, index: number): number {
+  const frame = caseResult.frames.find(({ id }) => id === frameId);
   if (frame === undefined) throw new Error(`Missing frame result ${frameId}.`);
-  const value = frame.localEndForces[index];
-  if (value === undefined) throw new Error(`Missing frame force ${frameId}[${index}].`);
-  return value;
+  const force = frame.localEndForces[index];
+  if (force === undefined) throw new Error(`Missing frame force ${frameId}[${index}].`);
+  return force;
 }
 
 export function frameStationValue(
-  result: CaseResult,
+  caseResult: CaseResult,
   frameId: string,
   distance: number,
   component: "axial" | "shearY" | "shearZ" | "torsion" | "bendingY" | "bendingZ",
 ): number {
-  const frame = result.frames.find(({ id }) => id === frameId);
+  const frame = caseResult.frames.find(({ id }) => id === frameId);
   if (frame === undefined) throw new Error(`Missing frame result ${frameId}.`);
-  const station = frame.internalForces.find(({ x }) =>
-    Math.abs(x - distance) <= Math.max(1, Math.abs(distance)) * 1e-12
+  const station = frame.internalForces.find(
+    ({ x }) => Math.abs(x - distance) <= Math.max(1, Math.abs(distance)) * 1e-12,
   );
   if (station === undefined) throw new Error(`Missing station ${frameId}@${distance}.`);
   return station[component];
@@ -214,7 +218,13 @@ export function prismaticFrameBuilder(options: {
   return builder;
 }
 
-export function value(name: string, reference: number, actual: number, units: string, scale = 0): NamedValue {
+export function value(
+  name: string,
+  reference: number,
+  actual: number,
+  units: string,
+  scale = 0,
+): NamedValue {
   const absoluteError = Math.abs(actual - reference);
   const denominator = Math.max(Math.abs(reference), Math.abs(scale), Number.MIN_VALUE);
   return Object.freeze({
@@ -233,7 +243,9 @@ export function result(metadata: CaseMetadata, values: readonly NamedValue[]): V
   return Object.freeze({
     ...metadata,
     tolerancePercent,
-    toleranceReason: metadata.toleranceReason ?? "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
+    toleranceReason:
+      metadata.toleranceReason ??
+      "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
     frame3ddCoverage: metadata.frame3ddCoverage ?? "overlap-indirect",
     values: Object.freeze([...values]),
     maxErrorPercent,
@@ -241,12 +253,15 @@ export function result(metadata: CaseMetadata, values: readonly NamedValue[]): V
   });
 }
 
-export function validationCase(metadata: Omit<CaseMetadata, "model" | "supports" | "loads" | "referenceMethod"> & {
-  readonly model: string;
-  readonly supports: string;
-  readonly loads: string;
-  readonly referenceMethod: ReferenceMethod;
-}, run: () => readonly NamedValue[]): ValidationCase {
+export function validationCase(
+  metadata: Omit<CaseMetadata, "model" | "supports" | "loads" | "referenceMethod"> & {
+    readonly model: string;
+    readonly supports: string;
+    readonly loads: string;
+    readonly referenceMethod: ReferenceMethod;
+  },
+  run: () => readonly NamedValue[],
+): ValidationCase {
   return Object.freeze({
     id: metadata.id,
     category: metadata.category,
@@ -259,7 +274,10 @@ export function matrixSymmetryError(values: ArrayLike<number>, size: number): nu
   let maximum = 0;
   for (let row = 0; row < size; row += 1) {
     for (let column = 0; column < size; column += 1) {
-      maximum = Math.max(maximum, Math.abs(values[row * size + column]! - values[column * size + row]!));
+      maximum = Math.max(
+        maximum,
+        Math.abs(values[row * size + column]! - values[column * size + row]!),
+      );
     }
   }
   return maximum;

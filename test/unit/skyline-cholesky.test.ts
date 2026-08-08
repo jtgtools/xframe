@@ -33,7 +33,10 @@ describe("skyline profile and Cholesky", () => {
     expect(solution[0]).toBeCloseTo(2 / 9, 12);
     expect(solution[1]).toBeCloseTo(1 / 9, 12);
     expect(solution[2]).toBeCloseTo(13 / 9, 12);
-    const multiple = factor.solveMany([[1, 2, 3], [6, 10, 8]]);
+    const multiple = factor.solveMany([
+      [1, 2, 3],
+      [6, 10, 8],
+    ]);
     expect(multiple[1]![0]).toBeCloseTo(1, 14);
     expect(multiple[1]![1]).toBeCloseTo(2, 14);
     expect(multiple[1]![2]).toBeCloseTo(3, 14);
@@ -50,16 +53,29 @@ describe("skyline profile and Cholesky", () => {
   });
 
   it("FR-SOL-007: rejects singular or indefinite pivots structurally", () => {
-    const singular = new SymmetricCoordinateBuilder(2).add(0, 0, 1).add(1, 0, 1).add(1, 1, 1).finalize();
-    expect(() => factorSkylineCholesky(createSkylineProfile(singular, identityOrdering(2)))).toThrow(XFrameError);
+    const singular = new SymmetricCoordinateBuilder(2)
+      .add(0, 0, 1)
+      .add(1, 0, 1)
+      .add(1, 1, 1)
+      .finalize();
+    expect(() =>
+      factorSkylineCholesky(createSkylineProfile(singular, identityOrdering(2))),
+    ).toThrow(XFrameError);
     const indefinite = new SymmetricCoordinateBuilder(2).add(0, 0, 1).add(1, 1, -1).finalize();
-    expect(() => factorSkylineCholesky(createSkylineProfile(indefinite, identityOrdering(2)))).toThrow(XFrameError);
+    expect(() =>
+      factorSkylineCholesky(createSkylineProfile(indefinite, identityOrdering(2))),
+    ).toThrow(XFrameError);
   });
 
   it("FR-SOL-005: rejects unsafe skyline allocation before creating typed arrays", () => {
     const estimate = estimateSkylineMemory([0, 0, 0, 0], 1024);
     expect(estimate.storageCount).toBe(10);
     expect(estimate.estimatedBytes).toBeGreaterThan(80);
-    expect(() => estimateSkylineMemory(new Array(1000).fill(0), 1000)).toThrow(XFrameError);
+    expect(() =>
+      estimateSkylineMemory(
+        Array.from({ length: 1000 }, () => 0),
+        1000,
+      ),
+    ).toThrow(XFrameError);
   });
 });

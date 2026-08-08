@@ -17,9 +17,15 @@ export function exactObjectKeys(value: object, allowed: ReadonlySet<string>, pat
 }
 
 export function vector3(value: unknown, path: string): LoadVector {
-  if (!Array.isArray(value) || value.length !== 3) loadError(path, "array of exactly three finite numbers", Array.isArray(value) ? value.length : typeof value);
+  if (!Array.isArray(value) || value.length !== 3)
+    loadError(
+      path,
+      "array of exactly three finite numbers",
+      Array.isArray(value) ? value.length : typeof value,
+    );
   const entries = value.map((entry, index) => {
-    if (typeof entry !== "number" || !Number.isFinite(entry)) loadError(`${path}[${index}]`, "finite number", entry);
+    if (typeof entry !== "number" || !Number.isFinite(entry))
+      loadError(`${path}[${index}]`, "finite number", entry);
     return Object.is(entry, -0) ? 0 : entry;
   });
   return Object.freeze(entries) as LoadVector;

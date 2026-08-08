@@ -31,13 +31,23 @@ export interface ModelJsonV1 {
   readonly combinations: readonly CombinationInput[];
 }
 
-function pointLocation(load: Extract<FinalizedModel["loadCases"][number]["loads"][number], { readonly kind: "member-point-force" | "member-point-moment" }>): Record<string, number> {
+function pointLocation(
+  load: Extract<
+    FinalizedModel["loadCases"][number]["loads"][number],
+    { readonly kind: "member-point-force" | "member-point-moment" }
+  >,
+): Record<string, number> {
   return load.sourceLocation.kind === "distance"
     ? { distanceFromElasticStart: load.sourceLocation.distanceFromElasticStart }
     : { positionRatio: load.sourceLocation.positionRatio };
 }
 
-function distributedSpan(load: Extract<FinalizedModel["loadCases"][number]["loads"][number], { readonly kind: "member-distributed" }>): Record<string, number> {
+function distributedSpan(
+  load: Extract<
+    FinalizedModel["loadCases"][number]["loads"][number],
+    { readonly kind: "member-distributed" }
+  >,
+): Record<string, number> {
   if (load.sourceSpan.kind === "full") return {};
   return load.sourceSpan.kind === "distance"
     ? {
@@ -137,7 +147,9 @@ export function modelToJsonValue(model: FinalizedModel): ModelJsonV1 {
         ? {}
         : {
             rigidOffsets: {
-              ...(frame.rigidOffsets.start === undefined ? {} : { start: [...frame.rigidOffsets.start] }),
+              ...(frame.rigidOffsets.start === undefined
+                ? {}
+                : { start: [...frame.rigidOffsets.start] }),
               ...(frame.rigidOffsets.end === undefined ? {} : { end: [...frame.rigidOffsets.end] }),
             },
           }),
@@ -152,7 +164,9 @@ export function modelToJsonValue(model: FinalizedModel): ModelJsonV1 {
         ? {}
         : {
             rigidOffsets: {
-              ...(truss.rigidOffsets.start === undefined ? {} : { start: [...truss.rigidOffsets.start] }),
+              ...(truss.rigidOffsets.start === undefined
+                ? {}
+                : { start: [...truss.rigidOffsets.start] }),
               ...(truss.rigidOffsets.end === undefined ? {} : { end: [...truss.rigidOffsets.end] }),
             },
           }),

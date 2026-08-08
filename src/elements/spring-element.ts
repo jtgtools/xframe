@@ -1,5 +1,10 @@
 import { XFrameError } from "../errors/xframe-error.js";
-import type { DofName, SpringInput, SpringRecord, SpringStiffnessInput } from "../model/domain-records.js";
+import type {
+  DofName,
+  SpringInput,
+  SpringRecord,
+  SpringStiffnessInput,
+} from "../model/domain-records.js";
 import { parseIdentifier } from "../model/identifier.js";
 
 const DOFS: readonly DofName[] = ["tx", "ty", "tz", "rx", "ry", "rz"];
@@ -24,12 +29,14 @@ function component(value: unknown, path: string): number {
 function normalizeStiffness(value: SpringStiffnessInput): SpringComponents {
   let components: number[];
   if (Array.isArray(value)) {
-    if (value.length !== 6) springError("spring.stiffness", "array of six component stiffnesses", value.length);
+    if (value.length !== 6)
+      springError("spring.stiffness", "array of six component stiffnesses", value.length);
     components = value.map((entry, index) => component(entry, `spring.stiffness[${index}]`));
   } else if (value !== null && typeof value === "object") {
     const record = value as Readonly<Partial<Record<DofName, number>>>;
     for (const key of Object.keys(record)) {
-      if (!DOFS.includes(key as DofName)) springError(`spring.stiffness.${key}`, "recognized DOF component", key);
+      if (!DOFS.includes(key as DofName))
+        springError(`spring.stiffness.${key}`, "recognized DOF component", key);
     }
     components = DOFS.map((dof) => component(record[dof] ?? 0, `spring.stiffness.${dof}`));
   } else {
@@ -43,7 +50,10 @@ function normalizeStiffness(value: SpringStiffnessInput): SpringComponents {
 
 export function createSpringElement(input: SpringInput): SpringRecord {
   const startNodeId = parseIdentifier(input.startNodeId, "spring.startNodeId");
-  const endNodeId = input.endNodeId === undefined ? undefined : parseIdentifier(input.endNodeId, "spring.endNodeId");
+  const endNodeId =
+    input.endNodeId === undefined
+      ? undefined
+      : parseIdentifier(input.endNodeId, "spring.endNodeId");
   if (endNodeId === startNodeId) {
     springError("spring.endNodeId", "identifier different from startNodeId", endNodeId);
   }

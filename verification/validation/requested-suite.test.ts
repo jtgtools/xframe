@@ -5,7 +5,11 @@ const requiredCategories = Array.from({ length: 12 }, (_, index) => index + 1);
 
 describe("requested comprehensive validation matrix", () => {
   it("VAL-MATRIX-000: includes every requested category", () => {
-    expect([...new Set(requestedValidationCases.map(({ category }) => category))].sort((a, b) => a - b)).toEqual(requiredCategories);
+    expect(
+      [...new Set(requestedValidationCases.map(({ category }) => category))].toSorted(
+        (a, b) => a - b,
+      ),
+    ).toEqual(requiredCategories);
   });
 
   for (const validationCase of requestedValidationCases) {

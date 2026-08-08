@@ -51,7 +51,9 @@ export function withinTolerance(
       actual: String(checkedScale),
     });
   }
-  return Math.abs(checkedActual - checkedExpected) <= checked.absolute + checked.relative * checkedScale;
+  return (
+    Math.abs(checkedActual - checkedExpected) <= checked.absolute + checked.relative * checkedScale
+  );
 }
 
 export function isScaledZero(value: number, referenceScale: number, tolerance: Tolerance): boolean {

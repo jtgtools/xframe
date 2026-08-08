@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
@@ -16,10 +16,17 @@ function number(value) {
 
 rmSync(outputRoot, { recursive: true, force: true });
 try {
-  execFileSync(process.execPath, [join(root, "node_modules/typescript/bin/tsc"), "-p", join(root, "tsconfig.validation.json")], { cwd: root, stdio: "inherit" });
-  const { requestedValidationCases } = await import(`${join(outputRoot, "verification/validation/requested-validation-cases.js")}?${Date.now()}`);
+  execFileSync(
+    process.execPath,
+    [join(root, "node_modules/typescript/bin/tsc"), "-p", join(root, "tsconfig.validation.json")],
+    { cwd: root, stdio: "inherit" },
+  );
+  const { requestedValidationCases } = await import(
+    `${join(outputRoot, "verification/validation/requested-validation-cases.js")}?${Date.now()}`
+  );
   const results = requestedValidationCases.map((validationCase) => validationCase.run());
-  if (results.some(({ pass }) => !pass)) throw new Error("Validation report generation refused because one or more cases failed.");
+  if (results.some(({ pass }) => !pass))
+    throw new Error("Validation report generation refused because one or more cases failed.");
 
   const categoryRows = Array.from({ length: 12 }, (_, index) => {
     const category = index + 1;
@@ -46,13 +53,19 @@ try {
     "",
     "| Category | Cases | Failures | Maximum error (%) | Priority flag |",
     "| ---: | ---: | ---: | ---: | --- |",
-    ...categoryRows.map(({ category, count, failures, maximumErrorPercent }) => `| ${category} | ${count} | ${failures} | ${number(maximumErrorPercent)} | ${failures > 1 ? "PRIORITY" : "—"} |`),
+    ...categoryRows.map(
+      ({ category, count, failures, maximumErrorPercent }) =>
+        `| ${category} | ${count} | ${failures} | ${number(maximumErrorPercent)} | ${failures > 1 ? "PRIORITY" : "—"} |`,
+    ),
     "",
     "## Case summary",
     "",
     "| Test ID | Category | Pass/Fail | Maximum error (%) | Frame3DD coverage |",
     "| --- | ---: | --- | ---: | --- |",
-    ...results.map((entry) => `| ${entry.id} | ${entry.category} | ${entry.pass ? "Pass" : "Fail"} | ${number(entry.maxErrorPercent)} | ${entry.frame3ddCoverage} |`),
+    ...results.map(
+      (entry) =>
+        `| ${entry.id} | ${entry.category} | ${entry.pass ? "Pass" : "Fail"} | ${number(entry.maxErrorPercent)} | ${entry.frame3ddCoverage} |`,
+    ),
     "",
     "## Convention differences",
     "",
@@ -108,7 +121,10 @@ try {
 
   mkdirSync(join(root, "docs/verification"), { recursive: true });
   writeFileSync(reportPath, `${lines.join("\n")}\n`);
-  writeFileSync(jsonPath, `${JSON.stringify({ schemaVersion: "1", results, categorySummary: categoryRows }, null, 2)}\n`);
+  writeFileSync(
+    jsonPath,
+    `${JSON.stringify({ schemaVersion: "1", results, categorySummary: categoryRows }, null, 2)}\n`,
+  );
   console.log(`Validation report written: ${results.length} passing cases.`);
 } finally {
   rmSync(outputRoot, { recursive: true, force: true });

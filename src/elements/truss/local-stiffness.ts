@@ -21,7 +21,9 @@ function positive(value: number, path: string): number {
   return value;
 }
 
-export function normalizedTrussDirection(input: ArrayLike<number>): readonly [number, number, number] {
+export function normalizedTrussDirection(
+  input: ArrayLike<number>,
+): readonly [number, number, number] {
   const vector = createVector3(input, "truss.direction");
   const norm = normVector3(vector);
   if (norm <= 256 * Number.EPSILON) {
@@ -37,12 +39,17 @@ export function normalizedTrussDirection(input: ArrayLike<number>): readonly [nu
 
 export function computeTrussGlobalStiffness(input: TrussStiffnessInput): Float64Array {
   const length = positive(input.length, "truss.length");
-  const stiffness = (positive(input.elasticModulus, "truss.elasticModulus") * positive(input.area, "truss.area")) / length;
+  const stiffness =
+    (positive(input.elasticModulus, "truss.elasticModulus") * positive(input.area, "truss.area")) /
+    length;
   const direction = normalizedTrussDirection(input.direction);
   const result = new Float64Array(36);
   for (let row = 0; row < 3; row += 1) {
     for (let column = 0; column < 3; column += 1) {
-      const value = finiteNumber(stiffness * direction[row]! * direction[column]!, `trussStiffness[${row},${column}]`);
+      const value = finiteNumber(
+        stiffness * direction[row]! * direction[column]!,
+        `trussStiffness[${row},${column}]`,
+      );
       result[row * 6 + column] = value;
       result[row * 6 + column + 3] = -value;
       result[(row + 3) * 6 + column] = -value;

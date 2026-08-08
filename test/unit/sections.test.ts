@@ -34,9 +34,15 @@ describe("frame sections", () => {
   it("FR-SEC-002: requires effective shear areas only for Timoshenko theory", () => {
     const euler = createFrameSection(frameSectionInput);
     expect(assertFrameSectionSupportsTheory(euler, { kind: "euler-bernoulli" })).toBeUndefined();
-    expect(codeOf(() => assertFrameSectionSupportsTheory(euler, { kind: "timoshenko" }))).toBe("SECTION_INVALID");
+    expect(codeOf(() => assertFrameSectionSupportsTheory(euler, { kind: "timoshenko" }))).toBe(
+      "SECTION_INVALID",
+    );
 
-    const timoshenko = createFrameSection({ ...frameSectionInput, shearAreaY: 0.008, shearAreaZ: 0.007 });
+    const timoshenko = createFrameSection({
+      ...frameSectionInput,
+      shearAreaY: 0.008,
+      shearAreaZ: 0.007,
+    });
     expect(assertFrameSectionSupportsTheory(timoshenko, { kind: "timoshenko" })).toBeUndefined();
   });
 
@@ -48,7 +54,9 @@ describe("frame sections", () => {
       ["momentOfInertiaZ", Number.POSITIVE_INFINITY],
       ["shearAreaY", 0],
     ] as const) {
-      expect(codeOf(() => createFrameSection({ ...frameSectionInput, [key]: value }))).toBe("SECTION_INVALID");
+      expect(codeOf(() => createFrameSection({ ...frameSectionInput, [key]: value }))).toBe(
+        "SECTION_INVALID",
+      );
     }
   });
 });

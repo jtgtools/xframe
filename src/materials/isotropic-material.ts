@@ -5,7 +5,10 @@ import { parseIdentifier } from "../model/identifier.js";
 
 // The relation check is dimensionless and scaled by the supplied shear modulus.
 // 1e-9 rejects materially inconsistent triples while allowing normal decimal serialization roundoff.
-export const MATERIAL_RELATION_TOLERANCE: Tolerance = Object.freeze({ absolute: 0, relative: 1e-9 });
+export const MATERIAL_RELATION_TOLERANCE: Tolerance = Object.freeze({
+  absolute: 0,
+  relative: 1e-9,
+});
 
 function materialError(path: string, expected: string, actual: unknown): never {
   throw new XFrameError("MATERIAL_INVALID", "Isotropic material data is invalid.", {
@@ -62,13 +65,20 @@ export function createIsotropicMaterial(input: MaterialInput): MaterialRecord {
     }
   } else if (hasShear) {
     shearModulus = positive(input.shearModulus, "material.shearModulus");
-    poissonRatio = poisson(elasticModulus / (2 * shearModulus) - 1, "material.poissonRatio(derived)");
+    poissonRatio = poisson(
+      elasticModulus / (2 * shearModulus) - 1,
+      "material.poissonRatio(derived)",
+    );
   } else {
     poissonRatio = poisson(input.poissonRatio, "material.poissonRatio");
-    shearModulus = positive(elasticModulus / (2 * (1 + poissonRatio)), "material.shearModulus(derived)");
+    shearModulus = positive(
+      elasticModulus / (2 * (1 + poissonRatio)),
+      "material.shearModulus(derived)",
+    );
   }
 
-  const density = input.density === undefined ? undefined : positive(input.density, "material.density");
+  const density =
+    input.density === undefined ? undefined : positive(input.density, "material.density");
   return Object.freeze({
     id,
     elasticModulus,

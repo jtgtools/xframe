@@ -12,8 +12,10 @@ function frozenVector(value: ArrayLike<unknown>, path: string): FrozenVector3 {
 
 function normalizedOffsets(value: RigidOffsetInput | undefined): RigidOffsetInput | undefined {
   if (value === undefined) return undefined;
-  const start = value.start === undefined ? undefined : frozenVector(value.start, "truss.rigidOffsets.start");
-  const end = value.end === undefined ? undefined : frozenVector(value.end, "truss.rigidOffsets.end");
+  const start =
+    value.start === undefined ? undefined : frozenVector(value.start, "truss.rigidOffsets.start");
+  const end =
+    value.end === undefined ? undefined : frozenVector(value.end, "truss.rigidOffsets.end");
   return Object.freeze({
     ...(start === undefined ? {} : { start }),
     ...(end === undefined ? {} : { end }),

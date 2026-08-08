@@ -41,7 +41,8 @@ function checkedVector(values: ArrayLike<number>, size: number, path: string): F
     });
   }
   const result = new Float64Array(size);
-  for (let index = 0; index < size; index += 1) result[index] = finiteNumber(values[index], `${path}[${index}]`);
+  for (let index = 0; index < size; index += 1)
+    result[index] = finiteNumber(values[index], `${path}[${index}]`);
   return result;
 }
 
@@ -78,7 +79,8 @@ export class SymmetricCoordinateMatrix {
       result[row] = result[row]! + value * vector[column]!;
       if (row !== column) result[column] = result[column]! + value * vector[row]!;
     }
-    for (let index = 0; index < result.length; index += 1) finiteNumber(result[index], `product[${index}]`);
+    for (let index = 0; index < result.length; index += 1)
+      finiteNumber(result[index], `product[${index}]`);
     return result;
   }
 

@@ -20,7 +20,11 @@ export function createMatrix3(value: ArrayLike<unknown>, path = "matrix"): Matri
   return finiteFloat64Array(value, path);
 }
 
-export function matrix3FromRows(row0: ArrayLike<number>, row1: ArrayLike<number>, row2: ArrayLike<number>): Matrix3 {
+export function matrix3FromRows(
+  row0: ArrayLike<number>,
+  row1: ArrayLike<number>,
+  row2: ArrayLike<number>,
+): Matrix3 {
   const a = createVector3(row0, "row0");
   const b = createVector3(row1, "row1");
   const c = createVector3(row2, "row2");
@@ -30,13 +34,22 @@ export function matrix3FromRows(row0: ArrayLike<number>, row1: ArrayLike<number>
 export function transposeMatrix3(matrix: ArrayLike<number>): Matrix3 {
   requireLengthNine(matrix, "matrix");
   return createMatrix3([
-    matrix[0], matrix[3], matrix[6],
-    matrix[1], matrix[4], matrix[7],
-    matrix[2], matrix[5], matrix[8],
+    matrix[0],
+    matrix[3],
+    matrix[6],
+    matrix[1],
+    matrix[4],
+    matrix[7],
+    matrix[2],
+    matrix[5],
+    matrix[8],
   ]);
 }
 
-export function multiplyMatrix3Vector3(matrix: ArrayLike<number>, vector: ArrayLike<number>): Vector3 {
+export function multiplyMatrix3Vector3(
+  matrix: ArrayLike<number>,
+  vector: ArrayLike<number>,
+): Vector3 {
   requireLengthNine(matrix, "matrix");
   const v = createVector3(vector, "vector");
   return createVector3([

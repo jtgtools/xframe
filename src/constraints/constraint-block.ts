@@ -40,9 +40,9 @@ export function buildConstraintBlocks(
     blocks.push(
       Object.freeze({
         equations: Object.freeze(indexes.map((index) => equations[index]!)),
-        dofs: Object.freeze([...dofs].sort((left, right) => left - right)),
+        dofs: Object.freeze([...dofs].toSorted((left, right) => left - right)),
       }),
     );
   }
-  return Object.freeze(blocks.sort((left, right) => left.dofs[0]! - right.dofs[0]!));
+  return Object.freeze(blocks.toSorted((left, right) => left.dofs[0]! - right.dofs[0]!));
 }

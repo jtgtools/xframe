@@ -5,6 +5,7 @@ You are validating a custom 3D frame analysis library. Your job is to construct 
 ## Library scope (test only this)
 
 **Implemented:**
+
 - Linear elastic static analysis
 - Euler-Bernoulli beam theory
 - Timoshenko beam theory (shear deformation)
@@ -13,6 +14,7 @@ You are validating a custom 3D frame analysis library. Your job is to construct 
 - Rigid end offsets
 
 **Not implemented — do not write tests for these:**
+
 - Nonlinear material, P-Delta, buckling/stability
 - Prescribed support settlement
 - Temperature loads
@@ -30,7 +32,7 @@ Loads:
 Reference method: [closed-form hand calc | published benchmark table | commercial software | self-consistency check | equivalent-model cross-check]
 Reference value(s):
 Library output:
-Error (%): 
+Error (%):
 Tolerance used and why:
 Pass/Fail:
 ```

@@ -20,11 +20,15 @@ export class Registry<T extends IdentifiedRecord> {
 
   public add(value: T): this {
     if (this.#entries.has(value.id)) {
-      throw new XFrameError("DUPLICATE_IDENTIFIER", `Duplicate ${this.#entityType} identifier: ${value.id}.`, {
-        kind: "duplicate-identifier",
-        entityType: this.#entityType,
-        id: value.id,
-      });
+      throw new XFrameError(
+        "DUPLICATE_IDENTIFIER",
+        `Duplicate ${this.#entityType} identifier: ${value.id}.`,
+        {
+          kind: "duplicate-identifier",
+          entityType: this.#entityType,
+          id: value.id,
+        },
+      );
     }
     this.#entries.set(value.id, value);
     return this;
@@ -43,7 +47,9 @@ export class Registry<T extends IdentifiedRecord> {
   }
 
   public entries(): readonly (readonly [EntityId, T])[] {
-    return Object.freeze([...this.#entries.entries()].map(([id, value]) => Object.freeze([id, value] as const)));
+    return Object.freeze(
+      [...this.#entries.entries()].map(([id, value]) => Object.freeze([id, value] as const)),
+    );
   }
 
   public transaction(mutator: (draft: Registry<T>) => void): this {

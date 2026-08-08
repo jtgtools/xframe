@@ -37,11 +37,19 @@ describe("finite numeric boundaries", () => {
   it("FR-GEO-001: accepts finite subnormals and normalizes negative zero", () => {
     expect(finiteNumber(Number.MIN_VALUE, "value")).toBe(Number.MIN_VALUE);
     expect(Object.is(finiteNumber(-0, "value"), -0)).toBe(false);
-    expect(Array.from(finiteFloat64Array([-0, Number.MIN_VALUE], "values"))).toEqual([0, Number.MIN_VALUE]);
+    expect(Array.from(finiteFloat64Array([-0, Number.MIN_VALUE], "values"))).toEqual([
+      0,
+      Number.MIN_VALUE,
+    ]);
   });
 
   it("FR-GEO-001: rejects NaN, infinities, and overflow products", () => {
-    for (const value of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.MAX_VALUE * 2]) {
+    for (const value of [
+      Number.NaN,
+      Number.POSITIVE_INFINITY,
+      Number.NEGATIVE_INFINITY,
+      Number.MAX_VALUE * 2,
+    ]) {
       expect(codeOf(() => finiteNumber(value, "value"))).toBe("NON_FINITE_VALUE");
     }
     expect(codeOf(() => finiteFloat64Array([1, Number.NaN], "values"))).toBe("NON_FINITE_VALUE");
@@ -50,8 +58,12 @@ describe("finite numeric boundaries", () => {
 
 describe("scale-aware tolerance", () => {
   it("FR-GEO-002: combines absolute and relative terms against an independent reference scale", () => {
-    expect(withinTolerance(1_000_000.000001, 1_000_000, 1_000_000, { absolute: 1e-9, relative: 2e-12 })).toBe(true);
-    expect(withinTolerance(1_000_000.01, 1_000_000, 1_000_000, { absolute: 1e-9, relative: 2e-12 })).toBe(false);
+    expect(
+      withinTolerance(1_000_000.000001, 1_000_000, 1_000_000, { absolute: 1e-9, relative: 2e-12 }),
+    ).toBe(true);
+    expect(
+      withinTolerance(1_000_000.01, 1_000_000, 1_000_000, { absolute: 1e-9, relative: 2e-12 }),
+    ).toBe(false);
     expect(withinTolerance(5e-13, 0, 1, { absolute: 1e-12, relative: 0 })).toBe(true);
   });
 
@@ -90,7 +102,9 @@ describe("Vector3 and Matrix3", () => {
     const transpose = transposeMatrix3(rotation);
     const identity = multiplyMatrix3(rotation, transpose);
 
-    expect(Array.from(multiplyMatrix3Vector3(rotation, createVector3([2, 3, 4])))).toEqual([3, -2, 4]);
+    expect(Array.from(multiplyMatrix3Vector3(rotation, createVector3([2, 3, 4])))).toEqual([
+      3, -2, 4,
+    ]);
     expect(Array.from(identity)).toEqual([1, 0, 0, 0, 1, 0, 0, 0, 1]);
     expect(determinantMatrix3(rotation)).toBe(1);
   });

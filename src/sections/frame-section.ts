@@ -35,8 +35,14 @@ export function createFrameSection(input: FrameSectionInput): FrameSectionRecord
       sectionError(`frameSection.${key}`, "recognized frame-section property", key);
     }
   }
-  const shearAreaY = input.shearAreaY === undefined ? undefined : positive(input.shearAreaY, "frameSection.shearAreaY");
-  const shearAreaZ = input.shearAreaZ === undefined ? undefined : positive(input.shearAreaZ, "frameSection.shearAreaZ");
+  const shearAreaY =
+    input.shearAreaY === undefined
+      ? undefined
+      : positive(input.shearAreaY, "frameSection.shearAreaY");
+  const shearAreaZ =
+    input.shearAreaZ === undefined
+      ? undefined
+      : positive(input.shearAreaZ, "frameSection.shearAreaZ");
   return Object.freeze({
     id: parseIdentifier(input.id, "frameSection.id"),
     area: positive(input.area, "frameSection.area"),
@@ -48,8 +54,14 @@ export function createFrameSection(input: FrameSectionInput): FrameSectionRecord
   });
 }
 
-export function assertFrameSectionSupportsTheory(section: FrameSectionRecord, theory: FrameTheory): void {
-  if (theory.kind === "timoshenko" && (section.shearAreaY === undefined || section.shearAreaZ === undefined)) {
+export function assertFrameSectionSupportsTheory(
+  section: FrameSectionRecord,
+  theory: FrameTheory,
+): void {
+  if (
+    theory.kind === "timoshenko" &&
+    (section.shearAreaY === undefined || section.shearAreaZ === undefined)
+  ) {
     sectionError(
       "frameSection",
       "positive shearAreaY and shearAreaZ for Timoshenko theory",

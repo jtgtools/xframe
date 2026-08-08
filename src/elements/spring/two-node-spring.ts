@@ -26,18 +26,25 @@ export function recoverTwoNodeSpringForces(
   localToGlobalBasis?: ArrayLike<number>,
 ): Float64Array {
   if (displacements.length !== 12) {
-    throw new XFrameError("INPUT_INVALID", "Two-node spring recovery requires twelve displacements.", {
-      kind: "input",
-      path: "spring.displacements",
-      expected: "array-like of length 12",
-      actual: `length ${displacements.length}`,
-    });
+    throw new XFrameError(
+      "INPUT_INVALID",
+      "Two-node spring recovery requires twelve displacements.",
+      {
+        kind: "input",
+        path: "spring.displacements",
+        expected: "array-like of length 12",
+        actual: `length ${displacements.length}`,
+      },
+    );
   }
   const matrix = computeTwoNodeSpringStiffness(stiffness, localToGlobalBasis);
   const result = new Float64Array(12);
   for (let row = 0; row < 12; row += 1) {
     let value = 0;
-    for (let column = 0; column < 12; column += 1) value += matrix[row * 12 + column]! * finiteNumber(displacements[column], `spring.displacements[${column}]`);
+    for (let column = 0; column < 12; column += 1)
+      value +=
+        matrix[row * 12 + column]! *
+        finiteNumber(displacements[column], `spring.displacements[${column}]`);
     result[row] = finiteNumber(value, `spring.force[${row}]`);
   }
   return result;

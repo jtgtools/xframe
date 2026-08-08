@@ -4,7 +4,16 @@ import { createModelBuilder } from "../../src/model/model-builder.js";
 
 it("FR-DIA-001: reports raw residual, equilibrium, energy, pivot, storage, and reuse diagnostics", () => {
   const model = createModelBuilder()
-    .setUnitSystem({ version: "1", length: "m", force: "N", moment: "N*m", modulus: "Pa", distributedForce: "N/m", density: "kg/m^3", rotation: "rad" })
+    .setUnitSystem({
+      version: "1",
+      length: "m",
+      force: "N",
+      moment: "N*m",
+      modulus: "Pa",
+      distributedForce: "N/m",
+      density: "kg/m^3",
+      rotation: "rad",
+    })
     .addNode({ id: "n", coordinates: [0, 0, 0] })
     .addSpring({ id: "k", startNodeId: "n", stiffness: [100, 0, 0, 0, 0, 0] })
     .addLoadCase({ id: "P", loads: [{ kind: "nodal", nodeId: "n", force: [10, 0, 0] }] })
@@ -24,13 +33,25 @@ it("FR-DIA-001: reports raw residual, equilibrium, energy, pivot, storage, and r
   expect(result.diagnostics.skylineBandwidth).toBe(1);
 });
 
-
 it("FR-DIA-001: includes prescribed-displacement reaction work in energy balance", () => {
   const model = createModelBuilder()
-    .setUnitSystem({ version: "1", length: "m", force: "N", moment: "N*m", modulus: "Pa", distributedForce: "N/m", density: "kg/m^3", rotation: "rad" })
+    .setUnitSystem({
+      version: "1",
+      length: "m",
+      force: "N",
+      moment: "N*m",
+      modulus: "Pa",
+      distributedForce: "N/m",
+      density: "kg/m^3",
+      rotation: "rad",
+    })
     .addNode({ id: "n", coordinates: [0, 0, 0] })
     .addSpring({ id: "k", startNodeId: "n", stiffness: [100, 0, 0, 0, 0, 0] })
-    .addConstraint({ id: "u", terms: [{ nodeId: "n", dof: "tx", coefficient: 1 }], rightHandSide: 0.1 })
+    .addConstraint({
+      id: "u",
+      terms: [{ nodeId: "n", dof: "tx", coefficient: 1 }],
+      rightHandSide: 0.1,
+    })
     .addLoadCase({ id: "settlement", loads: [] })
     .finalize();
   const result = prepareAnalysis(model).solveCase("settlement");

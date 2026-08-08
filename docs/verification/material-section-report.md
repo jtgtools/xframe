@@ -24,10 +24,10 @@ with `E > 0`, `G > 0`, and `-1 < nu < 0.5`. The missing property is derived once
 
 Representative derivations tested:
 
-| Input | Derived value |
-| ----- | ------------- |
-| `E = 210e9`, `nu = 0.3` | `G = 80.76923076923077e9` |
-| `E = 70e9`, `G = 26e9` | `nu = 0.34615384615384626` |
+| Input                   | Derived value              |
+| ----------------------- | -------------------------- |
+| `E = 210e9`, `nu = 0.3` | `G = 80.76923076923077e9`  |
+| `E = 70e9`, `G = 26e9`  | `nu = 0.34615384615384626` |
 
 The model builder delegates material insertion to the same constructor; invalid material data cannot enter builder storage.
 

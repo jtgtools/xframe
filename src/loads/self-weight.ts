@@ -4,13 +4,16 @@ import { exactObjectKeys, loadError, nonzero, vector3 } from "./load-validation.
 
 const ALLOWED = new Set(["kind", "gravity", "frameIds", "trussIds"]);
 
-function identifiers(value: readonly unknown[] | undefined, path: string): readonly EntityId[] | undefined {
+function identifiers(
+  value: readonly unknown[] | undefined,
+  path: string,
+): readonly EntityId[] | undefined {
   if (value === undefined) return undefined;
   if (!Array.isArray(value)) loadError(path, "array of unique identifiers", typeof value);
   const result = value.map((entry, index) => parseIdentifier(entry, `${path}[${index}]`));
   const unique = new Set(result);
   if (unique.size !== result.length) loadError(path, "unique identifiers", result.join(","));
-  return Object.freeze([...result].sort());
+  return Object.freeze(result.toSorted());
 }
 
 export function createSelfWeightLoad(input: SelfWeightLoadInput): SelfWeightLoadRecord {
@@ -21,7 +24,11 @@ export function createSelfWeightLoad(input: SelfWeightLoadInput): SelfWeightLoad
   const frameIds = identifiers(input.frameIds, "load.frameIds");
   const trussIds = identifiers(input.trussIds, "load.trussIds");
   if (frameIds !== undefined && trussIds !== undefined && frameIds.length + trussIds.length === 0) {
-    loadError("load", "at least one selected element or omitted selection for all elements", "empty selections");
+    loadError(
+      "load",
+      "at least one selected element or omitted selection for all elements",
+      "empty selections",
+    );
   }
   return Object.freeze({
     kind: input.kind,

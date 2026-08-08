@@ -22,7 +22,13 @@ describe("analytical frame verification", () => {
       momentOfInertiaZ: inertia,
       theory: { kind: "euler-bernoulli" },
     });
-    const [displacement, rotation] = solve2(k[7 * 12 + 7]!, k[7 * 12 + 11]!, k[11 * 12 + 11]!, 12_000, 0);
+    const [displacement, rotation] = solve2(
+      k[7 * 12 + 7]!,
+      k[7 * 12 + 11]!,
+      k[11 * 12 + 11]!,
+      12_000,
+      0,
+    );
     expect(displacement).toBeCloseTo((12_000 * length ** 3) / (3 * elasticModulus * inertia), 12);
     expect(rotation).toBeCloseTo((12_000 * length ** 2) / (2 * elasticModulus * inertia), 12);
   });
@@ -37,7 +43,13 @@ describe("analytical frame verification", () => {
       momentOfInertiaY: 4e-5,
       momentOfInertiaZ: 5e-5,
       theory: { kind: "euler-bernoulli" },
-      load: { kind: "distributed", start: 0, end: length, startIntensity: [0, load, 0], endIntensity: [0, load, 0] },
+      load: {
+        kind: "distributed",
+        start: 0,
+        end: length,
+        startIntensity: [0, load, 0],
+        endIntensity: [0, load, 0],
+      },
     });
     expect(p[1]).toBeCloseTo((load * length) / 2, 12);
     expect(p[5]).toBeCloseTo((load * length ** 2) / 12, 12);

@@ -11,7 +11,12 @@ function unsafeCause(): Error & { secret: object; code: string } {
 
 describe("XFrameError", () => {
   it("FR-ERR-001: exposes a stable code and immutable structured context", () => {
-    const context = { kind: "input", path: "nodes[0].x", expected: "finite number", actual: "NaN" } as const;
+    const context = {
+      kind: "input",
+      path: "nodes[0].x",
+      expected: "finite number",
+      actual: "NaN",
+    } as const;
     const error = new XFrameError("INPUT_INVALID", "Node coordinate is invalid.", context);
 
     expect(error.code).toBe("INPUT_INVALID");
@@ -33,7 +38,11 @@ describe("XFrameError", () => {
       { cause: unsafeCause() },
     );
 
-    expect(error.causeSummary).toEqual({ name: "DatabaseError", message: "database exploded", code: "E_DB" });
+    expect(error.causeSummary).toEqual({
+      name: "DatabaseError",
+      message: "database exploded",
+      code: "E_DB",
+    });
     expect(JSON.stringify(error)).not.toContain("do-not-expose");
   });
 });
@@ -44,6 +53,10 @@ it("FR-ERR-001: copies nested context before freezing it", () => {
   const error = new XFrameError("RESULT_INCOMPATIBLE", "Results are incompatible.", context);
   resultIds[0] = "mutated";
 
-  expect(error.context).toEqual({ kind: "result", resultIds: ["case-a"], reason: "incompatible models" });
+  expect(error.context).toEqual({
+    kind: "result",
+    resultIds: ["case-a"],
+    reason: "incompatible models",
+  });
   expect(Object.isFrozen((error.context as typeof context).resultIds)).toBe(true);
 });

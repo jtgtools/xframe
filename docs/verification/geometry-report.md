@@ -38,14 +38,14 @@ state = (1664525 * state + 1013904223) mod 2^32
 
 The seeds and retained measurements are:
 
-| Seed | Cases | Property | Maximum observed error |
-| ---: | ----: | -------- | ----------------------: |
-| 24301 | 200 | local-axis unit norm | `4.440892098500626e-16` |
-| 24301 | 200 | local-axis orthogonality | `1.6653345369377348e-16` |
-| 24301 | 200 | determinant distance from `+1` | `4.440892098500626e-16` |
-| 24302 | 100 | global/local/global component round-trip | `2.1316282072803006e-14` |
-| 24303 | 100 | rigid-offset virtual-work absolute error | `1.7763568394002505e-15` |
-| 24303 | 100 | rigid-offset virtual-work relative error | `7.125622406101314e-16` |
+|  Seed | Cases | Property                                 |   Maximum observed error |
+| ----: | ----: | ---------------------------------------- | -----------------------: |
+| 24301 |   200 | local-axis unit norm                     |  `4.440892098500626e-16` |
+| 24301 |   200 | local-axis orthogonality                 | `1.6653345369377348e-16` |
+| 24301 |   200 | determinant distance from `+1`           |  `4.440892098500626e-16` |
+| 24302 |   100 | global/local/global component round-trip | `2.1316282072803006e-14` |
+| 24303 |   100 | rigid-offset virtual-work absolute error | `1.7763568394002505e-15` |
+| 24303 |   100 | rigid-offset virtual-work relative error |  `7.125622406101314e-16` |
 
 The local-axis fallback selects the global basis vector least aligned with local x, with X then Y then Z as deterministic tie order. The projected vector becomes local y, and local z is `x × y`. Recomputing `y = z × x` limits orthogonality drift and preserves a determinant near `+1`.
 

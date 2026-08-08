@@ -16,7 +16,13 @@ describe("frame equivalent member loads", () => {
     const p = computeFrameEquivalentLoad({
       ...kernel,
       theory: { kind: "euler-bernoulli" },
-      load: { kind: "distributed", start: 0, end: 6, startIntensity: [0, -10, 0], endIntensity: [0, -10, 0] },
+      load: {
+        kind: "distributed",
+        start: 0,
+        end: 6,
+        startIntensity: [0, -10, 0],
+        endIntensity: [0, -10, 0],
+      },
     });
     expect(p[1]).toBeCloseTo(-30, 12);
     expect(p[5]).toBeCloseTo(-30, 12);
@@ -52,7 +58,13 @@ describe("frame equivalent member loads", () => {
     const p = computeFrameEquivalentLoad({
       ...kernel,
       theory: { kind: "euler-bernoulli" },
-      load: { kind: "distributed", start: 1, end: 5, startIntensity: [2, 0, -3], endIntensity: [6, 0, -7] },
+      load: {
+        kind: "distributed",
+        start: 1,
+        end: 5,
+        startIntensity: [2, 0, -3],
+        endIntensity: [6, 0, -7],
+      },
     });
     expect(p[0]! + p[6]!).toBeCloseTo(16, 10);
     expect(p[2]! + p[8]!).toBeCloseTo(-20, 10);

@@ -4,7 +4,16 @@ import { createModelBuilder } from "../../src/model/model-builder.js";
 
 it("FR-SOL-004: reuses one assembled stiffness and factorization for compatible load cases", () => {
   const model = createModelBuilder()
-    .setUnitSystem({ version: "1", length: "m", force: "N", moment: "N*m", modulus: "Pa", distributedForce: "N/m", density: "kg/m^3", rotation: "rad" })
+    .setUnitSystem({
+      version: "1",
+      length: "m",
+      force: "N",
+      moment: "N*m",
+      modulus: "Pa",
+      distributedForce: "N/m",
+      density: "kg/m^3",
+      rotation: "rad",
+    })
     .addNode({ id: "n", coordinates: [0, 0, 0] })
     .addSpring({ id: "k", startNodeId: "n", stiffness: [100, 0, 0, 0, 0, 0] })
     .addLoadCase({ id: "A", loads: [{ kind: "nodal", nodeId: "n", force: [10, 0, 0] }] })

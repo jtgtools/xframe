@@ -12,7 +12,9 @@ export interface FrameReleaseMaskSummary {
   readonly classifications: readonly FrameReleaseMaskClassification[];
 }
 
-export function classifyAllFrameReleaseMasks(stiffness: ArrayLike<number>): FrameReleaseMaskSummary {
+export function classifyAllFrameReleaseMasks(
+  stiffness: ArrayLike<number>,
+): FrameReleaseMaskSummary {
   const classifications: FrameReleaseMaskClassification[] = [];
   let validCount = 0;
   let invalidCount = 0;
@@ -27,5 +29,9 @@ export function classifyAllFrameReleaseMasks(stiffness: ArrayLike<number>): Fram
       invalidCount += 1;
     }
   }
-  return Object.freeze({ validCount, invalidCount, classifications: Object.freeze(classifications) });
+  return Object.freeze({
+    validCount,
+    invalidCount,
+    classifications: Object.freeze(classifications),
+  });
 }

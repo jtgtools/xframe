@@ -19,21 +19,31 @@ describe("Registry", () => {
     registry.add(item("__proto__", 2));
     registry.add(item("alpha", 3));
 
-    expect(registry.values().map((entry) => entry.id)).toEqual(["constructor", "__proto__", "alpha"]);
+    expect(registry.values().map((entry) => entry.id)).toEqual([
+      "constructor",
+      "__proto__",
+      "alpha",
+    ]);
   });
 
   it("FR-MOD-003: rejects duplicates with a stable code and entity context", () => {
     const registry = new Registry<Item>("item");
     registry.add(item("alpha", 1));
 
-    expect(() => registry.add(item("alpha", 2))).toThrow(XFrameError);
+    let caught: unknown;
     try {
       registry.add(item("alpha", 2));
     } catch (error) {
-      expect(error).toBeInstanceOf(XFrameError);
-      expect((error as XFrameError).code).toBe("DUPLICATE_IDENTIFIER");
-      expect((error as XFrameError).context).toEqual({ kind: "duplicate-identifier", entityType: "item", id: "alpha" });
+      caught = error;
     }
+    expect(caught).toBeInstanceOf(XFrameError);
+    if (!(caught instanceof XFrameError)) throw new Error("Expected duplicate identifier failure.");
+    expect(caught.code).toBe("DUPLICATE_IDENTIFIER");
+    expect(caught.context).toEqual({
+      kind: "duplicate-identifier",
+      entityType: "item",
+      id: "alpha",
+    });
   });
 
   it("FR-MOD-005: commits registry transactions atomically and rolls back failures", () => {

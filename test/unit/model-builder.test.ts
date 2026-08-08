@@ -51,18 +51,21 @@ describe("ModelBuilder", () => {
 
   it("FR-ERR-001: local shape failures use structured field paths", () => {
     const builder = createModelBuilder();
+    let caught: unknown;
     try {
       builder.addNode({ id: "n1", coordinates: [0, Number.NaN, 0] });
     } catch (error) {
-      expect(error).toBeInstanceOf(XFrameError);
-      expect((error as XFrameError).code).toBe("NON_FINITE_VALUE");
-      expect((error as XFrameError).context).toEqual({
-        kind: "numeric",
-        path: "node.coordinates[1]",
-        value: "NaN",
-        expected: "finite number",
-      });
+      caught = error;
     }
+    expect(caught).toBeInstanceOf(XFrameError);
+    if (!(caught instanceof XFrameError)) throw new Error("Expected non-finite value failure.");
+    expect(caught.code).toBe("NON_FINITE_VALUE");
+    expect(caught.context).toEqual({
+      kind: "numeric",
+      path: "node.coordinates[1]",
+      value: "NaN",
+      expected: "finite number",
+    });
   });
 });
 
@@ -88,7 +91,9 @@ it("FR-MOD-001: exposes the complete fluent construction surface", () => {
       sectionId: "ts1",
     }),
   ).toBe(builder);
-  expect(builder.addSpring({ id: "s1", startNodeId: "n1", stiffness: [1, 2, 3, 4, 5, 6] })).toBe(builder);
+  expect(builder.addSpring({ id: "s1", startNodeId: "n1", stiffness: [1, 2, 3, 4, 5, 6] })).toBe(
+    builder,
+  );
   expect(
     builder.addConstraint({
       id: "c1",
@@ -97,7 +102,9 @@ it("FR-MOD-001: exposes the complete fluent construction surface", () => {
     }),
   ).toBe(builder);
   expect(builder.addLoadCase({ id: "lc1", loads: [] })).toBe(builder);
-  expect(builder.addCombination({ id: "comb1", factors: [{ resultId: "lc1", factor: 1.2 }] })).toBe(builder);
+  expect(builder.addCombination({ id: "comb1", factors: [{ resultId: "lc1", factor: 1.2 }] })).toBe(
+    builder,
+  );
 
   const snapshot = builder.snapshot();
   expect(snapshot.materials.map(({ id }) => id)).toEqual(["m1"]);
@@ -124,7 +131,11 @@ it("FR-MOD-005: successful batch additions commit in deterministic category orde
 });
 
 it("FR-MOD-005: a later category failure rolls back earlier categories in the same batch", () => {
-  const builder = createModelBuilder().addMaterial({ id: "m1", elasticModulus: 1, shearModulus: 1 });
+  const builder = createModelBuilder().addMaterial({
+    id: "m1",
+    elasticModulus: 1,
+    shearModulus: 1,
+  });
   const before = JSON.stringify(builder.snapshot());
 
   expect(() =>
@@ -138,6 +149,8 @@ it("FR-MOD-005: a later category failure rolls back earlier categories in the sa
 
 it("NFR-SEC-001: rejects prototype-pollution payloads at the closed load boundary", () => {
   const payload = JSON.parse('{"__proto__":{"polluted":true}}') as never;
-  expect(() => createModelBuilder().addLoadCase({ id: "lc1", loads: [payload] })).toThrow(XFrameError);
+  expect(() => createModelBuilder().addLoadCase({ id: "lc1", loads: [payload] })).toThrow(
+    XFrameError,
+  );
   expect(({} as { polluted?: boolean }).polluted).toBeUndefined();
 });

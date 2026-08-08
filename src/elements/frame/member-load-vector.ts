@@ -28,34 +28,26 @@ export interface FrameEquivalentLoadInput {
 }
 
 const GAUSS_POINTS = [
-  -0.9602898564975363,
-  -0.7966664774136267,
-  -0.525532409916329,
-  -0.1834346424956498,
-  0.1834346424956498,
-  0.525532409916329,
-  0.7966664774136267,
-  0.9602898564975363,
+  -0.9602898564975363, -0.7966664774136267, -0.525532409916329, -0.1834346424956498,
+  0.1834346424956498, 0.525532409916329, 0.7966664774136267, 0.9602898564975363,
 ] as const;
 const GAUSS_WEIGHTS = [
-  0.1012285362903763,
-  0.2223810344533745,
-  0.3137066458778873,
-  0.362683783378362,
-  0.362683783378362,
-  0.3137066458778873,
-  0.2223810344533745,
-  0.1012285362903763,
+  0.1012285362903763, 0.2223810344533745, 0.3137066458778873, 0.362683783378362, 0.362683783378362,
+  0.3137066458778873, 0.2223810344533745, 0.1012285362903763,
 ] as const;
 
 function positive(value: number | undefined, path: string): number {
   if (value === undefined || !Number.isFinite(value) || value <= 0) {
-    throw new XFrameError("LOAD_INVALID", "Member-load kernel property must be positive and finite.", {
-      kind: "input",
-      path,
-      expected: "positive finite number",
-      actual: String(value),
-    });
+    throw new XFrameError(
+      "LOAD_INVALID",
+      "Member-load kernel property must be positive and finite.",
+      {
+        kind: "input",
+        path,
+        expected: "positive finite number",
+        actual: String(value),
+      },
+    );
   }
   return value;
 }
@@ -63,12 +55,16 @@ function positive(value: number | undefined, path: string): number {
 function checkedDistance(value: number, length: number, path: string): number {
   const result = finiteNumber(value, path);
   if (result < 0 || result > length) {
-    throw new XFrameError("LOAD_INVALID", "Member-load coordinate lies outside the deformable member.", {
-      kind: "input",
-      path,
-      expected: `distance in [0, ${length}]`,
-      actual: String(result),
-    });
+    throw new XFrameError(
+      "LOAD_INVALID",
+      "Member-load coordinate lies outside the deformable member.",
+      {
+        kind: "input",
+        path,
+        expected: `distance in [0, ${length}]`,
+        actual: String(result),
+      },
+    );
   }
   return result;
 }
@@ -81,18 +77,27 @@ function checkedVector(value: LocalLoadVector, path: string): LocalLoadVector {
   ];
 }
 
-function shearParameters(input: FrameEquivalentLoadInput, length: number): readonly [number, number] {
+function shearParameters(
+  input: FrameEquivalentLoadInput,
+  length: number,
+): readonly [number, number] {
   if (input.theory.kind === "euler-bernoulli") return [0, 0];
   const elasticModulus = positive(input.elasticModulus, "frame.elasticModulus");
   const shearModulus = positive(input.shearModulus, "frame.shearModulus");
-  const phiY = (12 * elasticModulus * positive(input.momentOfInertiaZ, "frame.momentOfInertiaZ")) /
+  const phiY =
+    (12 * elasticModulus * positive(input.momentOfInertiaZ, "frame.momentOfInertiaZ")) /
     (shearModulus * positive(input.shearAreaY, "frame.shearAreaY") * length ** 2);
-  const phiZ = (12 * elasticModulus * positive(input.momentOfInertiaY, "frame.momentOfInertiaY")) /
+  const phiZ =
+    (12 * elasticModulus * positive(input.momentOfInertiaY, "frame.momentOfInertiaY")) /
     (shearModulus * positive(input.shearAreaZ, "frame.shearAreaZ") * length ** 2);
   return [finiteNumber(phiY, "frame.phiY"), finiteNumber(phiZ, "frame.phiZ")];
 }
 
-function displacementShapes(xi: number, length: number, phi: number): readonly [number, number, number, number] {
+function displacementShapes(
+  xi: number,
+  length: number,
+  phi: number,
+): readonly [number, number, number, number] {
   const denominator = 1 + phi;
   const oneMinus = 1 - xi;
   return [
@@ -103,7 +108,11 @@ function displacementShapes(xi: number, length: number, phi: number): readonly [
   ];
 }
 
-function rotationShapes(xi: number, length: number, phi: number): readonly [number, number, number, number] {
+function rotationShapes(
+  xi: number,
+  length: number,
+  phi: number,
+): readonly [number, number, number, number] {
   const denominator = 1 + phi;
   return [
     (6 * (-xi + xi ** 2)) / (length * denominator),
@@ -113,7 +122,15 @@ function rotationShapes(xi: number, length: number, phi: number): readonly [numb
   ];
 }
 
-function addForceShape(result: Float64Array, x: number, length: number, phiY: number, phiZ: number, vector: LocalLoadVector, scale: number): void {
+function addForceShape(
+  result: Float64Array,
+  x: number,
+  length: number,
+  phiY: number,
+  phiZ: number,
+  vector: LocalLoadVector,
+  scale: number,
+): void {
   const xi = x / length;
   const linear = [1 - xi, xi] as const;
   result[0] = result[0]! + scale * linear[0] * vector[0];
@@ -129,7 +146,14 @@ function addForceShape(result: Float64Array, x: number, length: number, phiY: nu
   }
 }
 
-function addMomentShape(result: Float64Array, x: number, length: number, phiY: number, phiZ: number, vector: LocalLoadVector): void {
+function addMomentShape(
+  result: Float64Array,
+  x: number,
+  length: number,
+  phiY: number,
+  phiZ: number,
+  vector: LocalLoadVector,
+): void {
   const xi = x / length;
   result[3] = result[3]! + (1 - xi) * vector[0];
   result[9] = result[9]! + xi * vector[0];
@@ -150,10 +174,25 @@ export function computeFrameEquivalentLoad(input: FrameEquivalentLoadInput): Flo
   const result = new Float64Array(12);
   if (input.load.kind === "point-force") {
     const distance = checkedDistance(input.load.distance, length, "memberLoad.distance");
-    addForceShape(result, distance, length, phiY, phiZ, checkedVector(input.load.vector, "memberLoad.vector"), 1);
+    addForceShape(
+      result,
+      distance,
+      length,
+      phiY,
+      phiZ,
+      checkedVector(input.load.vector, "memberLoad.vector"),
+      1,
+    );
   } else if (input.load.kind === "point-moment") {
     const distance = checkedDistance(input.load.distance, length, "memberLoad.distance");
-    addMomentShape(result, distance, length, phiY, phiZ, checkedVector(input.load.vector, "memberLoad.vector"));
+    addMomentShape(
+      result,
+      distance,
+      length,
+      phiY,
+      phiZ,
+      checkedVector(input.load.vector, "memberLoad.vector"),
+    );
   } else {
     const start = checkedDistance(input.load.start, length, "memberLoad.start");
     const end = checkedDistance(input.load.end, length, "memberLoad.end");
@@ -180,6 +219,7 @@ export function computeFrameEquivalentLoad(input: FrameEquivalentLoadInput): Flo
       addForceShape(result, x, length, phiY, phiZ, intensity, half * GAUSS_WEIGHTS[point]!);
     }
   }
-  for (let index = 0; index < result.length; index += 1) result[index] = finiteNumber(result[index], `frameEquivalentLoad[${index}]`);
+  for (let index = 0; index < result.length; index += 1)
+    result[index] = finiteNumber(result[index], `frameEquivalentLoad[${index}]`);
   return result;
 }

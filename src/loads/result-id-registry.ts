@@ -6,14 +6,23 @@ export interface ResultGraph {
   readonly evaluationOrder: readonly EntityId[];
 }
 
-export function validateResultGraph(loadCases: readonly LoadCaseRecord[], combinations: readonly CombinationRecord[]): ResultGraph {
+export function validateResultGraph(
+  loadCases: readonly LoadCaseRecord[],
+  combinations: readonly CombinationRecord[],
+): ResultGraph {
   const kinds = new Map<EntityId, "case" | "combination">();
   for (const loadCase of loadCases) kinds.set(loadCase.id, "case");
   for (const combination of combinations) {
     if (kinds.has(combination.id)) {
-      throw new XFrameError("RESULT_INCOMPATIBLE", "Cases and combinations share one result identifier domain.", {
-        kind: "result", resultIds: [combination.id], reason: "duplicate case/combination result identifier",
-      });
+      throw new XFrameError(
+        "RESULT_INCOMPATIBLE",
+        "Cases and combinations share one result identifier domain.",
+        {
+          kind: "result",
+          resultIds: [combination.id],
+          reason: "duplicate case/combination result identifier",
+        },
+      );
     }
     kinds.set(combination.id, "combination");
   }
@@ -22,7 +31,9 @@ export function validateResultGraph(loadCases: readonly LoadCaseRecord[], combin
     for (const factor of combination.factors) {
       if (!kinds.has(factor.resultId)) {
         throw new XFrameError("RESULT_INCOMPATIBLE", "Combination references a missing result.", {
-          kind: "result", resultIds: [combination.id, factor.resultId], reason: "missing result reference",
+          kind: "result",
+          resultIds: [combination.id, factor.resultId],
+          reason: "missing result reference",
         });
       }
     }
@@ -38,7 +49,9 @@ export function validateResultGraph(loadCases: readonly LoadCaseRecord[], combin
       const start = stack.indexOf(id);
       const cycle = [...stack.slice(start), id];
       throw new XFrameError("RESULT_INCOMPATIBLE", "Combination graph contains a cycle.", {
-        kind: "result", resultIds: Object.freeze(cycle), reason: "combination cycle",
+        kind: "result",
+        resultIds: Object.freeze(cycle),
+        reason: "combination cycle",
       });
     }
     state.set(id, "visiting");

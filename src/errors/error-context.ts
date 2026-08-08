@@ -8,7 +8,13 @@ export interface InputErrorContext {
 export interface IdentifierErrorContext {
   readonly kind: "identifier";
   readonly path: string;
-  readonly reason: "type" | "empty" | "whitespace" | "control-character" | "formula-prefix" | "too-long";
+  readonly reason:
+    | "type"
+    | "empty"
+    | "whitespace"
+    | "control-character"
+    | "formula-prefix"
+    | "too-long";
   readonly value?: string;
   readonly maximumCodePoints?: number;
 }
@@ -38,7 +44,6 @@ export interface NumericErrorContext {
   readonly value: string;
   readonly expected: string;
 }
-
 
 export interface UnitErrorContext {
   readonly kind: "units";

@@ -38,8 +38,12 @@ it("FR-SOL-001/FR-SOL-003: seed 24701 solves 40 sparse diagonally dominant SPD s
     const rhs = matrix.multiply(expected);
     const ordering = reverseCuthillMcKee(buildAdjacency(matrix));
     const solution = factorSkylineCholesky(createSkylineProfile(matrix, ordering)).solve(rhs);
-    for (let index = 0; index < size; index += 1) maximumError = Math.max(maximumError, Math.abs(solution[index]! - expected[index]!));
-    maximumResidual = Math.max(maximumResidual, computeResidualDiagnostics(matrix, solution, rhs).normalizedResidual);
+    for (let index = 0; index < size; index += 1)
+      maximumError = Math.max(maximumError, Math.abs(solution[index]! - expected[index]!));
+    maximumResidual = Math.max(
+      maximumResidual,
+      computeResidualDiagnostics(matrix, solution, rhs).normalizedResidual,
+    );
   }
   expect(maximumError).toBeLessThan(2e-13);
   expect(maximumResidual).toBeLessThan(2e-13);

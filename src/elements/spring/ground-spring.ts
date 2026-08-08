@@ -1,5 +1,10 @@
 import { XFrameError } from "../../errors/xframe-error.js";
-import { createMatrix3, determinantMatrix3, multiplyMatrix3, transposeMatrix3 } from "../../geometry/matrix-3.js";
+import {
+  createMatrix3,
+  determinantMatrix3,
+  multiplyMatrix3,
+  transposeMatrix3,
+} from "../../geometry/matrix-3.js";
 import { finiteNumber } from "../../geometry/finite.js";
 
 const IDENTITY = [1, 0, 0, 0, 1, 0, 0, 0, 1] as const;
@@ -71,8 +76,14 @@ export function computeGroundSpringStiffness(
   const result = new Float64Array(36);
   for (let row = 0; row < 3; row += 1) {
     for (let column = 0; column < 3; column += 1) {
-      result[row * 6 + column] = finiteNumber(translation[row * 3 + column], `spring.translation[${row},${column}]`);
-      result[(row + 3) * 6 + column + 3] = finiteNumber(rotation[row * 3 + column], `spring.rotation[${row},${column}]`);
+      result[row * 6 + column] = finiteNumber(
+        translation[row * 3 + column],
+        `spring.translation[${row},${column}]`,
+      );
+      result[(row + 3) * 6 + column + 3] = finiteNumber(
+        rotation[row * 3 + column],
+        `spring.rotation[${row},${column}]`,
+      );
     }
   }
   return result;

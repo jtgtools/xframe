@@ -8,7 +8,8 @@ function sourceFiles(directory) {
   });
 }
 
-const pattern = /new\s+(?:Float64Array|Array)\s*\([^\n)]*(?:size|equationCount|dofCount)\s*\*\s*(?:size|equationCount|dofCount)/u;
+const pattern =
+  /new\s+(?:Float64Array|Array)\s*\([^\n)]*(?:size|equationCount|dofCount)\s*\*\s*(?:size|equationCount|dofCount)/u;
 const findings = sourceFiles("src").filter((path) => pattern.test(readFileSync(path, "utf8")));
 if (findings.length) {
   console.error(`Dense global allocation candidates:\n${findings.join("\n")}`);

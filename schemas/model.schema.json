@@ -145,14 +145,7 @@
       "maxItems": 6
     },
     "dof": {
-      "enum": [
-        "tx",
-        "ty",
-        "tz",
-        "rx",
-        "ry",
-        "rz"
-      ]
+      "enum": ["tx", "ty", "tz", "rx", "ry", "rz"]
     },
     "unitSystem": {
       "type": "object",
@@ -203,10 +196,7 @@
     "node": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "id",
-        "coordinates"
-      ],
+      "required": ["id", "coordinates"],
       "properties": {
         "id": {
           "$ref": "#/$defs/identifier"
@@ -219,10 +209,7 @@
     "material": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "id",
-        "elasticModulus"
-      ],
+      "required": ["id", "elasticModulus"],
       "properties": {
         "id": {
           "$ref": "#/$defs/identifier"
@@ -247,27 +234,17 @@
       },
       "anyOf": [
         {
-          "required": [
-            "shearModulus"
-          ]
+          "required": ["shearModulus"]
         },
         {
-          "required": [
-            "poissonRatio"
-          ]
+          "required": ["poissonRatio"]
         }
       ]
     },
     "frameSection": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "id",
-        "area",
-        "torsionalConstant",
-        "momentOfInertiaY",
-        "momentOfInertiaZ"
-      ],
+      "required": ["id", "area", "torsionalConstant", "momentOfInertiaY", "momentOfInertiaZ"],
       "properties": {
         "id": {
           "$ref": "#/$defs/identifier"
@@ -301,10 +278,7 @@
     "trussSection": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "id",
-        "area"
-      ],
+      "required": ["id", "area"],
       "properties": {
         "id": {
           "$ref": "#/$defs/identifier"
@@ -318,15 +292,10 @@
     "theory": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "kind"
-      ],
+      "required": ["kind"],
       "properties": {
         "kind": {
-          "enum": [
-            "euler-bernoulli",
-            "timoshenko"
-          ]
+          "enum": ["euler-bernoulli", "timoshenko"]
         }
       }
     },
@@ -363,14 +332,7 @@
     "frame": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "id",
-        "startNodeId",
-        "endNodeId",
-        "materialId",
-        "sectionId",
-        "theory"
-      ],
+      "required": ["id", "startNodeId", "endNodeId", "materialId", "sectionId", "theory"],
       "properties": {
         "id": {
           "$ref": "#/$defs/identifier"
@@ -404,13 +366,7 @@
     "truss": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "id",
-        "startNodeId",
-        "endNodeId",
-        "materialId",
-        "sectionId"
-      ],
+      "required": ["id", "startNodeId", "endNodeId", "materialId", "sectionId"],
       "properties": {
         "id": {
           "$ref": "#/$defs/identifier"
@@ -435,11 +391,7 @@
     "spring": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "id",
-        "startNodeId",
-        "stiffness"
-      ],
+      "required": ["id", "startNodeId", "stiffness"],
       "properties": {
         "id": {
           "$ref": "#/$defs/identifier"
@@ -458,11 +410,7 @@
     "constraintTerm": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "nodeId",
-        "dof",
-        "coefficient"
-      ],
+      "required": ["nodeId", "dof", "coefficient"],
       "properties": {
         "nodeId": {
           "$ref": "#/$defs/identifier"
@@ -478,11 +426,7 @@
     "constraint": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "id",
-        "terms",
-        "rightHandSide"
-      ],
+      "required": ["id", "terms", "rightHandSide"],
       "properties": {
         "id": {
           "$ref": "#/$defs/identifier"
@@ -502,23 +446,15 @@
     "pointLocation": {
       "oneOf": [
         {
-          "required": [
-            "distanceFromElasticStart"
-          ],
+          "required": ["distanceFromElasticStart"],
           "not": {
-            "required": [
-              "positionRatio"
-            ]
+            "required": ["positionRatio"]
           }
         },
         {
-          "required": [
-            "positionRatio"
-          ],
+          "required": ["positionRatio"],
           "not": {
-            "required": [
-              "distanceFromElasticStart"
-            ]
+            "required": ["distanceFromElasticStart"]
           }
         }
       ]
@@ -529,64 +465,42 @@
           "not": {
             "anyOf": [
               {
-                "required": [
-                  "startDistanceFromElasticStart"
-                ]
+                "required": ["startDistanceFromElasticStart"]
               },
               {
-                "required": [
-                  "endDistanceFromElasticStart"
-                ]
+                "required": ["endDistanceFromElasticStart"]
               },
               {
-                "required": [
-                  "startPositionRatio"
-                ]
+                "required": ["startPositionRatio"]
               },
               {
-                "required": [
-                  "endPositionRatio"
-                ]
+                "required": ["endPositionRatio"]
               }
             ]
           }
         },
         {
-          "required": [
-            "startDistanceFromElasticStart",
-            "endDistanceFromElasticStart"
-          ],
+          "required": ["startDistanceFromElasticStart", "endDistanceFromElasticStart"],
           "not": {
             "anyOf": [
               {
-                "required": [
-                  "startPositionRatio"
-                ]
+                "required": ["startPositionRatio"]
               },
               {
-                "required": [
-                  "endPositionRatio"
-                ]
+                "required": ["endPositionRatio"]
               }
             ]
           }
         },
         {
-          "required": [
-            "startPositionRatio",
-            "endPositionRatio"
-          ],
+          "required": ["startPositionRatio", "endPositionRatio"],
           "not": {
             "anyOf": [
               {
-                "required": [
-                  "startDistanceFromElasticStart"
-                ]
+                "required": ["startDistanceFromElasticStart"]
               },
               {
-                "required": [
-                  "endDistanceFromElasticStart"
-                ]
+                "required": ["endDistanceFromElasticStart"]
               }
             ]
           }
@@ -596,10 +510,7 @@
     "nodalLoad": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "kind",
-        "nodeId"
-      ],
+      "required": ["kind", "nodeId"],
       "properties": {
         "kind": {
           "const": "nodal"
@@ -616,26 +527,17 @@
       },
       "anyOf": [
         {
-          "required": [
-            "force"
-          ]
+          "required": ["force"]
         },
         {
-          "required": [
-            "moment"
-          ]
+          "required": ["moment"]
         }
       ]
     },
     "memberPointForce": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "kind",
-        "frameId",
-        "coordinateSystem",
-        "force"
-      ],
+      "required": ["kind", "frameId", "coordinateSystem", "force"],
       "properties": {
         "kind": {
           "const": "member-point-force"
@@ -644,10 +546,7 @@
           "$ref": "#/$defs/identifier"
         },
         "coordinateSystem": {
-          "enum": [
-            "local",
-            "global"
-          ]
+          "enum": ["local", "global"]
         },
         "distanceFromElasticStart": {
           "type": "number",
@@ -671,12 +570,7 @@
     "memberPointMoment": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "kind",
-        "frameId",
-        "coordinateSystem",
-        "moment"
-      ],
+      "required": ["kind", "frameId", "coordinateSystem", "moment"],
       "properties": {
         "kind": {
           "const": "member-point-moment"
@@ -685,10 +579,7 @@
           "$ref": "#/$defs/identifier"
         },
         "coordinateSystem": {
-          "enum": [
-            "local",
-            "global"
-          ]
+          "enum": ["local", "global"]
         },
         "distanceFromElasticStart": {
           "type": "number",
@@ -712,13 +603,7 @@
     "memberDistributed": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "kind",
-        "frameId",
-        "coordinateSystem",
-        "startIntensity",
-        "endIntensity"
-      ],
+      "required": ["kind", "frameId", "coordinateSystem", "startIntensity", "endIntensity"],
       "properties": {
         "kind": {
           "const": "member-distributed"
@@ -727,10 +612,7 @@
           "$ref": "#/$defs/identifier"
         },
         "coordinateSystem": {
-          "enum": [
-            "local",
-            "global"
-          ]
+          "enum": ["local", "global"]
         },
         "startDistanceFromElasticStart": {
           "type": "number",
@@ -766,10 +648,7 @@
     "selfWeight": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "kind",
-        "gravity"
-      ],
+      "required": ["kind", "gravity"],
       "properties": {
         "kind": {
           "const": "self-weight"
@@ -815,10 +694,7 @@
     "loadCase": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "id",
-        "loads"
-      ],
+      "required": ["id", "loads"],
       "properties": {
         "id": {
           "$ref": "#/$defs/identifier"
@@ -834,10 +710,7 @@
     "combinationFactor": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "resultId",
-        "factor"
-      ],
+      "required": ["resultId", "factor"],
       "properties": {
         "resultId": {
           "$ref": "#/$defs/identifier"
@@ -850,10 +723,7 @@
     "combination": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "id",
-        "factors"
-      ],
+      "required": ["id", "factors"],
       "properties": {
         "id": {
           "$ref": "#/$defs/identifier"

@@ -21,7 +21,10 @@ import type { EntityId } from "./identifier.js";
 type Tuple3 = readonly [number, number, number];
 type Tuple9 = readonly [number, number, number, number, number, number, number, number, number];
 
-export interface FrozenElasticGeometry extends Omit<ElasticGeometry, "referenceStart" | "referenceEnd" | "startOffset" | "endOffset" | "elasticStart" | "elasticEnd"> {
+export interface FrozenElasticGeometry extends Omit<
+  ElasticGeometry,
+  "referenceStart" | "referenceEnd" | "startOffset" | "endOffset" | "elasticStart" | "elasticEnd"
+> {
   readonly referenceStart: Tuple3;
   readonly referenceEnd: Tuple3;
   readonly startOffset: Tuple3;
@@ -30,7 +33,10 @@ export interface FrozenElasticGeometry extends Omit<ElasticGeometry, "referenceS
   readonly elasticEnd: Tuple3;
 }
 
-export interface FrozenLocalAxes extends Omit<LocalAxes, "x" | "y" | "z" | "globalToLocal" | "localToGlobal"> {
+export interface FrozenLocalAxes extends Omit<
+  LocalAxes,
+  "x" | "y" | "z" | "globalToLocal" | "localToGlobal"
+> {
   readonly x: Tuple3;
   readonly y: Tuple3;
   readonly z: Tuple3;

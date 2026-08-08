@@ -68,18 +68,22 @@ export class PreparedAnalysis {
   public solveCase(id: string): CaseResult {
     const loadCase = this.model.loadCases.find((entry) => entry.id === id);
     if (loadCase === undefined) {
-      throw new XFrameError("REFERENCE_NOT_FOUND", "Load case does not exist in the finalized model.", {
-        kind: "reference",
-        issues: [
-          {
-            entityType: "analysis",
-            id: this.model.fingerprint,
-            path: "loadCaseId",
-            referencedId: id,
-            expectedType: "load case",
-          },
-        ],
-      });
+      throw new XFrameError(
+        "REFERENCE_NOT_FOUND",
+        "Load case does not exist in the finalized model.",
+        {
+          kind: "reference",
+          issues: [
+            {
+              entityType: "analysis",
+              id: this.model.fingerprint,
+              path: "loadCaseId",
+              referencedId: id,
+              expectedType: "load case",
+            },
+          ],
+        },
+      );
     }
     const assembled = assembleLoadCase(this.model, loadCase, this.fullStiffness, this.constraints);
     const reducedDisplacements = this.factor.solve(assembled.reducedLoad);

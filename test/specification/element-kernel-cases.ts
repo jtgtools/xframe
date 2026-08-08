@@ -26,6 +26,5 @@ export const TIMOSHENKO_CANTILEVER_SPECIFICATION = Object.freeze({
   secondMoment: 8e-6,
   effectiveShearArea: 0.007,
   tipDeflection:
-    (10_000 * 3 ** 3) / (3 * 210e9 * 8e-6) +
-    (10_000 * 3) / (80.76923076923077e9 * 0.007),
+    (10_000 * 3 ** 3) / (3 * 210e9 * 8e-6) + (10_000 * 3) / (80.76923076923077e9 * 0.007),
 });

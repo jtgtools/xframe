@@ -12,19 +12,29 @@ function graphMatrix(size: number, edges: readonly [number, number][]) {
 
 describe("reverse Cuthill-McKee", () => {
   it("FR-SOL-002: uses deterministic degree/index tie breaking", () => {
-    const matrix = graphMatrix(4, [[0, 3], [3, 1], [1, 2]]);
+    const matrix = graphMatrix(4, [
+      [0, 3],
+      [3, 1],
+      [1, 2],
+    ]);
     const adjacency = buildAdjacency(matrix);
     const ordering = reverseCuthillMcKee(adjacency);
     expect(ordering.permutation).toEqual([2, 1, 3, 0]);
     expect(ordering.inversePermutation).toEqual([3, 1, 0, 2]);
-    expect(matrixBandwidth(matrix, ordering.inversePermutation)).toBeLessThan(matrixBandwidth(matrix));
+    expect(matrixBandwidth(matrix, ordering.inversePermutation)).toBeLessThan(
+      matrixBandwidth(matrix),
+    );
   });
 
   it("FR-SOL-002: handles isolated and disconnected components deterministically", () => {
-    const matrix = graphMatrix(6, [[0, 1], [1, 2], [4, 5]]);
+    const matrix = graphMatrix(6, [
+      [0, 1],
+      [1, 2],
+      [4, 5],
+    ]);
     const first = reverseCuthillMcKee(buildAdjacency(matrix));
     const second = reverseCuthillMcKee(buildAdjacency(matrix));
     expect(first.permutation).toEqual(second.permutation);
-    expect([...first.permutation].sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4, 5]);
+    expect([...first.permutation].toSorted((a, b) => a - b)).toEqual([0, 1, 2, 3, 4, 5]);
   });
 });

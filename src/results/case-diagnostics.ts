@@ -65,8 +65,8 @@ export function createCaseDiagnostics(input: CaseDiagnosticInput): CaseDiagnosti
 
   for (const spring of input.springs) {
     if (!spring.grounded) continue;
-    const record = input.model.resolvedSprings.find(({ record }) => record.id === spring.id)!;
-    const [x, y, z] = record.startNode.coordinates;
+    const springRecord = input.model.resolvedSprings.find(({ record }) => record.id === spring.id)!;
+    const [x, y, z] = springRecord.startNode.coordinates;
     for (let component = 0; component < 3; component += 1) {
       const supportForce = -(spring.globalEndForces[component] ?? 0);
       force[component] = force[component]! + supportForce;
@@ -92,14 +92,21 @@ export function createCaseDiagnostics(input: CaseDiagnosticInput): CaseDiagnosti
   const strainEnergy = 0.5 * input.fullStiffness.quadraticForm(input.fullDisplacements);
   let workDot = 0;
   for (let index = 0; index < input.fullLoad.length; index += 1) {
-    workDot += (input.fullLoad[index]! + input.fullResidual[index]!) * input.fullDisplacements[index]!;
+    workDot +=
+      (input.fullLoad[index]! + input.fullResidual[index]!) * input.fullDisplacements[index]!;
   }
   const externalWork = 0.5 * workDot;
   const energyScale = Math.max(Math.abs(strainEnergy), Math.abs(externalWork), Number.MIN_VALUE);
   const relativeEnergyError = Math.abs(strainEnergy - externalWork) / energyScale;
   const normalizedForceEquilibrium = vectorNormMax(force) / Math.max(forceScale, Number.MIN_VALUE);
-  const normalizedMomentEquilibrium = vectorNormMax(moment) / Math.max(momentScale, Number.MIN_VALUE);
-  const worst = Math.max(input.normalizedResidual, normalizedForceEquilibrium, normalizedMomentEquilibrium, relativeEnergyError);
+  const normalizedMomentEquilibrium =
+    vectorNormMax(moment) / Math.max(momentScale, Number.MIN_VALUE);
+  const worst = Math.max(
+    input.normalizedResidual,
+    normalizedForceEquilibrium,
+    normalizedMomentEquilibrium,
+    relativeEnergyError,
+  );
   const status = worst <= 1e-9 ? "pass" : worst <= 1e-6 ? "warn" : "fail";
 
   return Object.freeze({
@@ -107,7 +114,11 @@ export function createCaseDiagnostics(input: CaseDiagnosticInput): CaseDiagnosti
     maximumAbsoluteResidual: input.residualMaximum,
     normalizedResidual: input.normalizedResidual,
     forceEquilibrium: Object.freeze(force.map(normalizedZero)) as readonly [number, number, number],
-    momentEquilibrium: Object.freeze(moment.map(normalizedZero)) as readonly [number, number, number],
+    momentEquilibrium: Object.freeze(moment.map(normalizedZero)) as readonly [
+      number,
+      number,
+      number,
+    ],
     normalizedForceEquilibrium,
     normalizedMomentEquilibrium,
     strainEnergy,

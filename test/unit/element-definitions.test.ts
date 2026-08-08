@@ -47,8 +47,12 @@ describe("frame theory and records", () => {
   });
 
   it("FR-ELE-001: rejects coincident connectivity, zero orientation, and duplicate release components", () => {
-    expect(codeOf(() => createFrameElement({ ...frameInput, endNodeId: "n1" }))).toBe("INPUT_INVALID");
-    expect(codeOf(() => createFrameElement({ ...frameInput, orientation: [0, 0, 0] }))).toBe("GEOMETRY_INVALID");
+    expect(codeOf(() => createFrameElement({ ...frameInput, endNodeId: "n1" }))).toBe(
+      "INPUT_INVALID",
+    );
+    expect(codeOf(() => createFrameElement({ ...frameInput, orientation: [0, 0, 0] }))).toBe(
+      "GEOMETRY_INVALID",
+    );
     expect(
       codeOf(() => createFrameElement({ ...frameInput, releases: { start: ["tx", "tx"] } })),
     ).toBe("INPUT_INVALID");
@@ -80,7 +84,11 @@ describe("truss and spring records", () => {
   });
 
   it("FR-ELE-004: supports ground and two-node diagonal component springs", () => {
-    const ground = createSpringElement({ id: "sg", startNodeId: "n1", stiffness: { tx: 1000, rz: 50 } });
+    const ground = createSpringElement({
+      id: "sg",
+      startNodeId: "n1",
+      stiffness: { tx: 1000, rz: 50 },
+    });
     const link = createSpringElement({
       id: "sl",
       startNodeId: "n1",
@@ -94,15 +102,19 @@ describe("truss and spring records", () => {
   });
 
   it("FR-ELE-004: rejects negative, all-zero, malformed, and self-connected springs", () => {
-    expect(codeOf(() => createSpringElement({ id: "s", startNodeId: "n1", stiffness: [0, 0, 0, 0, 0, 0] }))).toBe(
-      "INPUT_INVALID",
-    );
-    expect(codeOf(() => createSpringElement({ id: "s", startNodeId: "n1", stiffness: [-1, 0, 0, 0, 0, 0] }))).toBe(
-      "INPUT_INVALID",
-    );
-    expect(codeOf(() => createSpringElement({ id: "s", startNodeId: "n1", stiffness: [1, 2] }))).toBe(
-      "INPUT_INVALID",
-    );
+    expect(
+      codeOf(() =>
+        createSpringElement({ id: "s", startNodeId: "n1", stiffness: [0, 0, 0, 0, 0, 0] }),
+      ),
+    ).toBe("INPUT_INVALID");
+    expect(
+      codeOf(() =>
+        createSpringElement({ id: "s", startNodeId: "n1", stiffness: [-1, 0, 0, 0, 0, 0] }),
+      ),
+    ).toBe("INPUT_INVALID");
+    expect(
+      codeOf(() => createSpringElement({ id: "s", startNodeId: "n1", stiffness: [1, 2] })),
+    ).toBe("INPUT_INVALID");
     expect(
       codeOf(() =>
         createSpringElement({ id: "s", startNodeId: "n1", endNodeId: "n1", stiffness: { tx: 1 } }),

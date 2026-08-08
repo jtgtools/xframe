@@ -49,7 +49,11 @@ export interface SelfWeightLoadInput {
   readonly trussIds?: readonly unknown[];
 }
 
-export type LoadInput = NodalLoadInput | MemberPointLoadInput | DistributedLoadInput | SelfWeightLoadInput;
+export type LoadInput =
+  | NodalLoadInput
+  | MemberPointLoadInput
+  | DistributedLoadInput
+  | SelfWeightLoadInput;
 
 export interface NodalLoadRecord {
   readonly kind: "nodal";
@@ -87,7 +91,11 @@ export type MemberSpan =
       readonly startDistanceFromElasticStart: number;
       readonly endDistanceFromElasticStart: number;
     }
-  | { readonly kind: "ratio"; readonly startPositionRatio: number; readonly endPositionRatio: number };
+  | {
+      readonly kind: "ratio";
+      readonly startPositionRatio: number;
+      readonly endPositionRatio: number;
+    };
 
 export interface DistributedLoadRecord {
   readonly kind: "member-distributed";
@@ -105,7 +113,11 @@ export interface SelfWeightLoadRecord {
   readonly trussIds?: readonly EntityId[];
 }
 
-export type LoadRecord = NodalLoadRecord | MemberPointLoadRecord | DistributedLoadRecord | SelfWeightLoadRecord;
+export type LoadRecord =
+  | NodalLoadRecord
+  | MemberPointLoadRecord
+  | DistributedLoadRecord
+  | SelfWeightLoadRecord;
 
 export interface ResolvedMemberPointForceLoad {
   readonly kind: "member-point-force";

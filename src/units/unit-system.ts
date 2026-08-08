@@ -41,9 +41,12 @@ export function parseUnitSystem(value: unknown): UnitSystem {
   }
 
   const record = value as Readonly<Record<string, unknown>>;
-  const actualKeys = Object.keys(record).sort();
-  const expectedKeys = [...UNIT_KEYS].sort();
-  if (actualKeys.length !== expectedKeys.length || actualKeys.some((key, index) => key !== expectedKeys[index])) {
+  const actualKeys = Object.keys(record).toSorted();
+  const expectedKeys = [...UNIT_KEYS].toSorted();
+  if (
+    actualKeys.length !== expectedKeys.length ||
+    actualKeys.some((key, index) => key !== expectedKeys[index])
+  ) {
     unitsError("keys must match the exact version-one schema", undefined, actualKeys);
   }
 

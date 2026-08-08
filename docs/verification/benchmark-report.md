@@ -23,11 +23,11 @@ The benchmark was run twice through 10,000 equations. After removing the intenti
 ## Results
 
 | Equations | Coordinate nonzeros | Skyline coefficients | Estimated sparse working bytes | Normalized residual | Load scaling | Minimum normalized pivot |
-| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| 500 | 999 | 999 | 51,968 | `1.705e-13` | 2 | `0.4997501` |
-| 2,000 | 3,999 | 3,999 | 207,968 | `6.821e-13` | 2 | `0.4997501` |
-| 5,000 | 9,999 | 9,999 | 519,968 | `2.728e-12` | 2 | `0.4997501` |
-| 10,000 | 19,999 | 19,999 | 1,039,968 | `7.276e-12` | 2 | `0.4997501` |
+| --------: | ------------------: | -------------------: | -----------------------------: | ------------------: | -----------: | -----------------------: |
+|       500 |                 999 |                  999 |                         51,968 |         `1.705e-13` |            2 |              `0.4997501` |
+|     2,000 |               3,999 |                3,999 |                        207,968 |         `6.821e-13` |            2 |              `0.4997501` |
+|     5,000 |               9,999 |                9,999 |                        519,968 |         `2.728e-12` |            2 |              `0.4997501` |
+|    10,000 |              19,999 |               19,999 |                      1,039,968 |         `7.276e-12` |            2 |              `0.4997501` |
 
 For this tridiagonal chain, coordinate and skyline storage are exactly `2N-1`. Assembly and factorization counters remain one while the solve counter becomes two.
 

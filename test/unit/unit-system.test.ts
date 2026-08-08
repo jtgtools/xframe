@@ -35,14 +35,18 @@ describe("parseUnitSystem", () => {
     expect(errorCode(() => parseUnitSystem(missing))).toBe("UNITS_INVALID");
     expect(errorCode(() => parseUnitSystem({ ...validUnits, mass: "kg" }))).toBe("UNITS_INVALID");
     expect(
-      errorCode(() => parseUnitSystem({ ...validUnits, distributedForce: undefined, distributed_force: "N/m" })),
+      errorCode(() =>
+        parseUnitSystem({ ...validUnits, distributedForce: undefined, distributed_force: "N/m" }),
+      ),
     ).toBe("UNITS_INVALID");
   });
 
   it("FR-UNT-001: rejects unsupported schema versions, empty labels, and non-radian rotations", () => {
     expect(errorCode(() => parseUnitSystem({ ...validUnits, version: "2" }))).toBe("UNITS_INVALID");
     expect(errorCode(() => parseUnitSystem({ ...validUnits, force: "" }))).toBe("UNITS_INVALID");
-    expect(errorCode(() => parseUnitSystem({ ...validUnits, rotation: "deg" }))).toBe("UNITS_INVALID");
+    expect(errorCode(() => parseUnitSystem({ ...validUnits, rotation: "deg" }))).toBe(
+      "UNITS_INVALID",
+    );
   });
 });
 

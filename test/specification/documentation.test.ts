@@ -52,7 +52,8 @@ it("DOC-AUD-003: local Markdown links in public documentation resolve", () => {
   for (const file of markdownFiles) {
     const text = readFileSync(file, "utf8");
     for (const match of text.matchAll(linkPattern)) {
-      const target = match[1]!;
+      const target = match[1];
+      if (typeof target !== "string") continue;
       if (/^(?:https?:|mailto:|#)/.test(target)) continue;
       const path = resolve(dirname(file), target.split("#", 1)[0]!);
       expect(existsSync(path)).toBe(true);
@@ -61,7 +62,7 @@ it("DOC-AUD-003: local Markdown links in public documentation resolve", () => {
 });
 
 it("FR-SAFE-001/002/004/007/014/DOC-AUD-004: current documentation states the remediated safety contracts", () => {
-  const requiredPhrasesByFile = [
+  const requiredPhrasesByFile: readonly (readonly [string, readonly string[]])[] = [
     [
       "README.md",
       [
@@ -135,7 +136,7 @@ it("FR-SAFE-001/002/004/007/014/DOC-AUD-004: current documentation states the re
     for (const phrase of phrases) expect(document).toContain(phrase);
   }
 
-  const obsoletePhrasesByFile = [
+  const obsoletePhrasesByFile: readonly (readonly [string, readonly string[]])[] = [
     [
       "README.md",
       [

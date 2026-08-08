@@ -12,7 +12,11 @@ describe("frame rigid-offset transform", () => {
 
   it("FR-GEO-005: transforms stiffness and load with virtual-work consistency", () => {
     const axes = buildLocalAxes([0, 0, 0], [3, 4, 0], [0, 0, 1]);
-    const transform = createFrameRigidOffsetTransform(axes.globalToLocal, [0.2, -0.3, 0.1], [-0.1, 0.4, 0.2]);
+    const transform = createFrameRigidOffsetTransform(
+      axes.globalToLocal,
+      [0.2, -0.3, 0.1],
+      [-0.1, 0.4, 0.2],
+    );
     const localK = new Float64Array(144);
     for (let i = 0; i < 12; i += 1) localK[i * 12 + i] = i + 1;
     const localP = Float64Array.from({ length: 12 }, (_, i) => i - 4);
@@ -27,6 +31,8 @@ describe("frame rigid-offset transform", () => {
       globalWork += globalP[i]! * u[i]!;
     }
     expect(globalWork).toBeCloseTo(localWork, 12);
-    for (let row = 0; row < 12; row += 1) for (let column = 0; column < 12; column += 1) expect(globalK[row * 12 + column]).toBeCloseTo(globalK[column * 12 + row]!, 12);
+    for (let row = 0; row < 12; row += 1)
+      for (let column = 0; column < 12; column += 1)
+        expect(globalK[row * 12 + column]).toBeCloseTo(globalK[column * 12 + row]!, 12);
   });
 });

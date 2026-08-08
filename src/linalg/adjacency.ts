@@ -10,11 +10,17 @@ export function buildAdjacency(matrix: SymmetricCoordinateMatrix): Adjacency {
     neighbors[row]!.add(column);
     neighbors[column]!.add(row);
   }
-  return Object.freeze(neighbors.map((entries) => Object.freeze([...entries].sort((left, right) => left - right))));
+  return Object.freeze(
+    neighbors.map((entries) => Object.freeze([...entries].toSorted((left, right) => left - right))),
+  );
 }
 
-function checkedInversePermutation(size: number, inversePermutation?: readonly number[]): readonly number[] {
-  if (inversePermutation === undefined) return Object.freeze(Array.from({ length: size }, (_, index) => index));
+function checkedInversePermutation(
+  size: number,
+  inversePermutation?: readonly number[],
+): readonly number[] {
+  if (inversePermutation === undefined)
+    return Object.freeze(Array.from({ length: size }, (_, index) => index));
   if (inversePermutation.length !== size) {
     throw new XFrameError("INPUT_INVALID", "Permutation length must match matrix size.", {
       kind: "input",
@@ -39,7 +45,10 @@ function checkedInversePermutation(size: number, inversePermutation?: readonly n
   return inversePermutation;
 }
 
-export function matrixBandwidth(matrix: SymmetricCoordinateMatrix, inversePermutation?: readonly number[]): number {
+export function matrixBandwidth(
+  matrix: SymmetricCoordinateMatrix,
+  inversePermutation?: readonly number[],
+): number {
   const inverse = checkedInversePermutation(matrix.size, inversePermutation);
   let bandwidth = 0;
   for (const { row, column } of matrix.entries()) {

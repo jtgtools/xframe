@@ -17,18 +17,25 @@ export interface FrameLocalStiffnessInput {
 
 function positive(value: number | undefined, path: string): number {
   if (value === undefined || !Number.isFinite(value) || value <= 0) {
-    throw new XFrameError("INPUT_INVALID", "Frame stiffness property must be positive and finite.", {
-      kind: "input",
-      path,
-      expected: "positive finite number",
-      actual: String(value),
-    });
+    throw new XFrameError(
+      "INPUT_INVALID",
+      "Frame stiffness property must be positive and finite.",
+      {
+        kind: "input",
+        path,
+        expected: "positive finite number",
+        actual: String(value),
+      },
+    );
   }
   return value;
 }
 
 function add(k: Float64Array, row: number, column: number, value: number): void {
-  k[row * 12 + column] = finiteNumber(k[row * 12 + column]! + value, `frameStiffness[${row},${column}]`);
+  k[row * 12 + column] = finiteNumber(
+    k[row * 12 + column]! + value,
+    `frameStiffness[${row},${column}]`,
+  );
 }
 
 function addPair(k: Float64Array, first: number, second: number, stiffness: number): void {
@@ -57,15 +64,15 @@ function addBending(
   const d = ((2 - phi) * elasticModulus * inertia) / (length * denominator);
   const indices = [displacementStart, rotationStart, displacementEnd, rotationEnd] as const;
   const signs = [1, rotationSign, 1, rotationSign] as const;
-  const standard = [
-    a, b, -a, b,
-    b, c, -b, d,
-    -a, -b, a, -b,
-    b, d, -b, c,
-  ];
+  const standard = [a, b, -a, b, b, c, -b, d, -a, -b, a, -b, b, d, -b, c];
   for (let row = 0; row < 4; row += 1) {
     for (let column = 0; column < 4; column += 1) {
-      add(k, indices[row]!, indices[column]!, standard[row * 4 + column]! * signs[row]! * signs[column]!);
+      add(
+        k,
+        indices[row]!,
+        indices[column]!,
+        standard[row * 4 + column]! * signs[row]! * signs[column]!,
+      );
     }
   }
 }
@@ -83,8 +90,14 @@ export function computeFrameLocalStiffness(input: FrameLocalStiffnessInput): Flo
   if (input.theory.kind === "timoshenko") {
     const shearAreaY = positive(input.shearAreaY, "frame.shearAreaY");
     const shearAreaZ = positive(input.shearAreaZ, "frame.shearAreaZ");
-    phiY = finiteNumber((12 * elasticModulus * inertiaZ) / (shearModulus * shearAreaY * length ** 2), "frame.phiY");
-    phiZ = finiteNumber((12 * elasticModulus * inertiaY) / (shearModulus * shearAreaZ * length ** 2), "frame.phiZ");
+    phiY = finiteNumber(
+      (12 * elasticModulus * inertiaZ) / (shearModulus * shearAreaY * length ** 2),
+      "frame.phiY",
+    );
+    phiZ = finiteNumber(
+      (12 * elasticModulus * inertiaY) / (shearModulus * shearAreaZ * length ** 2),
+      "frame.phiZ",
+    );
   }
   const stiffness = new Float64Array(144);
   addPair(stiffness, 0, 6, (elasticModulus * area) / length);

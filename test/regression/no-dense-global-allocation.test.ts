@@ -12,7 +12,9 @@ function sourceFiles(directory: string): string[] {
 it("FR-SOL-006: production code contains no obvious dense global allocation", () => {
   const findings = sourceFiles("src").flatMap((path) => {
     const source = readFileSync(path, "utf8");
-    return /new\s+(?:Float64Array|Array)\s*\([^\n)]*(?:size|equationCount|dofCount)\s*\*\s*(?:size|equationCount|dofCount)/u.test(source)
+    return /new\s+(?:Float64Array|Array)\s*\([^\n)]*(?:size|equationCount|dofCount)\s*\*\s*(?:size|equationCount|dofCount)/u.test(
+      source,
+    )
       ? [path]
       : [];
   });

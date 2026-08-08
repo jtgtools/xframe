@@ -24,7 +24,12 @@ export interface ElasticGeometry {
   readonly elasticLength: number;
 }
 
-function geometryError(path: string, reason: string, value?: number, referenceScale?: number): never {
+function geometryError(
+  path: string,
+  reason: string,
+  value?: number,
+  referenceScale?: number,
+): never {
   throw new XFrameError("GEOMETRY_INVALID", "Rigid-offset geometry is invalid.", {
     kind: "geometry",
     path,
@@ -46,18 +51,43 @@ export function resolveElasticGeometry(
   const endOffset = createVector3(offsetJInput, "offsetJ");
   const referenceDelta = subtractVector3(referenceEnd, referenceStart);
   const referenceLength = normVector3(referenceDelta);
-  const referenceScale = Math.max(normVector3(referenceStart), normVector3(referenceEnd), referenceLength);
-  if (referenceLength === 0 || isScaledZero(referenceLength, referenceScale, GEOMETRY_COMPARISON_TOLERANCE)) {
-    geometryError("nodeJ", "reference span is zero or unresolved at the coordinate scale", referenceLength, referenceScale);
+  const referenceScale = Math.max(
+    normVector3(referenceStart),
+    normVector3(referenceEnd),
+    referenceLength,
+  );
+  if (
+    referenceLength === 0 ||
+    isScaledZero(referenceLength, referenceScale, GEOMETRY_COMPARISON_TOLERANCE)
+  ) {
+    geometryError(
+      "nodeJ",
+      "reference span is zero or unresolved at the coordinate scale",
+      referenceLength,
+      referenceScale,
+    );
   }
 
   const elasticStart = addVector3(referenceStart, startOffset);
   const elasticEnd = addVector3(referenceEnd, endOffset);
   const elasticDelta = subtractVector3(elasticEnd, elasticStart);
   const elasticLength = normVector3(elasticDelta);
-  const elasticScale = Math.max(normVector3(elasticStart), normVector3(elasticEnd), referenceLength, elasticLength);
-  if (elasticLength === 0 || isScaledZero(elasticLength, elasticScale, GEOMETRY_COMPARISON_TOLERANCE)) {
-    geometryError("offsets", "elastic span is zero or unresolved at the coordinate scale", elasticLength, elasticScale);
+  const elasticScale = Math.max(
+    normVector3(elasticStart),
+    normVector3(elasticEnd),
+    referenceLength,
+    elasticLength,
+  );
+  if (
+    elasticLength === 0 ||
+    isScaledZero(elasticLength, elasticScale, GEOMETRY_COMPARISON_TOLERANCE)
+  ) {
+    geometryError(
+      "offsets",
+      "elastic span is zero or unresolved at the coordinate scale",
+      elasticLength,
+      elasticScale,
+    );
   }
 
   const referenceAxis = createVector3([
@@ -66,8 +96,16 @@ export function resolveElasticGeometry(
     referenceDelta[2]! / referenceLength,
   ]);
   const forwardProjection = dotVector3(elasticDelta, referenceAxis);
-  if (forwardProjection <= 0 || isScaledZero(forwardProjection, referenceLength, GEOMETRY_COMPARISON_TOLERANCE)) {
-    geometryError("offsets", "elastic endpoints overlap or reverse the reference connectivity", forwardProjection, referenceLength);
+  if (
+    forwardProjection <= 0 ||
+    isScaledZero(forwardProjection, referenceLength, GEOMETRY_COMPARISON_TOLERANCE)
+  ) {
+    geometryError(
+      "offsets",
+      "elastic endpoints overlap or reverse the reference connectivity",
+      forwardProjection,
+      referenceLength,
+    );
   }
 
   return Object.freeze({
@@ -104,7 +142,14 @@ export function transferRigidBodyDisplacement(
   const rotation = createVector3(nodal.subarray(3, 6));
   const endpointTranslation = addVector3(translation, crossVector3(rotation, offset));
   return finiteFloat64Array(
-    [endpointTranslation[0], endpointTranslation[1], endpointTranslation[2], rotation[0], rotation[1], rotation[2]],
+    [
+      endpointTranslation[0],
+      endpointTranslation[1],
+      endpointTranslation[2],
+      rotation[0],
+      rotation[1],
+      rotation[2],
+    ],
     "endpointDisplacement",
   );
 }

@@ -49,7 +49,9 @@ function normalizedReleaseEnd(value: unknown, path: string): readonly DofName[] 
     if (seen.has(dof)) inputError(path, "unique release components", dof);
     seen.add(dof);
   }
-  return Object.freeze([...seen].sort((left, right) => DOF_INDEX.get(left)! - DOF_INDEX.get(right)!));
+  return Object.freeze(
+    [...seen].toSorted((left, right) => DOF_INDEX.get(left)! - DOF_INDEX.get(right)!),
+  );
 }
 
 function normalizedReleases(value: FrameReleaseInput | undefined): FrameReleaseInput | undefined {
@@ -64,8 +66,12 @@ function normalizedReleases(value: FrameReleaseInput | undefined): FrameReleaseI
 
 function normalizedOffsets(value: RigidOffsetInput | undefined): RigidOffsetInput | undefined {
   if (value === undefined) return undefined;
-  const start = value.start === undefined ? undefined : frozenVector(value.start, "frame.rigidOffsets.start", true);
-  const end = value.end === undefined ? undefined : frozenVector(value.end, "frame.rigidOffsets.end", true);
+  const start =
+    value.start === undefined
+      ? undefined
+      : frozenVector(value.start, "frame.rigidOffsets.start", true);
+  const end =
+    value.end === undefined ? undefined : frozenVector(value.end, "frame.rigidOffsets.end", true);
   return Object.freeze({
     ...(start === undefined ? {} : { start }),
     ...(end === undefined ? {} : { end }),
@@ -78,7 +84,10 @@ export function createFrameElement(input: FrameInput): FrameRecord {
   if (startNodeId === endNodeId) {
     inputError("frame.endNodeId", "identifier different from startNodeId", endNodeId);
   }
-  const orientation = input.orientation === undefined ? undefined : frozenVector(input.orientation, "frame.orientation", false);
+  const orientation =
+    input.orientation === undefined
+      ? undefined
+      : frozenVector(input.orientation, "frame.orientation", false);
   const releases = normalizedReleases(input.releases);
   const rigidOffsets = normalizedOffsets(input.rigidOffsets);
   return Object.freeze({

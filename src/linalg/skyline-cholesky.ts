@@ -19,7 +19,8 @@ function checkedRightHandSide(values: ArrayLike<number>, size: number): Float64A
     });
   }
   const result = new Float64Array(size);
-  for (let index = 0; index < size; index += 1) result[index] = finiteNumber(values[index], `rhs[${index}]`);
+  for (let index = 0; index < size; index += 1)
+    result[index] = finiteNumber(values[index], `rhs[${index}]`);
   return result;
 }
 
@@ -31,7 +32,11 @@ export class SkylineCholeskyFactor {
   readonly #factor: Float64Array;
   readonly #permutation: readonly number[];
 
-  public constructor(profile: SkylineProfile, factor: Float64Array, diagnostics: CholeskyDiagnostics) {
+  public constructor(
+    profile: SkylineProfile,
+    factor: Float64Array,
+    diagnostics: CholeskyDiagnostics,
+  ) {
     this.size = profile.size;
     this.diagnostics = Object.freeze({ ...diagnostics });
     this.#firstColumns = profile.firstColumns;
@@ -49,7 +54,8 @@ export class SkylineCholeskyFactor {
     for (let row = 0; row < this.size; row += 1) {
       const start = this.#rowStarts[row]!;
       const first = this.#firstColumns[row]!;
-      for (let column = first; column < row; column += 1) solution[row] = solution[row]! - this.#factor[start + column - first]! * solution[column]!;
+      for (let column = first; column < row; column += 1)
+        solution[row] = solution[row]! - this.#factor[start + column - first]! * solution[column]!;
       solution[row] = solution[row]! / this.#factor[start + row - first]!;
     }
 
@@ -57,11 +63,14 @@ export class SkylineCholeskyFactor {
       const start = this.#rowStarts[row]!;
       const first = this.#firstColumns[row]!;
       solution[row] = solution[row]! / this.#factor[start + row - first]!;
-      for (let column = first; column < row; column += 1) solution[column] = solution[column]! - this.#factor[start + column - first]! * solution[row]!;
+      for (let column = first; column < row; column += 1)
+        solution[column] =
+          solution[column]! - this.#factor[start + column - first]! * solution[row]!;
     }
 
     const unpermuted = new Float64Array(this.size);
-    for (let row = 0; row < this.size; row += 1) unpermuted[this.#permutation[row]!] = finiteNumber(solution[row], `solution[${row}]`);
+    for (let row = 0; row < this.size; row += 1)
+      unpermuted[this.#permutation[row]!] = finiteNumber(solution[row], `solution[${row}]`);
     return unpermuted;
   }
 
@@ -89,7 +98,10 @@ export function factorSkylineCholesky(profile: SkylineProfile): SkylineCholeskyF
       for (let inner = sharedFirst; inner < column; inner += 1) {
         sum -= factor[rowStart + inner - rowFirst]! * factor[columnStart + inner - columnFirst]!;
       }
-      factor[rowStart + column - rowFirst] = finiteNumber(sum / factor[columnStart + column - columnFirst]!, `factor[${row},${column}]`);
+      factor[rowStart + column - rowFirst] = finiteNumber(
+        sum / factor[columnStart + column - columnFirst]!,
+        `factor[${row},${column}]`,
+      );
     }
 
     let pivot = factor[diagonalIndex]!;
@@ -99,12 +111,16 @@ export function factorSkylineCholesky(profile: SkylineProfile): SkylineCholeskyF
     }
     const normalizedPivot = diagonalScale === 0 ? 0 : pivot / diagonalScale;
     if (!Number.isFinite(pivot) || pivot <= 0 || normalizedPivot <= PIVOT_RELATIVE_TOLERANCE) {
-      throw new XFrameError("FACTORIZATION_FAILED", "Skyline Cholesky encountered a non-positive or near-singular pivot.", {
-        kind: "analysis",
-        stage: "skyline-cholesky",
-        detail: `pivot=${String(pivot)}, normalizedPivot=${String(normalizedPivot)}, threshold=${PIVOT_RELATIVE_TOLERANCE}`,
-        equation: profile.ordering.permutation[row]!,
-      });
+      throw new XFrameError(
+        "FACTORIZATION_FAILED",
+        "Skyline Cholesky encountered a non-positive or near-singular pivot.",
+        {
+          kind: "analysis",
+          stage: "skyline-cholesky",
+          detail: `pivot=${String(pivot)}, normalizedPivot=${String(normalizedPivot)}, threshold=${PIVOT_RELATIVE_TOLERANCE}`,
+          equation: profile.ordering.permutation[row]!,
+        },
+      );
     }
     if (normalizedPivot < minimumNormalizedPivot) {
       minimumNormalizedPivot = normalizedPivot;

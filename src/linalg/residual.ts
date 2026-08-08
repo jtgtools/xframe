@@ -29,9 +29,12 @@ export function computeResidualDiagnostics(
     maximumAbsoluteResidual = Math.max(maximumAbsoluteResidual, Math.abs(product[index]! - load));
     loadScale = Math.max(loadScale, Math.abs(load));
   }
-  const normalizedResidual = loadScale === 0
-    ? (maximumAbsoluteResidual === 0 ? 0 : Number.MAX_VALUE)
-    : maximumAbsoluteResidual / loadScale;
+  const normalizedResidual =
+    loadScale === 0
+      ? maximumAbsoluteResidual === 0
+        ? 0
+        : Number.MAX_VALUE
+      : maximumAbsoluteResidual / loadScale;
   return Object.freeze({
     maximumAbsoluteResidual,
     normalizedResidual,

@@ -25,7 +25,12 @@ export interface LocalAxes {
   readonly localToGlobal: Matrix3;
 }
 
-function geometryError(path: string, reason: string, value?: number, referenceScale?: number): never {
+function geometryError(
+  path: string,
+  reason: string,
+  value?: number,
+  referenceScale?: number,
+): never {
   throw new XFrameError("GEOMETRY_INVALID", "Local-axis geometry is invalid.", {
     kind: "geometry",
     path,
@@ -64,9 +69,19 @@ function projectedYAxis(x: Vector3, orientation: ArrayLike<unknown>, explicit: b
   const projectionNorm = normVector3(projection);
   if (isScaledZero(projectionNorm, candidateNorm, GEOMETRY_ORIENTATION_TOLERANCE)) {
     if (explicit) {
-      geometryError("orientation", "orientation vector is parallel or nearly parallel to the member axis", projectionNorm, candidateNorm);
+      geometryError(
+        "orientation",
+        "orientation vector is parallel or nearly parallel to the member axis",
+        projectionNorm,
+        candidateNorm,
+      );
     }
-    geometryError("orientation", "deterministic fallback unexpectedly degenerated", projectionNorm, candidateNorm);
+    geometryError(
+      "orientation",
+      "deterministic fallback unexpectedly degenerated",
+      projectionNorm,
+      candidateNorm,
+    );
   }
   return normalizeVector3(projection);
 }
@@ -97,7 +112,12 @@ export function buildLocalAxes(
   const length = normVector3(delta);
   const scale = coordinateScale(start, end, length);
   if (length === 0 || isScaledZero(length, scale, GEOMETRY_COMPARISON_TOLERANCE)) {
-    geometryError("end", "member length is zero or unresolved at the coordinate scale", length, scale);
+    geometryError(
+      "end",
+      "member length is zero or unresolved at the coordinate scale",
+      length,
+      scale,
+    );
   }
 
   const x = normalizeVector3(delta);

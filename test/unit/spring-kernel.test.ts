@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { computeGroundSpringStiffness } from "../../src/elements/spring/ground-spring.js";
-import { computeTwoNodeSpringStiffness, recoverTwoNodeSpringForces } from "../../src/elements/spring/two-node-spring.js";
+import {
+  computeTwoNodeSpringStiffness,
+  recoverTwoNodeSpringForces,
+} from "../../src/elements/spring/two-node-spring.js";
 
 describe("spring kernels", () => {
   it("FR-ELE-004: ground spring uses explicit six component stiffnesses", () => {
@@ -15,7 +18,8 @@ describe("spring kernels", () => {
     const rigid = [1, 2, 3, 0, 0, 0, 1, 2, 3, 0, 0, 0];
     for (let row = 0; row < 12; row += 1) {
       let force = 0;
-      for (let column = 0; column < 12; column += 1) force += k[row * 12 + column]! * rigid[column]!;
+      for (let column = 0; column < 12; column += 1)
+        force += k[row * 12 + column]! * rigid[column]!;
       expect(force).toBeCloseTo(0, 12);
     }
     const force = recoverTwoNodeSpringForces(stiffness, [0, 0, 0, 0, 0, 0, 0.2, 0, 0, 0, 0, 0]);
@@ -23,7 +27,9 @@ describe("spring kernels", () => {
   });
 
   it("FR-ELE-004: rejects negative stiffness while permitting explicit zero components", () => {
-    expect(() => computeGroundSpringStiffness([-1, 0, 0, 0, 0, 0])).toThrow();
+    expect(() => computeGroundSpringStiffness([-1, 0, 0, 0, 0, 0])).toThrow(
+      "Spring stiffness cannot be negative.",
+    );
     expect(Array.from(computeGroundSpringStiffness([0, 0, 0, 0, 0, 0]))).toEqual(Array(36).fill(0));
   });
 

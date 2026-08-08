@@ -90,7 +90,6 @@ class DefaultModelBuilder implements ModelBuilder {
   #loadCases = new Registry<LoadCaseRecord>("load case");
   #combinations = new Registry<CombinationRecord>("combination");
 
-
   public setUnitSystem(input: unknown): this {
     this.#unitSystem = parseUnitSystem(input);
     return this;
@@ -141,22 +140,32 @@ class DefaultModelBuilder implements ModelBuilder {
     const diaphragmId = parseIdentifier(input.id, "rigidDiaphragm.id");
     const masterNodeId = parseIdentifier(input.masterNodeId, "rigidDiaphragm.masterNodeId");
     const master = draft.#nodes.get(masterNodeId);
-    if (master === undefined) throw missingDiaphragmNode(masterNodeId, "rigidDiaphragm.masterNodeId");
+    if (master === undefined)
+      throw missingDiaphragmNode(masterNodeId, "rigidDiaphragm.masterNodeId");
     const seen = new Set<EntityId>();
     for (let index = 0; index < input.slaveNodeIds.length; index += 1) {
-      const slaveNodeId = parseIdentifier(input.slaveNodeIds[index], `rigidDiaphragm.slaveNodeIds[${index}]`);
+      const slaveNodeId = parseIdentifier(
+        input.slaveNodeIds[index],
+        `rigidDiaphragm.slaveNodeIds[${index}]`,
+      );
       if (slaveNodeId === masterNodeId || seen.has(slaveNodeId)) {
-        throw new XFrameError("INPUT_INVALID", "Rigid diaphragm slave nodes must be unique and different from the master.", {
-          kind: "input",
-          path: `rigidDiaphragm.slaveNodeIds[${index}]`,
-          expected: "unique node other than master",
-          actual: slaveNodeId,
-        });
+        throw new XFrameError(
+          "INPUT_INVALID",
+          "Rigid diaphragm slave nodes must be unique and different from the master.",
+          {
+            kind: "input",
+            path: `rigidDiaphragm.slaveNodeIds[${index}]`,
+            expected: "unique node other than master",
+            actual: slaveNodeId,
+          },
+        );
       }
       seen.add(slaveNodeId);
       const slave = draft.#nodes.get(slaveNodeId);
-      if (slave === undefined) throw missingDiaphragmNode(slaveNodeId, `rigidDiaphragm.slaveNodeIds[${index}]`);
-      for (const constraint of diaphragmConstraints(diaphragmId, input.plane, master, slave)) draft.addConstraint(constraint);
+      if (slave === undefined)
+        throw missingDiaphragmNode(slaveNodeId, `rigidDiaphragm.slaveNodeIds[${index}]`);
+      for (const constraint of diaphragmConstraints(diaphragmId, input.plane, master, slave))
+        draft.addConstraint(constraint);
     }
     this.#replaceWith(draft);
     return this;
@@ -243,7 +252,9 @@ class DefaultModelBuilder implements ModelBuilder {
 function missingDiaphragmNode(id: EntityId, path: string): XFrameError {
   return new XFrameError("REFERENCE_NOT_FOUND", "Rigid diaphragm references a missing node.", {
     kind: "reference",
-    issues: Object.freeze([{ entityType: "rigid diaphragm", id, path, referencedId: id, expectedType: "node" }]),
+    issues: Object.freeze([
+      { entityType: "rigid diaphragm", id, path, referencedId: id, expectedType: "node" },
+    ]),
   });
 }
 
@@ -253,21 +264,37 @@ function diaphragmConstraints(
   master: NodeRecord,
   slave: NodeRecord,
 ): readonly ConstraintInput[] {
-  const [dx, dy, dz] = slave.coordinates.map((value, index) => value - master.coordinates[index]!) as [number, number, number];
-  const definitions = plane === "xy"
-    ? [["tx", "rz", dy], ["ty", "rz", -dx]] as const
-    : plane === "yz"
-      ? [["ty", "rx", dz], ["tz", "rx", -dy]] as const
-      : [["tx", "ry", -dz], ["tz", "ry", dx]] as const;
-  return Object.freeze(definitions.map(([translation, rotation, arm]) => Object.freeze({
-    id: `${id}:${slave.id}:${translation}`,
-    terms: Object.freeze([
-      Object.freeze({ nodeId: slave.id, dof: translation, coefficient: 1 }),
-      Object.freeze({ nodeId: master.id, dof: translation, coefficient: -1 }),
-      Object.freeze({ nodeId: master.id, dof: rotation, coefficient: arm }),
-    ]),
-    rightHandSide: 0,
-  })));
+  const [dx, dy, dz] = slave.coordinates.map(
+    (value, index) => value - master.coordinates[index]!,
+  ) as [number, number, number];
+  const definitions =
+    plane === "xy"
+      ? ([
+          ["tx", "rz", dy],
+          ["ty", "rz", -dx],
+        ] as const)
+      : plane === "yz"
+        ? ([
+            ["ty", "rx", dz],
+            ["tz", "rx", -dy],
+          ] as const)
+        : ([
+            ["tx", "ry", -dz],
+            ["tz", "ry", dx],
+          ] as const);
+  return Object.freeze(
+    definitions.map(([translation, rotation, arm]) =>
+      Object.freeze({
+        id: `${id}:${slave.id}:${translation}`,
+        terms: Object.freeze([
+          Object.freeze({ nodeId: slave.id, dof: translation, coefficient: 1 }),
+          Object.freeze({ nodeId: master.id, dof: translation, coefficient: -1 }),
+          Object.freeze({ nodeId: master.id, dof: rotation, coefficient: arm }),
+        ]),
+        rightHandSide: 0,
+      }),
+    ),
+  );
 }
 
 export function createModelBuilder(): ModelBuilder {

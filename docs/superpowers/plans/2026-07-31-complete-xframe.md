@@ -40,10 +40,12 @@ The detailed owned-file maps and interfaces are authoritative in `.agents/refere
 ### Task 1: Preserve and verify the baseline
 
 **Files:**
+
 - Modify: `docs/roadmap/progress.md`
 - Create: `docs/superpowers/plans/2026-07-31-complete-xframe.md`
 
 **Interfaces:**
+
 - Consumes: committed Parts 00–01 repository foundation.
 - Produces: clean dependency installation and passing baseline quality commands.
 
@@ -71,6 +73,7 @@ The detailed owned-file maps and interfaces are authoritative in `.agents/refere
 ### Task 4: Parts 04–06 — physical records, topology, loads, and combinations
 
 **Plans:**
+
 - `.agents/references/plans/04-materials-sections-and-elements/plan.md`
 - `.agents/references/plans/05-dof-topology-and-model-finalization/plan.md`
 - `.agents/references/plans/06-loads-cases-and-combinations/plan.md`
@@ -82,6 +85,7 @@ The detailed owned-file maps and interfaces are authoritative in `.agents/refere
 ### Task 5: Parts 07–08 — sparse algebra and affine constraints
 
 **Plans:**
+
 - `.agents/references/plans/07-sparse-linear-algebra/plan.md`
 - `.agents/references/plans/08-affine-constraint-compiler/plan.md`
 
@@ -92,6 +96,7 @@ The detailed owned-file maps and interfaces are authoritative in `.agents/refere
 ### Task 6: Parts 09–10 — element formulations
 
 **Plans:**
+
 - `.agents/references/plans/09-frame-formulations-loads-and-releases/plan.md`
 - `.agents/references/plans/10-trusses-springs-and-rigid-offsets/plan.md`
 
@@ -130,6 +135,7 @@ The detailed owned-file maps and interfaces are authoritative in `.agents/refere
 ### Task 10: Frame3DD oracle harness
 
 **Files:**
+
 - Create: `scripts/frame3dd/run-frame3dd.ts`
 - Create: `scripts/frame3dd/parse-frame3dd-output.ts`
 - Create: `scripts/frame3dd/write-frame3dd-case.ts`
@@ -141,6 +147,7 @@ The detailed owned-file maps and interfaces are authoritative in `.agents/refere
 - Modify: `.gitignore`
 
 **Interfaces:**
+
 - Consumes: `FRAME3DD_BIN`, xframe-authored benchmark models, xframe finalized models/results.
 - Produces: deterministic `.3dd` inputs, raw Frame3DD outputs outside tracked source, parsed reference JSON, scalar comparison records, and timing summaries.
 
@@ -191,6 +198,7 @@ The detailed owned-file maps and interfaces are authoritative in `.agents/refere
 ### Task 14: Deliverable preparation
 
 **Files:**
+
 - Create outside repository: `/mnt/data/xframe-complete.zip`
 
 - [ ] Confirm `git status --short` is clean.

@@ -3,7 +3,10 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { prepareAnalysis } from "../../src/analysis/prepare-analysis.js";
 import { computeFrameLocalStiffness } from "../../src/elements/frame/local-stiffness.js";
-import { condenseFrameEndReleases, frameReleaseMask } from "../../src/elements/frame/release-condensation.js";
+import {
+  condenseFrameEndReleases,
+  frameReleaseMask,
+} from "../../src/elements/frame/release-condensation.js";
 import { createFrameRigidOffsetTransform } from "../../src/elements/frame/rigid-offset-transform.js";
 import type { SymmetricCoordinateMatrix } from "../../src/linalg/symmetric-coordinate-matrix.js";
 import type { ResolvedFrameRecord } from "../../src/model/finalized-model.js";
@@ -58,12 +61,15 @@ const trussUnits = {
 
 function reference(name: string): ReferenceData {
   return JSON.parse(
-    readFileSync(join(process.cwd(), `verification/reference-data/frame3dd/${name}/reference.json`), "utf8"),
+    readFileSync(
+      join(process.cwd(), `verification/reference-data/frame3dd/${name}/reference.json`),
+      "utf8",
+    ),
   ) as ReferenceData;
 }
 
 function dense(matrix: SymmetricCoordinateMatrix): readonly number[] {
-  const values = new Array<number>(matrix.size ** 2).fill(0);
+  const values = Array.from({ length: matrix.size ** 2 }, () => 0);
   for (const { row, column, value } of matrix.entries()) {
     values[row * matrix.size + column] = value;
     values[column * matrix.size + row] = value;
@@ -96,7 +102,6 @@ function findNode(data: ReferenceData, id: string): ReferenceNode {
   return node;
 }
 
-
 function frameGlobalStiffness(frame: ResolvedFrameRecord): Float64Array {
   const local = computeFrameLocalStiffness({
     length: frame.geometry.elasticLength,
@@ -110,7 +115,11 @@ function frameGlobalStiffness(frame: ResolvedFrameRecord): Float64Array {
     ...(frame.section.shearAreaY === undefined ? {} : { shearAreaY: frame.section.shearAreaY }),
     ...(frame.section.shearAreaZ === undefined ? {} : { shearAreaZ: frame.section.shearAreaZ }),
   });
-  const condensed = condenseFrameEndReleases(local, new Float64Array(12), frameReleaseMask(frame.record.releases));
+  const condensed = condenseFrameEndReleases(
+    local,
+    new Float64Array(12),
+    frameReleaseMask(frame.record.releases),
+  );
   return createFrameRigidOffsetTransform(
     frame.axes.globalToLocal,
     frame.geometry.startOffset,
@@ -135,12 +144,57 @@ function portalModel() {
     .addNode({ id: "2", coordinates: [0, 3000, 0] })
     .addNode({ id: "3", coordinates: [5000, 3000, 0] })
     .addNode({ id: "4", coordinates: [5000, 0, 0] })
-    .addMaterial({ id: "m", elasticModulus: 210000, shearModulus: 80769.23076923077, density: 7.85e-9 })
-    .addFrameSection({ id: "c", area: 1800, shearAreaY: 1200, shearAreaZ: 1100, torsionalConstant: 700000, momentOfInertiaY: 9000000, momentOfInertiaZ: 15000000 })
-    .addFrameSection({ id: "b", area: 1500, shearAreaY: 1000, shearAreaZ: 900, torsionalConstant: 600000, momentOfInertiaY: 7000000, momentOfInertiaZ: 12000000 })
-    .addFrame({ id: "1", startNodeId: "1", endNodeId: "2", materialId: "m", sectionId: "c", theory: { kind: "euler-bernoulli" }, orientation: [1, 0, 0] })
-    .addFrame({ id: "2", startNodeId: "2", endNodeId: "3", materialId: "m", sectionId: "b", theory: { kind: "euler-bernoulli" }, orientation: [0, 1, 0] })
-    .addFrame({ id: "3", startNodeId: "4", endNodeId: "3", materialId: "m", sectionId: "c", theory: { kind: "euler-bernoulli" }, orientation: [1, 0, 0] });
+    .addMaterial({
+      id: "m",
+      elasticModulus: 210000,
+      shearModulus: 80769.23076923077,
+      density: 7.85e-9,
+    })
+    .addFrameSection({
+      id: "c",
+      area: 1800,
+      shearAreaY: 1200,
+      shearAreaZ: 1100,
+      torsionalConstant: 700000,
+      momentOfInertiaY: 9000000,
+      momentOfInertiaZ: 15000000,
+    })
+    .addFrameSection({
+      id: "b",
+      area: 1500,
+      shearAreaY: 1000,
+      shearAreaZ: 900,
+      torsionalConstant: 600000,
+      momentOfInertiaY: 7000000,
+      momentOfInertiaZ: 12000000,
+    })
+    .addFrame({
+      id: "1",
+      startNodeId: "1",
+      endNodeId: "2",
+      materialId: "m",
+      sectionId: "c",
+      theory: { kind: "euler-bernoulli" },
+      orientation: [1, 0, 0],
+    })
+    .addFrame({
+      id: "2",
+      startNodeId: "2",
+      endNodeId: "3",
+      materialId: "m",
+      sectionId: "b",
+      theory: { kind: "euler-bernoulli" },
+      orientation: [0, 1, 0],
+    })
+    .addFrame({
+      id: "3",
+      startNodeId: "4",
+      endNodeId: "3",
+      materialId: "m",
+      sectionId: "c",
+      theory: { kind: "euler-bernoulli" },
+      orientation: [1, 0, 0],
+    });
   fixNode(builder, "1");
   fixNode(builder, "4");
   return builder.finalize();
@@ -149,23 +203,63 @@ function portalModel() {
 function twoStoryModel() {
   const builder = createModelBuilder().setUnitSystem(frameUnits);
   const coordinates = [
-    [0, 0, 0], [4000, 0, 0], [8000, 0, 0],
-    [0, 3000, 0], [4000, 3000, 0], [8000, 3000, 0],
-    [0, 6000, 0], [4000, 6000, 0], [8000, 6000, 0],
+    [0, 0, 0],
+    [4000, 0, 0],
+    [8000, 0, 0],
+    [0, 3000, 0],
+    [4000, 3000, 0],
+    [8000, 3000, 0],
+    [0, 6000, 0],
+    [4000, 6000, 0],
+    [8000, 6000, 0],
   ] as const;
-  coordinates.forEach((entry, index) => builder.addNode({ id: String(index + 1), coordinates: entry }));
+  coordinates.forEach((entry, index) =>
+    builder.addNode({ id: String(index + 1), coordinates: entry }),
+  );
   builder
-    .addMaterial({ id: "m", elasticModulus: 210000, shearModulus: 80769.23076923077, density: 7.85e-9 })
-    .addFrameSection({ id: "c", area: 2200, shearAreaY: 1500, shearAreaZ: 1400, torsionalConstant: 900000, momentOfInertiaY: 12000000, momentOfInertiaZ: 22000000 })
-    .addFrameSection({ id: "b", area: 1700, shearAreaY: 1150, shearAreaZ: 1050, torsionalConstant: 700000, momentOfInertiaY: 8500000, momentOfInertiaZ: 16000000 });
+    .addMaterial({
+      id: "m",
+      elasticModulus: 210000,
+      shearModulus: 80769.23076923077,
+      density: 7.85e-9,
+    })
+    .addFrameSection({
+      id: "c",
+      area: 2200,
+      shearAreaY: 1500,
+      shearAreaZ: 1400,
+      torsionalConstant: 900000,
+      momentOfInertiaY: 12000000,
+      momentOfInertiaZ: 22000000,
+    })
+    .addFrameSection({
+      id: "b",
+      area: 1700,
+      shearAreaY: 1150,
+      shearAreaZ: 1050,
+      torsionalConstant: 700000,
+      momentOfInertiaY: 8500000,
+      momentOfInertiaZ: 16000000,
+    });
   const members = [
-    ["1", "1", "4", "c"], ["2", "2", "5", "c"], ["3", "3", "6", "c"],
-    ["4", "4", "7", "c"], ["5", "5", "8", "c"], ["6", "6", "9", "c"],
-    ["7", "4", "5", "b"], ["8", "5", "6", "b"], ["9", "7", "8", "b"], ["10", "8", "9", "b"],
+    ["1", "1", "4", "c"],
+    ["2", "2", "5", "c"],
+    ["3", "3", "6", "c"],
+    ["4", "4", "7", "c"],
+    ["5", "5", "8", "c"],
+    ["6", "6", "9", "c"],
+    ["7", "4", "5", "b"],
+    ["8", "5", "6", "b"],
+    ["9", "7", "8", "b"],
+    ["10", "8", "9", "b"],
   ] as const;
   for (const [id, startNodeId, endNodeId, sectionId] of members) {
     builder.addFrame({
-      id, startNodeId, endNodeId, materialId: "m", sectionId,
+      id,
+      startNodeId,
+      endNodeId,
+      materialId: "m",
+      sectionId,
       theory: { kind: "euler-bernoulli" },
       orientation: sectionId === "c" ? [1, 0, 0] : [0, 1, 0],
     });
@@ -174,14 +268,22 @@ function twoStoryModel() {
   return builder.finalize();
 }
 
-function expectModelStiffnessMatchesReference(model: ReturnType<typeof portalModel>, data: ReferenceData): void {
+function expectModelStiffnessMatchesReference(
+  model: ReturnType<typeof portalModel>,
+  data: ReferenceData,
+): void {
   if (data.elementStiffness === undefined || data.globalStiffness === undefined) {
     throw new Error("Frame3DD reference is missing stiffness matrices.");
   }
   expect(model.resolvedFrames.length).toBe(data.elementStiffness.length);
   model.resolvedFrames.forEach((frame) => {
     const referenceIndex = Number(frame.record.id) - 1;
-    expectArrayClose(frameGlobalStiffness(frame), data.elementStiffness![referenceIndex]!, 2e-7, 1e-8);
+    expectArrayClose(
+      frameGlobalStiffness(frame),
+      data.elementStiffness![referenceIndex]!,
+      2e-7,
+      1e-8,
+    );
   });
   expectArrayClose(dense(prepareAnalysis(model).fullStiffness), data.globalStiffness, 2e-7, 1e-8);
 }
@@ -277,6 +379,7 @@ describe("Frame3DD multi-member assembly oracle", () => {
     const prepared = prepareAnalysis(model);
     const result = prepared.solveCase("1");
     const expectedMatrices = data.elementStiffness;
+    expect(result.nodes).toHaveLength(data.nodes.length);
     if (expectedMatrices === undefined || data.globalStiffness === undefined) {
       throw new Error("Frame-chain reference is missing stiffness matrices.");
     }
@@ -325,11 +428,15 @@ describe("Frame3DD multi-member assembly oracle", () => {
 
 describe("Frame3DD expanded stiffness oracle", () => {
   it("VER-F3D-004: directly matches all portal element matrices and the assembled 24x24 matrix", () => {
-    expectModelStiffnessMatchesReference(portalModel(), reference("portal-frame-euler"));
+    const data = reference("portal-frame-euler");
+    expect(data.elementStiffness).toBeDefined();
+    expectModelStiffnessMatchesReference(portalModel(), data);
   });
 
   it("VER-F3D-005: directly matches all two-story element matrices and the assembled 54x54 matrix", () => {
-    expectModelStiffnessMatchesReference(twoStoryModel(), reference("two-story-two-bay-euler"));
+    const data = reference("two-story-two-bay-euler");
+    expect(data.elementStiffness).toBeDefined();
+    expectModelStiffnessMatchesReference(twoStoryModel(), data);
   });
 });
 
@@ -363,6 +470,7 @@ describe("Frame3DD truss approximation oracle", () => {
         .addLoadCase({ id: "1", loads: [{ kind: "nodal", nodeId: "3", force: [1000, -5000, 0] }] })
         .finalize(),
     ).solveCase("1");
+    expect(result.nodes).toHaveLength(data.nodes.length);
 
     for (const node of result.nodes) {
       const expected = findNode(data, node.id);

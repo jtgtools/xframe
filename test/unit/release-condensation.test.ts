@@ -25,17 +25,28 @@ describe("frame release condensation", () => {
     expect(condensed.load[11]).toBe(0);
     const forces = recoverFrameEndForces(condensed, new Float64Array(12));
     expect(forces[11]).toBeCloseTo(0, 8);
-    for (let row = 0; row < 12; row += 1) for (let column = 0; column < 12; column += 1) expect(condensed.stiffness[row * 12 + column]).toBeCloseTo(condensed.stiffness[column * 12 + row]!, 10);
+    for (let row = 0; row < 12; row += 1)
+      for (let column = 0; column < 12; column += 1)
+        expect(condensed.stiffness[row * 12 + column]).toBeCloseTo(
+          condensed.stiffness[column * 12 + row]!,
+          10,
+        );
   });
 
   it("FR-ELE-005: rejects a singular released block instead of adding stiffness", () => {
-    expect(() => condenseFrameEndReleases(k, new Float64Array(12), (1 << 0) | (1 << 6))).toThrow(XFrameError);
+    expect(() => condenseFrameEndReleases(k, new Float64Array(12), (1 << 0) | (1 << 6))).toThrow(
+      XFrameError,
+    );
   });
 
   it("FR-ELE-006: classifies every one of the 4,096 masks", () => {
     const summary = classifyAllFrameReleaseMasks(k);
     expect(summary.validCount + summary.invalidCount).toBe(4096);
     expect(summary.classifications.length).toBe(4096);
-    expect(summary.classifications.every((entry) => entry.status === "valid" || entry.status === "local-mechanism")).toBe(true);
+    expect(
+      summary.classifications.every(
+        (entry) => entry.status === "valid" || entry.status === "local-mechanism",
+      ),
+    ).toBe(true);
   });
 });

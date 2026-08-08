@@ -32,7 +32,11 @@ describe("seeded structural model invariants", () => {
       for (let index = 0; index < count; index += 1) {
         builder.addNode({ id: `n${String(index).padStart(2, "0")}`, coordinates: [index, 0, 0] });
       }
-      builder.addSpring({ id: "ground", startNodeId: "n00", stiffness: [stiffnesses[0]!, 0, 0, 0, 0, 0] });
+      builder.addSpring({
+        id: "ground",
+        startNodeId: "n00",
+        stiffness: [stiffnesses[0]!, 0, 0, 0, 0, 0],
+      });
       for (let index = 1; index < count; index += 1) {
         builder.addSpring({
           id: `link${String(index).padStart(2, "0")}`,
@@ -41,7 +45,11 @@ describe("seeded structural model invariants", () => {
           stiffness: [stiffnesses[index]!, 0, 0, 0, 0, 0],
         });
       }
-      const result = prepareAnalysis(builder.addLoadCase({ id: "P", loads: [{ kind: "nodal", nodeId: "n09", force: [load, 0, 0] }] }).finalize()).solveCase("P");
+      const result = prepareAnalysis(
+        builder
+          .addLoadCase({ id: "P", loads: [{ kind: "nodal", nodeId: "n09", force: [load, 0, 0] }] })
+          .finalize(),
+      ).solveCase("P");
       let compliance = 0;
       for (let index = 0; index < count; index += 1) {
         compliance += 1 / stiffnesses[index]!;

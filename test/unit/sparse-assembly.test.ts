@@ -10,8 +10,22 @@ function entries(values: readonly [number, number, number][]) {
 
 describe("symmetric coordinate assembly", () => {
   it("FR-SOL-001: normalizes to the lower triangle and combines duplicates deterministically", () => {
-    const forward = entries([[0, 0, 4], [0, 1, 0.25], [1, 0, 0.75], [1, 1, 3], [2, 1, 1], [2, 2, 2]]);
-    const reverse = entries([[2, 2, 2], [2, 1, 1], [1, 1, 3], [1, 0, 0.75], [0, 1, 0.25], [0, 0, 4]]);
+    const forward = entries([
+      [0, 0, 4],
+      [0, 1, 0.25],
+      [1, 0, 0.75],
+      [1, 1, 3],
+      [2, 1, 1],
+      [2, 2, 2],
+    ]);
+    const reverse = entries([
+      [2, 2, 2],
+      [2, 1, 1],
+      [1, 1, 3],
+      [1, 0, 0.75],
+      [0, 1, 0.25],
+      [0, 0, 4],
+    ]);
     expect(forward).toEqual([
       { row: 0, column: 0, value: 4 },
       { row: 1, column: 0, value: 1 },

@@ -14,7 +14,11 @@ function codeOf(action: () => unknown): string | undefined {
 
 describe("createIsotropicMaterial", () => {
   it("FR-MAT-001: derives shear modulus from elastic modulus and Poisson ratio", () => {
-    const material = createIsotropicMaterial({ id: "steel", elasticModulus: 210e9, poissonRatio: 0.3 });
+    const material = createIsotropicMaterial({
+      id: "steel",
+      elasticModulus: 210e9,
+      poissonRatio: 0.3,
+    });
 
     expect(material.elasticModulus).toBe(210e9);
     expect(material.shearModulus).toBeCloseTo(210e9 / 2.6, 4);
@@ -23,7 +27,11 @@ describe("createIsotropicMaterial", () => {
   });
 
   it("FR-MAT-001: derives Poisson ratio from elastic and shear moduli", () => {
-    const material = createIsotropicMaterial({ id: "alloy", elasticModulus: 70e9, shearModulus: 26e9 });
+    const material = createIsotropicMaterial({
+      id: "alloy",
+      elasticModulus: 70e9,
+      shearModulus: 26e9,
+    });
 
     expect(material.poissonRatio).toBeCloseTo(70e9 / (2 * 26e9) - 1, 12);
   });
@@ -40,34 +48,49 @@ describe("createIsotropicMaterial", () => {
       density: 2400,
     });
 
-    expect(material).toEqual({ id: "concrete", elasticModulus, shearModulus, poissonRatio, density: 2400 });
+    expect(material).toEqual({
+      id: "concrete",
+      elasticModulus,
+      shearModulus,
+      poissonRatio,
+      density: 2400,
+    });
   });
 
   it("FR-MAT-001: rejects incomplete, nonphysical, and inconsistent material data", () => {
-    expect(codeOf(() => createIsotropicMaterial({ id: "m", elasticModulus: 1 }))).toBe("MATERIAL_INVALID");
-    expect(codeOf(() => createIsotropicMaterial({ id: "m", elasticModulus: 0, poissonRatio: 0.2 }))).toBe(
-      "MATERIAL_INVALID",
-    );
-    expect(codeOf(() => createIsotropicMaterial({ id: "m", elasticModulus: 1, shearModulus: -1 }))).toBe(
-      "MATERIAL_INVALID",
-    );
-    expect(codeOf(() => createIsotropicMaterial({ id: "m", elasticModulus: 1, poissonRatio: 0.5 }))).toBe(
+    expect(codeOf(() => createIsotropicMaterial({ id: "m", elasticModulus: 1 }))).toBe(
       "MATERIAL_INVALID",
     );
     expect(
+      codeOf(() => createIsotropicMaterial({ id: "m", elasticModulus: 0, poissonRatio: 0.2 })),
+    ).toBe("MATERIAL_INVALID");
+    expect(
+      codeOf(() => createIsotropicMaterial({ id: "m", elasticModulus: 1, shearModulus: -1 })),
+    ).toBe("MATERIAL_INVALID");
+    expect(
+      codeOf(() => createIsotropicMaterial({ id: "m", elasticModulus: 1, poissonRatio: 0.5 })),
+    ).toBe("MATERIAL_INVALID");
+    expect(
       codeOf(() =>
-        createIsotropicMaterial({ id: "m", elasticModulus: 210e9, shearModulus: 50e9, poissonRatio: 0.3 }),
+        createIsotropicMaterial({
+          id: "m",
+          elasticModulus: 210e9,
+          shearModulus: 50e9,
+          poissonRatio: 0.3,
+        }),
       ),
     ).toBe("MATERIAL_INVALID");
     expect(
-      codeOf(() => createIsotropicMaterial({ id: "m", elasticModulus: 1, poissonRatio: 0.2, density: 0 })),
+      codeOf(() =>
+        createIsotropicMaterial({ id: "m", elasticModulus: 1, poissonRatio: 0.2, density: 0 }),
+      ),
     ).toBe("MATERIAL_INVALID");
   });
 
   it("FR-MAT-001: builder material insertion uses the physical material validator", () => {
-    expect(() => createModelBuilder().addMaterial({ id: "m", elasticModulus: -1, poissonRatio: 0.2 })).toThrow(
-      XFrameError,
-    );
+    expect(() =>
+      createModelBuilder().addMaterial({ id: "m", elasticModulus: -1, poissonRatio: 0.2 }),
+    ).toThrow(XFrameError);
     const material = createModelBuilder()
       .addMaterial({ id: "m", elasticModulus: 210e9, poissonRatio: 0.3 })
       .snapshot().materials[0];

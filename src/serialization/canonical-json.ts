@@ -26,7 +26,7 @@ function canonical(value: unknown, path: string, seen: Set<object>): unknown {
   const prototype = Object.getPrototypeOf(value);
   if (prototype !== Object.prototype && prototype !== null) invalid(path, "non-plain object");
   const result: Record<string, unknown> = {};
-  for (const key of Object.keys(value as object).sort()) {
+  for (const key of Object.keys(value as object).toSorted()) {
     const entry = (value as Readonly<Record<string, unknown>>)[key];
     if (entry === undefined) invalid(`${path}.${key}`, entry);
     result[key] = canonical(entry, `${path}.${key}`, seen);
