@@ -6,6 +6,7 @@ import {
   deriveFrameInternalForceStations,
   evaluateFrameForcePolynomial,
   frameForceDerivativeRoots,
+  frameStationLayout,
   recoverFrameInternalForces,
   type FrameForceCoefficients,
   type FrameInternalForceSegment,
@@ -40,6 +41,31 @@ function segment(axial: FrameForceCoefficients, start = 0, end = 1): FrameIntern
     coefficients: [axial, [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
   };
 }
+
+it("FR-SAFE-004/FR-SAFE-007: lays out distributed boundaries and both limits of point actions", () => {
+  const layout = frameStationLayout(4, [
+    {
+      kind: "distributed",
+      start: 1,
+      end: 3,
+      startIntensity: [0, -1, 0],
+      endIntensity: [0, -1, 0],
+    },
+    { kind: "point-force", distance: 0, vector: [1, 0, 0] },
+    { kind: "point-moment", distance: 2, vector: [0, 0, 1] },
+  ] satisfies readonly FrameMemberLoad[]);
+
+  expect(layout).toEqual([
+    { x: 0, side: "left" },
+    { x: 0, side: "right" },
+    { x: 1, side: "single" },
+    { x: 2, side: "left" },
+    { x: 2, side: "right" },
+    { x: 3, side: "single" },
+    { x: 4, side: "single" },
+  ]);
+  expect(Object.isFrozen(layout)).toBe(true);
+});
 
 it("FR-SAFE-004: uses every model load-case boundary even when the current case has none there", () => {
   const currentLoads = [

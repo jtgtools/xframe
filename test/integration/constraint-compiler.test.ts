@@ -1,8 +1,19 @@
 import { describe, expect, it, vi } from "vitest";
 import { compileConstraints } from "../../src/constraints/compile-constraints.js";
 import { recoverConstrainedState } from "../../src/constraints/recover-constrained-state.js";
+import { XFrameError } from "../../src/errors/xframe-error.js";
 import { buildLocalAxes } from "../../src/geometry/local-axes.js";
 import { prepareAnalysis } from "../../src/analysis/prepare-analysis.js";
+
+function inputFailure(action: () => unknown): XFrameError {
+  try {
+    action();
+  } catch (error) {
+    if (error instanceof XFrameError) return error;
+    throw error;
+  }
+  throw new Error("Expected an input error.");
+}
 
 describe("constraint compiler", () => {
   it("FR-CON-003: compiles prescribed and equal-DOF equations to a sparse affine map", () => {
@@ -82,6 +93,67 @@ describe("constraint compiler", () => {
     expect(recovered.constraintForces).toEqual([
       { sourceId: "support", multiplier: 10, dofForces: [{ dof: 0, force: 10 }] },
     ]);
+  });
+
+  it("FR-CON-004: recovers coupled constraint reactions and rejects incompatible recovery vectors", () => {
+    const coupled = compileConstraints(3, [
+      {
+        sourceId: "a",
+        terms: [
+          { dof: 0, coefficient: 1 },
+          { dof: 1, coefficient: 1 },
+        ],
+        rightHandSide: 0,
+      },
+      {
+        sourceId: "b",
+        terms: [
+          { dof: 1, coefficient: 1 },
+          { dof: 2, coefficient: 1 },
+        ],
+        rightHandSide: 0,
+      },
+    ]);
+    const recovered = recoverConstrainedState(coupled, [7], [-1, -2, -3]);
+    expect(Array.from(recovered.fullDisplacements)).toEqual([7, -7, 7]);
+    expect(
+      recovered.constraintForces.map(({ sourceId, dofForces }) => ({
+        sourceId,
+        dofs: dofForces.map(({ dof }) => dof),
+      })),
+    ).toEqual([
+      { sourceId: "a", dofs: [0, 1] },
+      { sourceId: "b", dofs: [1, 2] },
+    ]);
+    expect(recovered.constraintForces[0]!.multiplier).toBeCloseTo(1 / 3, 14);
+    expect(recovered.constraintForces[1]!.multiplier).toBeCloseTo(7 / 3, 14);
+    for (const force of recovered.constraintForces[0]!.dofForces)
+      expect(force.force).toBeCloseTo(1 / 3, 14);
+    for (const force of recovered.constraintForces[1]!.dofForces)
+      expect(force.force).toBeCloseTo(7 / 3, 14);
+
+    expect(inputFailure(() => recoverConstrainedState(coupled, [7], [-1, -2]))).toMatchObject({
+      code: "INPUT_INVALID",
+      context: {
+        kind: "input",
+        path: "fullResidual",
+        expected: "array-like of length 3",
+        actual: "length 2",
+      },
+    });
+    expect(inputFailure(() => recoverConstrainedState(coupled, [], [-1, -2, -3]))).toMatchObject({
+      code: "INPUT_INVALID",
+      context: {
+        kind: "input",
+        path: "reducedDisplacements",
+        expected: "array-like of length 1",
+        actual: "length 0",
+      },
+    });
+
+    const unconstrained = recoverConstrainedState(compileConstraints(2, []), [4, 5], [-3, 2]);
+    expect(Array.from(unconstrained.fullDisplacements)).toEqual([4, 5]);
+    expect(unconstrained.constraintForces).toEqual([]);
   });
 
   it("FR-SAFE-003: preserves compiled topology and recovery across exact subnormal scaling", () => {

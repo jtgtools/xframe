@@ -105,6 +105,16 @@ function axialCoefficients(axial: readonly [number, number, number, number]) {
   return [axial, [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]] as const;
 }
 
+function incompatibility(action: () => unknown): XFrameError {
+  try {
+    action();
+  } catch (error) {
+    if (error instanceof XFrameError) return error;
+    throw error;
+  }
+  throw new Error("Expected a result incompatibility.");
+}
+
 it("FR-RES-006: combines compatible results without aliasing and preserves factor provenance", () => {
   const model = createModelBuilder()
     .setUnitSystem({
@@ -438,4 +448,195 @@ it("FR-RES-006/NFR-COR-002: rejects entity-order fabrication and non-finite comb
   expect(() => combineResults("C", [{ result, factor: Number.MAX_VALUE }])).toThrowError(
     XFrameError,
   );
+});
+
+it("FR-RES-006: rejects incompatible result layouts before combining values", () => {
+  const source = prepareAnalysis(collisionModel(1).finalize()).solveCase("L");
+  const other = { ...source, id: "OTHER" as typeof source.id };
+  const cases = [
+    {
+      action: () => combineResults("C", []),
+      reason: "at least one factor is required",
+    },
+    {
+      action: () => combineResults("C", [{ result: source, factor: Number.NaN }]),
+      reason: "factor is nonfinite",
+    },
+    {
+      action: () =>
+        combineResults("C", [
+          { result: source, factor: 1 },
+          { result: { ...other, unitSystem: { ...other.unitSystem, length: "mm" } }, factor: 1 },
+        ]),
+      reason: "unit systems differ",
+    },
+    {
+      action: () =>
+        combineResults("C", [
+          { result: source, factor: 1 },
+          {
+            result: {
+              ...other,
+              conventions: {
+                ...other.conventions,
+                internalForces: "other",
+              } as unknown as typeof other.conventions,
+            },
+            factor: 1,
+          },
+        ]),
+      reason: "result conventions differ",
+    },
+    {
+      action: () =>
+        combineResults("C", [
+          { result: source, factor: 1 },
+          { result: { ...other, fullDisplacements: [] }, factor: 1 },
+        ]),
+      reason: "equation layouts differ",
+    },
+    {
+      action: () =>
+        combineResults("C", [
+          { result: source, factor: 1 },
+          { result: { ...other, nodes: [] }, factor: 1 },
+        ]),
+      reason: "nodes counts differ",
+    },
+    {
+      action: () =>
+        combineResults("C", [
+          { result: source, factor: 1 },
+          {
+            result: {
+              ...other,
+              nodes: other.nodes.map((node, index) =>
+                index === 0 ? { ...node, coordinates: [1, 0, 0] as const } : node,
+              ),
+            },
+            factor: 1,
+          },
+        ]),
+      reason: "node coordinates differ",
+    },
+  ];
+
+  for (const { action, reason } of cases) {
+    const error = incompatibility(action);
+    expect(error.code).toBe("RESULT_INCOMPATIBLE");
+    expect(error.context).toMatchObject({ reason });
+  }
+});
+
+it("FR-RES-006: validates frame segment layouts and canonicalizes negative-zero factors", () => {
+  const source = prepareAnalysis(frameCombinationModel()).solveCase("U");
+  const other = { ...source, id: "OTHER" as typeof source.id };
+  const frame = other.frames[0]!;
+  const segment = frame.internalForceSegments[0]!;
+  const error = incompatibility(() =>
+    combineResults("C", [
+      { result: source, factor: 1 },
+      {
+        result: {
+          ...other,
+          frames: [
+            {
+              ...frame,
+              internalForceSegments: [{ ...segment, start: segment.start + 0.5 }],
+            },
+          ],
+        },
+        factor: 1,
+      },
+    ]),
+  );
+  expect(error.context).toMatchObject({ reason: "frame segment layouts differ" });
+
+  const zero = combineResults("ZERO", [{ result: source, factor: -0 }]);
+  expect(zero.factors).toEqual([{ resultId: "U", factor: 0 }]);
+  expect(Object.is(zero.fullLoad[0], -0)).toBe(false);
+});
+
+it("FR-RES-006: fails closed for every distinct result layout before summing arrays", () => {
+  const source = prepareAnalysis(collisionModel(1).finalize()).solveCase("L");
+  const other = { ...source, id: "OTHER" as typeof source.id };
+  const framed = prepareAnalysis(frameCombinationModel()).solveCase("U");
+  const malformedFrame = {
+    ...framed,
+    id: "FRAME_OTHER" as typeof framed.id,
+    frames: [{ ...framed.frames[0]!, internalForceSegments: [] }, ...framed.frames.slice(1)],
+  };
+  const spring = prepareAnalysis(
+    createModelBuilder()
+      .setUnitSystem(units)
+      .addNode({ id: "n", coordinates: [0, 0, 0] })
+      .addSpring({ id: "k", startNodeId: "n", stiffness: [100, 0, 0, 0, 0, 0] })
+      .addLoadCase({ id: "A", loads: [{ kind: "nodal", nodeId: "n", force: [10, 0, 0] }] })
+      .finalize(),
+  ).solveCase("A");
+  const malformedSpring = {
+    ...spring,
+    id: "SPRING_OTHER" as typeof spring.id,
+    springs: spring.springs.map((entry) => ({ ...entry, grounded: false })),
+  };
+  const cases = [
+    {
+      action: () =>
+        combineResults("C", [
+          { result: source, factor: 1 },
+          {
+            result: {
+              ...other,
+              nodes: other.nodes.map((node, index) =>
+                index === 0 ? { ...node, displacements: [] } : node,
+              ),
+            },
+            factor: 1,
+          },
+        ]),
+      reason: "node displacement layouts differ",
+    },
+    {
+      action: () =>
+        combineResults("C", [
+          { result: source, factor: 1 },
+          {
+            result: {
+              ...other,
+              nodes: other.nodes.map((node, index) =>
+                index === 0 ? { ...node, reactions: [] } : node,
+              ),
+            },
+            factor: 1,
+          },
+        ]),
+      reason: "node reaction layouts differ",
+    },
+    {
+      action: () =>
+        combineResults("C", [
+          { result: framed, factor: 1 },
+          { result: malformedFrame, factor: 1 },
+        ]),
+      reason: "frame segment counts differ",
+    },
+    {
+      action: () =>
+        combineResults("C", [
+          { result: spring, factor: 1 },
+          { result: malformedSpring, factor: 1 },
+        ]),
+      reason: "spring kinds differ",
+    },
+    {
+      action: () =>
+        combineResults("C", [
+          { result: source, factor: 1 },
+          { result: { ...other, fullLoad: [] }, factor: 1 },
+        ]),
+      reason: "fullLoad lengths differ",
+    },
+  ];
+  for (const { action, reason } of cases)
+    expect(incompatibility(action).context).toMatchObject({ reason });
 });

@@ -967,3 +967,75 @@ it.each(["ownKeys", "hasOwn"] as const)(
     expect(valuesRead).toBe(false);
   },
 );
+
+it("FR-SAFE-014: rejects missing or unsupported record metadata before reading values", () => {
+  const cases = [
+    {
+      record: {
+        resultId: "MISSING_KIND",
+        compatibility,
+        get values(): readonly number[] {
+          throw new Error("values must stay unread");
+        },
+      },
+      reason: "malformed record",
+    },
+    {
+      record: {
+        resultId: "UNSUPPORTED_KIND",
+        resultKind: "other",
+        compatibility,
+        get values(): readonly number[] {
+          throw new Error("values must stay unread");
+        },
+      },
+      reason: "resultKind must be case or combination",
+    },
+  ] as const;
+  for (const { record, reason } of cases) {
+    const error = incompatibleError(() =>
+      streamEnvelope([record as unknown as EnvelopeInputRecord], components),
+    );
+    expect(error.code).toBe("RESULT_INCOMPATIBLE");
+    expect(error.context).toMatchObject({ reason });
+  }
+
+  const emptyLayout = incompatibleError(() => streamEnvelope([baseRecord], []));
+  expect(emptyLayout.context).toMatchObject({ reason: "at least one component is required" });
+});
+
+it("FR-SAFE-014: reports malformed value sources with stable record-specific reasons", () => {
+  const throwingValues = {
+    ...baseRecord,
+    resultId: "THROWING_VALUES",
+    get values(): readonly number[] {
+      throw new Error("values trap");
+    },
+  };
+  const invalidLength = {
+    ...baseRecord,
+    resultId: "INVALID_LENGTH",
+    values: { length: -1 } as unknown as readonly number[],
+  };
+  const throwingIndex = {
+    ...baseRecord,
+    resultId: "THROWING_INDEX",
+    values: new Proxy([1, 2], {
+      get(target, property, receiver) {
+        if (property === "1") throw new Error("index trap");
+        return Reflect.get(target, property, receiver);
+      },
+    }),
+  };
+
+  const cases = [
+    { record: throwingValues, reason: "values are invalid" },
+    { record: invalidLength, reason: "values are invalid" },
+    { record: throwingIndex, reason: "nonfinite value at index 1" },
+  ];
+  for (const { record, reason } of cases) {
+    const error = incompatibleError(() => streamEnvelope([record], components));
+    expect(error.code).toBe("RESULT_INCOMPATIBLE");
+    expect(error.context).toMatchObject({ resultIds: [record.resultId], reason });
+  }
+});

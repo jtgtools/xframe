@@ -6,6 +6,7 @@ import { artifactHash } from "../../src/serialization/artifact-hash.js";
 import { canonicalJson } from "../../src/serialization/canonical-json.js";
 import { parseResultJson } from "../../src/serialization/parse-result-json.js";
 import { resultToJsonValue } from "../../src/serialization/result-schema.js";
+import { combineResults } from "../../src/results/combine-results.js";
 
 function result() {
   const builder = createModelBuilder()
@@ -206,4 +207,185 @@ it("FR-JSON-006: canonical JSON sorts keys, preserves arrays, rejects unsupporte
   expect(await artifactHash({ a: 1 })).toBe(
     "015abd7f5cc57a2dd94b7590f04ad8084273905ee33ec5cebeae62276a97f862",
   );
+});
+
+it("FR-JSON-003/FR-SAFE-004: round trips valid combinations and rejects invalid factor provenance", () => {
+  const source = result();
+  const second = { ...source, id: "Q" as typeof source.id };
+  const combination = combineResults("U", [
+    { result: source, factor: 1 },
+    { result: second, factor: -0.5 },
+  ]);
+  const json = resultToJsonValue(combination) as unknown as Record<string, unknown>;
+  const body = json["result"] as Record<string, unknown>;
+  const factor = (body["factors"] as readonly Record<string, unknown>[])[0]!;
+
+  expect(parseResultJson(json)).toEqual(combination);
+  const malformed = [
+    {
+      value: { ...json, result: { ...body, factors: [] } },
+      path: "$.result.factors",
+      expected: "nonempty factor array",
+    },
+    {
+      value: { ...json, result: { ...body, factors: [factor, { ...factor }] } },
+      path: "$.result.factors[1].resultId",
+      expected: "unique source result identifier",
+    },
+    {
+      value: {
+        ...json,
+        result: { ...body, factors: [{ ...factor, factor: Number.POSITIVE_INFINITY }] },
+      },
+      path: "$.result.factors[0].factor",
+      expected: "finite number",
+    },
+  ];
+  for (const { value, path, expected } of malformed)
+    expect(schemaFailure(() => parseResultJson(value))).toMatchObject({
+      code: "SCHEMA_INVALID",
+      context: { kind: "schema", path, expected },
+    });
+});
+
+it("FR-JSON-003: rejects invalid result layouts at their structural boundary", () => {
+  const json = resultToJsonValue(result()) as unknown as Record<string, unknown>;
+  const body = json["result"] as Record<string, unknown>;
+  const node = (body["nodes"] as readonly Record<string, unknown>[])[0]!;
+  const frame = (body["frames"] as readonly Record<string, unknown>[])[0]!;
+  const segment = (frame["internalForceSegments"] as readonly Record<string, unknown>[])[0]!;
+  const station = (frame["internalForces"] as readonly Record<string, unknown>[])[0]!;
+  const displacement = (node["displacements"] as readonly Record<string, unknown>[])[0]!;
+  const reaction = (node["reactions"] as readonly Record<string, unknown>[])[0]!;
+
+  const malformed = [
+    {
+      value: { ...json, result: { ...body, nodes: [{ ...node, id: "" }] } },
+      path: "$.result.nodes[0].id",
+      expected: "valid structural identifier",
+    },
+    {
+      value: { ...json, result: { ...body, nodes: [node, { ...node }] } },
+      path: "$.result.nodes[1].id",
+      expected: "unique identifier",
+    },
+    {
+      value: {
+        ...json,
+        result: {
+          ...body,
+          nodes: [{ ...node, displacements: [displacement, { ...displacement }] }],
+        },
+      },
+      path: "$.result.nodes[0].displacements[1].dof",
+      expected: "unique active DOF",
+    },
+    {
+      value: {
+        ...json,
+        result: {
+          ...body,
+          nodes: [{ ...node, reactions: [reaction, { ...reaction }] }],
+        },
+      },
+      path: "$.result.nodes[0].reactions[1].dof",
+      expected: "unique active DOF",
+    },
+    {
+      value: {
+        ...json,
+        result: {
+          ...body,
+          nodes: [
+            {
+              ...node,
+              reactions: (node["reactions"] as readonly Record<string, unknown>[]).slice(1),
+            },
+          ],
+        },
+      },
+      path: "$.result.nodes[0]",
+      expected: "matching displacement and reaction DOF layouts",
+    },
+    {
+      value: {
+        ...json,
+        result: {
+          ...body,
+          frames: [{ ...frame, internalForceSegments: [{ ...segment, end: segment["start"] }] }],
+        },
+      },
+      path: "$.result.frames[0].internalForceSegments[0]",
+      expected: "segment with finite end greater than start",
+    },
+    {
+      value: { ...json, result: { ...body, frames: [{ ...frame, internalForceSegments: [] }] } },
+      path: "$.result.frames[0].internalForceSegments",
+      expected: "nonempty segment array",
+    },
+    {
+      value: {
+        ...json,
+        result: {
+          ...body,
+          frames: [{ ...frame, internalForces: [{ ...station, x: 2 }, station] }],
+        },
+      },
+      path: "$.result.frames[0].internalForces",
+      expected: "nondecreasing station coordinates",
+    },
+    {
+      value: { ...json, result: { ...body, fullLoad: [] } },
+      path: "$.result",
+      expected: "matching full vector lengths",
+    },
+  ];
+  for (const { value, path, expected } of malformed)
+    expect(schemaFailure(() => parseResultJson(value))).toMatchObject({
+      code: "SCHEMA_INVALID",
+      context: { kind: "schema", path, expected },
+    });
+});
+
+it("FR-JSON-003: accepts contiguous segment metadata without optional side limits and both spring layouts", () => {
+  const json = resultToJsonValue(result()) as unknown as Record<string, unknown>;
+  const body = json["result"] as Record<string, unknown>;
+  const frame = (body["frames"] as readonly Record<string, unknown>[])[0]!;
+  const segment = (frame["internalForceSegments"] as readonly Record<string, unknown>[])[0]!;
+  const start = segment["start"] as number;
+  const end = segment["end"] as number;
+  const middle = (start + end) / 2;
+  const parsed = parseResultJson({
+    ...json,
+    result: {
+      ...body,
+      frames: [
+        {
+          ...frame,
+          internalForceSegments: [
+            { start, end: middle, coefficients: segment["coefficients"] },
+            { start: middle, end, coefficients: segment["coefficients"] },
+          ],
+        },
+      ],
+      springs: [
+        { id: "grounded", grounded: true, globalEndForces: [0, 0, 0, 0, 0, 0] },
+        {
+          id: "between",
+          grounded: false,
+          globalEndForces: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        },
+      ],
+    },
+  });
+
+  expect(parsed.frames[0]!.internalForceSegments).toHaveLength(2);
+  expect(parsed.frames[0]!.internalForceSegments[0]).not.toHaveProperty("startLeft");
+  expect(parsed.frames[0]!.internalForceSegments[1]).not.toHaveProperty("endRight");
+  expect(
+    parsed.springs.map(({ grounded, globalEndForces }) => [grounded, globalEndForces.length]),
+  ).toEqual([
+    [true, 6],
+    [false, 12],
+  ]);
 });
