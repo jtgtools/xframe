@@ -71,14 +71,14 @@ function detectEqualDofCycle(equations: readonly CanonicalAffineConstraint[]): v
     graph.set(b, rightList);
   }
   const visited = new Set<number>();
-  const stack: Array<{ node: number; parent: number; neighborIndex: number }> = [];
+  const stack: Array<{ dof: number; parent: number; neighborIndex: number }> = [];
   for (const start of [...graph.keys()].toSorted((a, b) => a - b)) {
     if (visited.has(start)) continue;
     visited.add(start);
-    stack.push({ node: start, parent: -1, neighborIndex: 0 });
+    stack.push({ dof: start, parent: -1, neighborIndex: 0 });
     while (stack.length > 0) {
       const frame = stack[stack.length - 1]!;
-      const neighbors = graph.get(frame.node)!;
+      const neighbors = graph.get(frame.dof)!;
       if (frame.neighborIndex >= neighbors.length) {
         stack.pop();
         continue;
@@ -95,7 +95,7 @@ function detectEqualDofCycle(equations: readonly CanonicalAffineConstraint[]): v
         });
       }
       visited.add(next);
-      stack.push({ node: next, parent: frame.node, neighborIndex: 0 });
+      stack.push({ dof: next, parent: frame.dof, neighborIndex: 0 });
     }
   }
 }
