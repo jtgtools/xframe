@@ -83,6 +83,10 @@ export interface AnalysisErrorContext {
   readonly detail: string;
   readonly entityId?: string;
   readonly equation?: number;
+  readonly violation?: "constant" | "transform-column";
+  readonly normalizedResidual?: number;
+  readonly tolerance?: number;
+  readonly dof?: number;
 }
 
 export interface SchemaErrorContext {

@@ -129,39 +129,55 @@ describe("constraint failures", () => {
   );
 
   it.each([1, 2 ** 45])(
-    "FR-SAFE-003: retains the backward tail through a normalized public chain at tail scale %s",
+    "FR-SAFE-003 XF-001: backward-tail chains fail closed at tail scale %s (compiler cancellation noise)",
     (tailScale) => {
+      // Phase 1 containment regression (mandated by the XF-001 semantic
+      // gate): the elimination constructs the chain tail rows through
+      // f*r - f style updates, whose catastrophic cancellation leaves the
+      // stored rows inconsistent with the original equations at ~1e-3
+      // relative (measured 7.6e-4 for this chain), 13 orders of magnitude
+      // above the 256*EPSILON gate. Same silent-math-change defect class as
+      // XF-001, so the compiled transform is rejected instead of solved.
       const q = 3.2515731794557063e-14;
       const r = 0.999999999999943;
-      const compiled = compileConstraints(26, [
-        ...Array.from({ length: 23 }, (_, index) => ({
-          sourceId: `a${String(index).padStart(2, "0")}`,
-          terms: [
-            { dof: index, coefficient: 1 },
-            { dof: index + 1, coefficient: q },
-          ],
-          rightHandSide: 0,
-        })),
-        {
-          sourceId: "a23",
-          terms: [
-            { dof: 23, coefficient: 1 },
-            { dof: 24, coefficient: tailScale },
-            { dof: 25, coefficient: tailScale * r },
-          ],
-          rightHandSide: 0,
-        },
-        {
-          sourceId: "z",
-          terms: [
-            { dof: 24, coefficient: 1 },
-            { dof: 25, coefficient: 1 },
-          ],
-          rightHandSide: 0,
-        },
-      ]);
-      expect(compiled.pivotDofs).toEqual(Array.from({ length: 25 }, (_, index) => index));
-      expect(compiled.rows[0]!.terms.some(({ reducedDof }) => reducedDof === 0)).toBe(true);
+      let thrown: unknown;
+      try {
+        compileConstraints(26, [
+          ...Array.from({ length: 23 }, (_, index) => ({
+            sourceId: `a${String(index).padStart(2, "0")}`,
+            terms: [
+              { dof: index, coefficient: 1 },
+              { dof: index + 1, coefficient: q },
+            ],
+            rightHandSide: 0,
+          })),
+          {
+            sourceId: "a23",
+            terms: [
+              { dof: 23, coefficient: 1 },
+              { dof: 24, coefficient: tailScale },
+              { dof: 25, coefficient: tailScale * r },
+            ],
+            rightHandSide: 0,
+          },
+          {
+            sourceId: "z",
+            terms: [
+              { dof: 24, coefficient: 1 },
+              { dof: 25, coefficient: 1 },
+            ],
+            rightHandSide: 0,
+          },
+        ]);
+      } catch (error) {
+        thrown = error;
+      }
+      expect(thrown).toBeInstanceOf(XFrameError);
+      const context = (thrown as XFrameError).context;
+      if (context.kind !== "analysis") throw new Error("Expected analysis context.");
+      expect((thrown as XFrameError).code).toBe("CONSTRAINT_SEMANTIC_VIOLATION");
+      expect(context.stage).toBe("constraint-semantic-validation");
+      expect(context.violation).toBe("transform-column");
     },
   );
 

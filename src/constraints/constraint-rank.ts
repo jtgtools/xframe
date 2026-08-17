@@ -3,7 +3,7 @@ import { finiteNumber } from "../geometry/finite.js";
 import { compareIdentifiers } from "../model/identifier.js";
 import type { CanonicalAffineConstraint } from "./affine-equation.js";
 
-const TOLERANCE = 256 * Number.EPSILON;
+export const TOLERANCE = 256 * Number.EPSILON;
 
 export interface ReducedConstraintRow {
   readonly sourceId: string;

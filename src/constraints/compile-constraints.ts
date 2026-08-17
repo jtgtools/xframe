@@ -7,6 +7,7 @@ import type { PhysicalDofTable } from "../model/dof-topology.js";
 import type { AffineConstraintEquation, CanonicalAffineConstraint } from "./affine-equation.js";
 import { canonicalizeConstraint } from "./canonicalize-constraint.js";
 import { analyzeConstraintRank } from "./constraint-rank.js";
+import { findSemanticTransformViolation } from "./semantic-constraint-validation.js";
 
 export interface SparseTransformTerm {
   readonly reducedDof: number;
@@ -189,6 +190,36 @@ export function compileConstraints(
     );
   }
   const frozenRows = Object.freeze(rows);
+  const semanticViolation = findSemanticTransformViolation(equationsInput, rows);
+  if (semanticViolation !== undefined) {
+    const context: {
+      kind: "analysis";
+      stage: string;
+      detail: string;
+      entityId: string;
+      violation: "constant" | "transform-column";
+      normalizedResidual: number;
+      tolerance: number;
+      dof?: number;
+    } = {
+      kind: "analysis",
+      stage: "constraint-semantic-validation",
+      detail:
+        "compiled affine transform violates an original constraint equation; the semantic problem would change",
+      entityId: semanticViolation.sourceId,
+      violation: semanticViolation.kind,
+      normalizedResidual: semanticViolation.normalizedResidual,
+      tolerance: semanticViolation.tolerance,
+    };
+    if (semanticViolation.reducedDof !== undefined) {
+      context.dof = semanticViolation.reducedDof;
+    }
+    throw new XFrameError(
+      "CONSTRAINT_SEMANTIC_VIOLATION",
+      "Compiled affine constraint transform does not satisfy an original constraint equation.",
+      context,
+    );
+  }
   return Object.freeze({
     fullDofCount,
     reducedDofCount: freeDofs.length,

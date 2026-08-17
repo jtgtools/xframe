@@ -1,6 +1,11 @@
 import type { SkylineCholeskyFactor } from "../linalg/skyline-cholesky.js";
 import type { SymmetricCoordinateMatrix } from "../linalg/symmetric-coordinate-matrix.js";
+import { createDofKey } from "../model/dof-key.js";
 import type { FinalizedModel } from "../model/finalized-model.js";
+import {
+  SEMANTIC_CONSTRAINT_TOLERANCE,
+  maximumSemanticConstraintResidual,
+} from "../constraints/semantic-constraint-validation.js";
 import type { CaseDiagnostics, SpringElementResult } from "./result-types.js";
 
 function vectorNormMax(values: readonly number[]): number {
@@ -107,7 +112,28 @@ export function createCaseDiagnostics(input: CaseDiagnosticInput): CaseDiagnosti
     normalizedMomentEquilibrium,
     relativeEnergyError,
   );
-  const status = worst <= 1e-9 ? "pass" : worst <= 1e-6 ? "warn" : "fail";
+  // Phase 1 semantic hard gate: every original constraint equation is
+  // evaluated against the recovered physical displacement. A violation is a
+  // hard failure independent of the self-confirming energy/residual metrics.
+  const semanticConstraintResidual = maximumSemanticConstraintResidual(
+    input.model.constraints.map((record) => ({
+      sourceId: record.id,
+      terms: record.terms.map((term) => ({
+        dof: input.model.physicalDofs.get(createDofKey(term.nodeId, term.dof))!.physicalIndex,
+        coefficient: term.coefficient,
+      })),
+      rightHandSide: record.rightHandSide,
+    })),
+    input.fullDisplacements,
+  );
+  const status =
+    semanticConstraintResidual > SEMANTIC_CONSTRAINT_TOLERANCE
+      ? "fail"
+      : worst <= 1e-9
+        ? "pass"
+        : worst <= 1e-6
+          ? "warn"
+          : "fail";
 
   return Object.freeze({
     status,
