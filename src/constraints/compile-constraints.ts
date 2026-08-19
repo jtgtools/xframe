@@ -7,6 +7,7 @@ import type { PhysicalDofTable } from "../model/dof-topology.js";
 import type { AffineConstraintEquation, CanonicalAffineConstraint } from "./affine-equation.js";
 import { canonicalizeConstraint } from "./canonicalize-constraint.js";
 import { analyzeConstraintRank } from "./constraint-rank.js";
+import { WorkingScalar } from "./constraint-numerics.js";
 import { findSemanticTransformViolation } from "./semantic-constraint-validation.js";
 
 export interface SparseTransformTerm {
@@ -35,6 +36,11 @@ export interface CompiledConstraints {
   recover(reducedDisplacements: ArrayLike<number>): Float64Array;
 }
 
+interface PivotExpression {
+  readonly offset: number;
+  readonly terms: ReadonlyMap<number, number>;
+}
+
 function checkedCount(value: number): number {
   if (!Number.isSafeInteger(value) || value < 0) {
     throw new XFrameError("INPUT_INVALID", "Full DOF count must be a nonnegative safe integer.", {
@@ -45,6 +51,23 @@ function checkedCount(value: number): number {
     });
   }
   return value;
+}
+
+function memoryLimitExceeded(
+  termCount: number,
+  maximum: number,
+  fullDofCount: number,
+): XFrameError {
+  return new XFrameError(
+    "MEMORY_LIMIT_EXCEEDED",
+    "Sparse constraint transform exceeds the configured storage limit.",
+    {
+      kind: "memory",
+      operation: "constraint-transform",
+      estimatedBytes: termCount * 16 + fullDofCount * 24,
+      limitBytes: maximum * 16 + fullDofCount * 24,
+    },
+  );
 }
 
 function detectEqualDofCycle(equations: readonly CanonicalAffineConstraint[]): void {
@@ -128,66 +151,122 @@ export function compileConstraints(
     }
   }
   detectEqualDofCycle(canonical);
-  const analysis = analyzeConstraintRank(canonical);
-  const pivotDofs = analysis.rows.map(({ pivotDof }) => pivotDof);
-  const pivotSet = new Set(pivotDofs);
-  const freeDofs = Array.from({ length: fullDofCount }, (_, index) => index).filter(
-    (index) => !pivotSet.has(index),
-  );
-  const reducedByFull = new Map(freeDofs.map((full, reduced) => [full, reduced]));
-  const rowByPivot = new Map(analysis.rows.map((row) => [row.pivotDof, row]));
-  const rows: SparseAffineTransformRow[] = [];
-  let transformNonzeroCount = 0;
-  for (let full = 0; full < fullDofCount; full += 1) {
-    const reduced = reducedByFull.get(full);
-    if (reduced !== undefined) {
-      rows.push(
-        Object.freeze({
-          offset: 0,
-          terms: Object.freeze([Object.freeze({ reducedDof: reduced, coefficient: 1 })]),
-        }),
-      );
-      transformNonzeroCount += 1;
-      continue;
-    }
-    const reducedRow = rowByPivot.get(full)!;
-    const terms: SparseTransformTerm[] = [];
-    for (const [dof, coefficient] of reducedRow.coefficients) {
-      if (dof === full) continue;
-      const reducedDof = reducedByFull.get(dof);
-      if (reducedDof === undefined) {
-        throw new XFrameError(
-          "CONSTRAINT_RANK_DEFICIENT",
-          "Constraint elimination retained an unresolved pivot dependency.",
-          {
-            kind: "analysis",
-            stage: "constraint-compilation",
-            detail: `pivot=${full}, dependency=${dof}`,
-            equation: full,
-          },
-        );
-      }
-      const value = -coefficient;
-      if (value !== 0) terms.push(Object.freeze({ reducedDof, coefficient: value }));
-    }
-    const orderedTerms = terms.toSorted((left, right) => left.reducedDof - right.reducedDof);
-    transformNonzeroCount += orderedTerms.length;
-    rows.push(
-      Object.freeze({ offset: reducedRow.rightHandSide, terms: Object.freeze(orderedTerms) }),
-    );
-  }
   const maximum = options.maximumTransformNonzeros ?? 10_000_000;
-  if (!Number.isSafeInteger(maximum) || maximum < 0 || transformNonzeroCount > maximum) {
+  if (!Number.isSafeInteger(maximum) || maximum < 0) {
     throw new XFrameError(
       "MEMORY_LIMIT_EXCEEDED",
       "Sparse constraint transform exceeds the configured storage limit.",
       {
         kind: "memory",
         operation: "constraint-transform",
-        estimatedBytes: transformNonzeroCount * 16 + fullDofCount * 24,
+        estimatedBytes: fullDofCount * 24,
         limitBytes: Math.max(0, maximum) * 16 + fullDofCount * 24,
       },
     );
+  }
+  const analysis = analyzeConstraintRank(canonical);
+  const pivotDofs = analysis.rows.map(({ pivotDof }) => pivotDof);
+  const pivotSet = new Set(pivotDofs);
+  const freeDofs = Array.from({ length: fullDofCount }, (_, index) => index).filter(
+    (index) => !pivotSet.has(index),
+  );
+  if (freeDofs.length > maximum) {
+    throw memoryLimitExceeded(freeDofs.length, maximum, fullDofCount);
+  }
+  const rowByPivot = new Map(analysis.rows.map((row) => [row.pivotDof, row]));
+  const canonicalById = new Map(canonical.map((equation) => [equation.sourceId, equation]));
+  const expressions = new Map<number, PivotExpression>();
+  let transformNonzeroCount = 0;
+  for (let reduced = 0; reduced < freeDofs.length; reduced += 1) {
+    expressions.set(freeDofs[reduced]!, { offset: 0, terms: new Map([[reduced, 1]]) });
+    transformNonzeroCount += 1;
+  }
+  for (let index = pivotDofs.length - 1; index >= 0; index -= 1) {
+    const pivotDof = pivotDofs[index]!;
+    const reducedRow = rowByPivot.get(pivotDof)!;
+    const offset = new WorkingScalar(reducedRow.rightHandSide);
+    const accumulators = new Map<number, WorkingScalar>();
+    for (const [dof, coefficient] of reducedRow.coefficients) {
+      if (dof === pivotDof) continue;
+      const dependency = expressions.get(dof);
+      if (dependency === undefined) {
+        throw new XFrameError(
+          "CONSTRAINT_RANK_DEFICIENT",
+          "Constraint elimination retained an unresolved pivot dependency.",
+          {
+            kind: "analysis",
+            stage: "constraint-compilation",
+            detail: `pivot=${pivotDof}, dependency=${dof}`,
+            equation: pivotDof,
+          },
+        );
+      }
+      const multiplier = finiteNumber(
+        -coefficient,
+        `constraint-compilation.multiplier[${reducedRow.sourceId}][${dof}]`,
+      );
+      if (dependency.offset !== 0) {
+        offset.add(
+          finiteNumber(
+            multiplier * dependency.offset,
+            `constraint-compilation.offsetContribution[${reducedRow.sourceId}][${dof}]`,
+          ),
+        );
+      }
+      for (const [reducedDof, depCoefficient] of dependency.terms) {
+        const contribution = finiteNumber(
+          multiplier * depCoefficient,
+          `constraint-compilation.termContribution[${reducedRow.sourceId}][${dof}][${reducedDof}]`,
+        );
+        if (contribution === 0) continue;
+        let accumulator = accumulators.get(reducedDof);
+        if (accumulator === undefined) {
+          accumulator = new WorkingScalar(0);
+          accumulators.set(reducedDof, accumulator);
+        }
+        accumulator.add(contribution);
+      }
+    }
+    const orderedTerms: Array<[number, number]> = [];
+    for (const [reducedDof, scalar] of accumulators) {
+      const coefficient = scalar.total(
+        `constraint-compilation.expression[${reducedRow.sourceId}][${pivotDof}]`,
+      );
+      if (coefficient !== 0) orderedTerms.push([reducedDof, coefficient]);
+    }
+    orderedTerms.sort(([left], [right]) => left - right);
+    if (transformNonzeroCount + orderedTerms.length > maximum) {
+      throw memoryLimitExceeded(transformNonzeroCount + orderedTerms.length, maximum, fullDofCount);
+    }
+    transformNonzeroCount += orderedTerms.length;
+    expressions.set(pivotDof, {
+      offset: offset.total(`constraint-compilation.offset[${reducedRow.sourceId}][${pivotDof}]`),
+      terms: new Map(orderedTerms),
+    });
+  }
+  const rows: SparseAffineTransformRow[] = Array.from({ length: fullDofCount });
+  for (let full = 0; full < fullDofCount; full += 1) {
+    const expression = expressions.get(full);
+    if (expression === undefined) {
+      throw new XFrameError(
+        "CONSTRAINT_RANK_DEFICIENT",
+        "Constraint elimination retained an unresolved pivot dependency.",
+        {
+          kind: "analysis",
+          stage: "constraint-compilation",
+          detail: `missing expression for dof ${full}`,
+          equation: full,
+        },
+      );
+    }
+    rows[full] = Object.freeze({
+      offset: expression.offset,
+      terms: Object.freeze(
+        [...expression.terms.entries()].map(([reducedDof, coefficient]) =>
+          Object.freeze({ reducedDof, coefficient }),
+        ),
+      ),
+    });
   }
   const frozenRows = Object.freeze(rows);
   const semanticViolation = findSemanticTransformViolation(equationsInput, rows);
@@ -226,9 +305,7 @@ export function compileConstraints(
     rows: frozenRows,
     freeDofs: Object.freeze(freeDofs),
     pivotDofs: Object.freeze(pivotDofs),
-    equations: Object.freeze(
-      analysis.rows.map((row) => canonical.find(({ sourceId }) => sourceId === row.sourceId)!),
-    ),
+    equations: Object.freeze(analysis.rows.map((row) => canonicalById.get(row.sourceId)!)),
     redundantSourceIds: analysis.redundantSourceIds,
     transformNonzeroCount,
     recover(reducedDisplacements: ArrayLike<number>): Float64Array {
@@ -247,15 +324,17 @@ export function compileConstraints(
       const result = new Float64Array(fullDofCount);
       for (let full = 0; full < fullDofCount; full += 1) {
         const row = frozenRows[full]!;
-        let value = row.offset;
-        for (const term of row.terms)
-          value +=
+        const value = new WorkingScalar(row.offset);
+        for (const term of row.terms) {
+          value.add(
             term.coefficient *
-            finiteNumber(
-              reducedDisplacements[term.reducedDof],
-              `reducedDisplacements[${term.reducedDof}]`,
-            );
-        result[full] = finiteNumber(value, `fullDisplacements[${full}]`);
+              finiteNumber(
+                reducedDisplacements[term.reducedDof],
+                `reducedDisplacements[${term.reducedDof}]`,
+              ),
+          );
+        }
+        result[full] = value.total(`fullDisplacements[${full}]`);
       }
       return result;
     },

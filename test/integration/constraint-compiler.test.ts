@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { compileConstraints } from "../../src/constraints/compile-constraints.js";
 import { recoverConstrainedState } from "../../src/constraints/recover-constrained-state.js";
+import { findSemanticTransformViolation } from "../../src/constraints/semantic-constraint-validation.js";
 import { XFrameError } from "../../src/errors/xframe-error.js";
 import { buildLocalAxes } from "../../src/geometry/local-axes.js";
 import { prepareAnalysis } from "../../src/analysis/prepare-analysis.js";
@@ -18,7 +19,11 @@ function inputFailure(action: () => unknown): XFrameError {
 describe("constraint compiler", () => {
   it("FR-CON-003: compiles prescribed and equal-DOF equations to a sparse affine map", () => {
     const compiled = compileConstraints(4, [
-      { sourceId: "fix", terms: [{ dof: 0, coefficient: 1 }], rightHandSide: 2 },
+      {
+        sourceId: "fix",
+        terms: [{ dof: 0, coefficient: 1 }],
+        rightHandSide: 2,
+      },
       {
         sourceId: "equal",
         terms: [
@@ -32,7 +37,10 @@ describe("constraint compiler", () => {
     expect(compiled.freeDofs).toEqual([2, 3]);
     expect(Array.from(compiled.recover([5, 7]))).toEqual([2, 2, 5, 7]);
     expect(compiled.rows[0]).toEqual({ offset: 2, terms: [] });
-    expect(compiled.rows[1]).toEqual({ offset: -3, terms: [{ reducedDof: 0, coefficient: 1 }] });
+    expect(compiled.rows[1]).toEqual({
+      offset: -3,
+      terms: [{ reducedDof: 0, coefficient: 1 }],
+    });
     expect(compiled.transformNonzeroCount).toBe(3);
   });
 
@@ -53,8 +61,16 @@ describe("constraint compiler", () => {
     });
     try {
       const compiled = compileConstraints(1, [
-        { sourceId: "ä", terms: [{ dof: 0, coefficient: 1 }], rightHandSide: 0 },
-        { sourceId: "z", terms: [{ dof: 0, coefficient: 1 }], rightHandSide: 0 },
+        {
+          sourceId: "ä",
+          terms: [{ dof: 0, coefficient: 1 }],
+          rightHandSide: 0,
+        },
+        {
+          sourceId: "z",
+          terms: [{ dof: 0, coefficient: 1 }],
+          rightHandSide: 0,
+        },
       ]);
       expect(compiled.equations.map(({ sourceId }) => sourceId)).toEqual(["z"]);
       expect(compiled.redundantSourceIds).toEqual(["ä"]);
@@ -85,13 +101,21 @@ describe("constraint compiler", () => {
 
   it("FR-CON-004: recovers full displacement and source-traced constraint forces", () => {
     const compiled = compileConstraints(2, [
-      { sourceId: "support", terms: [{ dof: 0, coefficient: 1 }], rightHandSide: 0 },
+      {
+        sourceId: "support",
+        terms: [{ dof: 0, coefficient: 1 }],
+        rightHandSide: 0,
+      },
     ]);
     const recovered = recoverConstrainedState(compiled, [3], [-10, 0]);
     expect(Array.from(recovered.fullDisplacements)).toEqual([0, 3]);
     expect(Array.from(recovered.dofReactions)).toEqual([-10, 0]);
     expect(recovered.constraintForces).toEqual([
-      { sourceId: "support", multiplier: 10, dofForces: [{ dof: 0, force: 10 }] },
+      {
+        sourceId: "support",
+        multiplier: 10,
+        dofForces: [{ dof: 0, force: 10 }],
+      },
     ]);
   });
 
@@ -186,6 +210,143 @@ describe("constraint compiler", () => {
       Array.from(baseCompiled.recover([7, 11])),
     );
   });
+
+  it("XF-001 metamorphic: transform is invariant under source-ID rename, equation/term order, and row scale", () => {
+    const base = [
+      {
+        sourceId: "a",
+        terms: [
+          { dof: 0, coefficient: 1 },
+          { dof: 1, coefficient: 2 },
+          { dof: 3, coefficient: -1 },
+        ],
+        rightHandSide: 3,
+      },
+      {
+        sourceId: "b",
+        terms: [
+          { dof: 1, coefficient: 1 },
+          { dof: 2, coefficient: -1 },
+        ],
+        rightHandSide: -1,
+      },
+      {
+        sourceId: "c",
+        terms: [
+          { dof: 2, coefficient: 1 },
+          { dof: 3, coefficient: 1 },
+        ],
+        rightHandSide: 4,
+      },
+      {
+        sourceId: "redundant",
+        terms: [
+          { dof: 0, coefficient: 2 },
+          { dof: 1, coefficient: 4 },
+          { dof: 3, coefficient: -2 },
+        ],
+        rightHandSide: 6,
+      },
+    ] as const;
+    const transformRows = ({
+      ids,
+      reverseEquations = false,
+      reverseTerms = false,
+      scales = [1, 1, 1, 1],
+    }: {
+      ids?: readonly string[];
+      reverseEquations?: boolean;
+      reverseTerms?: boolean;
+      scales?: readonly number[];
+    }) => {
+      let rows = base.map((equation, index) => ({
+        sourceId: ids?.[index] ?? equation.sourceId,
+        terms: equation.terms.map((term) => ({
+          ...term,
+          coefficient: term.coefficient * scales[index]!,
+        })),
+        rightHandSide: equation.rightHandSide * scales[index]!,
+      }));
+      if (reverseTerms)
+        rows = rows.map((row) => ({
+          ...row,
+          terms: [...row.terms].toReversed(),
+        }));
+      if (reverseEquations) rows = rows.toReversed();
+      return rows;
+    };
+    const variants = [
+      ["reference", transformRows({})],
+      ["renamed", transformRows({ ids: ["zz", "aa", "mm", "rr"] })],
+      ["reversed", transformRows({ reverseEquations: true })],
+      ["terms-reversed", transformRows({ reverseTerms: true })],
+      ["scaled", transformRows({ scales: [-7, 1e120, -1e-120, 3] })],
+      [
+        "combined",
+        transformRows({
+          ids: ["k9", "k1", "k5", "k0"],
+          reverseEquations: true,
+          reverseTerms: true,
+          scales: [-7, 1e120, -1e-120, 3],
+        }),
+      ],
+    ] as const;
+    const compiled: Array<
+      [string, ReturnType<typeof transformRows>, ReturnType<typeof compileConstraints>]
+    > = variants.map(([name, equations]) => [name, equations, compileConstraints(4, equations)]);
+    const reference = compiled[0]![2]!;
+    for (const [, equations, candidate] of compiled) {
+      expect(candidate.reducedDofCount).toBe(reference.reducedDofCount);
+      expect(candidate.pivotDofs).toEqual(reference.pivotDofs);
+      expect(candidate.freeDofs).toEqual(reference.freeDofs);
+      for (const q of [-3, 0, 2.5]) {
+        const actual = Array.from(candidate.recover([q]));
+        const expected = Array.from(reference.recover([q]));
+        for (let index = 0; index < actual.length; index += 1)
+          expect(actual[index]!).toBeCloseTo(expected[index]!, 11);
+      }
+      expect(findSemanticTransformViolation(equations, candidate.rows)).toBeUndefined();
+    }
+  });
+
+  it("XF-001 affine back substitution: triangular nonzero-RHS system with one free DOF recovers u = Tq + c", () => {
+    const compiled = compileConstraints(4, [
+      {
+        sourceId: "a",
+        terms: [
+          { dof: 0, coefficient: 1 },
+          { dof: 1, coefficient: -1 },
+          { dof: 2, coefficient: 2 },
+        ],
+        rightHandSide: 1,
+      },
+      {
+        sourceId: "b",
+        terms: [
+          { dof: 1, coefficient: 1 },
+          { dof: 2, coefficient: 1 },
+        ],
+        rightHandSide: 2,
+      },
+      {
+        sourceId: "c",
+        terms: [
+          { dof: 2, coefficient: 1 },
+          { dof: 3, coefficient: -1 },
+        ],
+        rightHandSide: 4,
+      },
+    ]);
+    expect(compiled.reducedDofCount).toBe(1);
+    expect(compiled.freeDofs).toEqual([0]);
+    for (const q of [-3, 0, 2.5]) {
+      const actual = Array.from(compiled.recover([q]));
+      expect(actual[0]!).toBeCloseTo(q, 14);
+      expect(actual[1]!).toBeCloseTo(1 + q / 3, 14);
+      expect(actual[2]!).toBeCloseTo(1 - q / 3, 14);
+      expect(actual[3]!).toBeCloseTo(-3 - q / 3, 14);
+    }
+  });
 });
 
 it("FR-CON-001/FR-MOD-005: expands a rigid diaphragm atomically into affine equations", () => {
@@ -193,7 +354,12 @@ it("FR-CON-001/FR-MOD-005: expands a rigid diaphragm atomically into affine equa
   const builder = createModelBuilder()
     .addNode({ id: "m", coordinates: [0, 0, 0] })
     .addNode({ id: "s", coordinates: [2, 3, 0] })
-    .addRigidDiaphragm({ id: "d", plane: "xy", masterNodeId: "m", slaveNodeIds: ["s"] });
+    .addRigidDiaphragm({
+      id: "d",
+      plane: "xy",
+      masterNodeId: "m",
+      slaveNodeIds: ["s"],
+    });
   expect(builder.snapshot().constraints).toEqual([
     {
       id: "d:s:tx",
@@ -257,7 +423,13 @@ it("FR-CON-003/NFR-COR-001: two oblique restraints preserve the exact free-axis 
     .addNode({ id: "b", coordinates: end })
     .addMaterial({ id: "m", elasticModulus, shearModulus: 79e9 })
     .addTrussSection({ id: "s", area })
-    .addTruss({ id: "t", startNodeId: "a", endNodeId: "b", materialId: "m", sectionId: "s" });
+    .addTruss({
+      id: "t",
+      startNodeId: "a",
+      endNodeId: "b",
+      materialId: "m",
+      sectionId: "s",
+    });
   for (const dof of ["tx", "ty", "tz"] as const) {
     builder.addConstraint({
       id: `a:${dof}`,

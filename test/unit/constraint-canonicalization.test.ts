@@ -120,7 +120,11 @@ describe("constraint canonicalization", () => {
       { dof: 0, coefficient: 1e-8 },
       { dof: 1, coefficient: 1e-13 },
     ] as const;
-    const zeroRhs = canonicalizeConstraint({ sourceId: "rhs", terms, rightHandSide: 0 });
+    const zeroRhs = canonicalizeConstraint({
+      sourceId: "rhs",
+      terms,
+      rightHandSide: 0,
+    });
     const largeRhs = canonicalizeConstraint({
       sourceId: "rhs",
       terms,
@@ -130,7 +134,7 @@ describe("constraint canonicalization", () => {
     expect(largeRhs.rightHandSide).toBe(1e308);
   });
 
-  it("FR-SAFE-003: prunes duplicate cancellation relative to original coefficient scale", () => {
+  it("XF-001: retains duplicate cancellation residuals without tolerance pruning", () => {
     const scale = 1e-120;
     const retained = canonicalizeConstraint({
       sourceId: "near-retained",
@@ -143,7 +147,7 @@ describe("constraint canonicalization", () => {
     });
     expect(retained.terms.map(({ dof }) => dof)).toEqual([0, 1]);
 
-    const pruned = canonicalizeConstraint({
+    const residual = canonicalizeConstraint({
       sourceId: "near-pruned",
       terms: [
         { dof: 0, coefficient: scale },
@@ -152,7 +156,46 @@ describe("constraint canonicalization", () => {
       ],
       rightHandSide: 0,
     });
-    expect(pruned.terms.map(({ dof }) => dof)).toEqual([1]);
+    expect(residual.terms.map(({ dof }) => dof)).toEqual([0, 1]);
+    const expectedResidual = (scale + -(1 - 1e-15) * scale) / scale;
+    expect(residual.terms[0]!.coefficient).toBeCloseTo(expectedResidual, 20);
+  });
+
+  it("XF-001: retains tiny nonzero coefficients that may control rank", () => {
+    const result = canonicalizeConstraint({
+      sourceId: "tiny-retained",
+      terms: [
+        { dof: 0, coefficient: 1 },
+        { dof: 1, coefficient: 1e-16 },
+      ],
+      rightHandSide: 0,
+    });
+    expect(result.terms.map(({ dof }) => dof)).toEqual([0, 1]);
+    expect(result.terms[1]!.coefficient).toBe(1e-16);
+    expect(result.terms[0]!.coefficient).toBe(1);
+  });
+
+  it("XF-001: duplicate cancellation aggregation is independent of term order", () => {
+    const coefficientSets = [
+      [1e16, 1, -1e16],
+      [1e16, -1e16, 1],
+      [1, 1e16, -1e16],
+      [1, -1e16, 1e16],
+      [-1e16, 1, 1e16],
+      [-1e16, 1e16, 1],
+    ] as const;
+    const results = coefficientSets.map((coefficients) =>
+      canonicalizeConstraint({
+        sourceId: "permuted",
+        terms: coefficients.map((coefficient) => ({ dof: 0, coefficient })),
+        rightHandSide: 0,
+      }),
+    );
+    const reference = results[0]!;
+    for (const result of results) expect(result).toEqual(reference);
+    expect(reference.terms.map(({ dof }) => dof)).toEqual([0]);
+    expect(reference.terms[0]!.coefficient).toBe(1);
+    expect(reference.rightHandSide).toBe(0);
   });
 
   it("FR-SAFE-003: treats every exact nonzero zero-term RHS as contradictory", () => {

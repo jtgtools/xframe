@@ -10,7 +10,6 @@ import type {
   AffineConstraintEquation,
   AffineConstraintTerm,
 } from "../../src/constraints/affine-equation.js";
-import { XFrameError } from "../../src/errors/xframe-error.js";
 import { createModelBuilder } from "../../src/model/model-builder.js";
 import { parseIdentifier } from "../../src/model/identifier.js";
 import { createCaseDiagnostics } from "../../src/results/case-diagnostics.js";
@@ -25,16 +24,6 @@ const units = {
   density: "kg/m^3",
   rotation: "rad",
 } as const;
-
-function catchError(action: () => unknown): XFrameError {
-  try {
-    action();
-  } catch (error) {
-    if (error instanceof XFrameError) return error;
-    throw error;
-  }
-  throw new Error("Expected an XFrameError.");
-}
 
 function reproducerModel(coupleId: string, fixId: string) {
   return createModelBuilder()
@@ -260,15 +249,11 @@ describe("XF-001 semantic transform validation", () => {
 });
 
 describe("XF-001 compile-time containment", () => {
-  it("XF-001 reproducer ID order A fails closed with a structured semantic-transform rejection", () => {
-    const error = catchError(() => prepareAnalysis(reproducerModel("a", "b")));
-    expect(error.code).toBe("CONSTRAINT_SEMANTIC_VIOLATION");
-    expect(error.context.kind).toBe("analysis");
-    if (error.context.kind !== "analysis") throw new Error("Expected analysis context.");
-    expect(error.context.stage).toBe("constraint-semantic-validation");
-    expect(error.context.entityId).toBe("b");
-    expect(error.context.violation).toBe("constant");
-    expect(error.context.normalizedResidual).toBeCloseTo(1, 12);
+  it("XF-001 reproducer ID order A solves to the exact answer", () => {
+    const result = prepareAnalysis(reproducerModel("a", "b")).solveCase("LC");
+    expect(result.fullDisplacements[0]).toBeCloseTo(2, 14);
+    expect(result.fullDisplacements[1]).toBeCloseTo(1 - 4e-14, 14);
+    expect(result.diagnostics.status).toBe("pass");
   });
 
   it("XF-001 reproducer ID order B still solves to the exact answer", () => {
@@ -417,32 +402,14 @@ describe("XF-001 compensated duplicate-DOF aggregation (reviewer cancellation ca
     }
   });
 
-  it("XF-001 end-to-end canary: no permutation may solve ux = 1 with pass (test D)", () => {
+  it("XF-001 end-to-end canary: every permutation compiles to the effective constraint ux = 0 (test D)", () => {
     for (const equation of cancellationPermutations()) {
-      const terms = equation.terms.map(({ coefficient }) => ({
-        nodeId: "n",
-        dof: "tx" as const,
-        coefficient,
-      }));
-      const model = createModelBuilder()
-        .setUnitSystem(units)
-        .addNode({ id: "n", coordinates: [0, 0, 0] })
-        .addSpring({
-          id: "ks",
-          startNodeId: "n",
-          stiffness: [1, 0, 0, 0, 0, 0],
-        })
-        .addConstraint({ id: "c1", terms, rightHandSide: 0 })
-        .addLoadCase({
-          id: "LC",
-          loads: [{ kind: "nodal", nodeId: "n", force: [1, 0, 0] }],
-        })
-        .finalize();
-      const error = catchError(() => prepareAnalysis(model));
-      expect(error.code).toBe("CONSTRAINT_SEMANTIC_VIOLATION");
-      if (error.context.kind !== "analysis") throw new Error("Expected analysis context.");
-      expect(error.context.stage).toBe("constraint-semantic-validation");
-      expect(error.context.violation).toBe("transform-column");
+      const compiled = compileConstraints(1, [equation]);
+      expect(compiled.reducedDofCount).toBe(0);
+      expect(compiled.freeDofs).toEqual([]);
+      expect(compiled.pivotDofs).toEqual([0]);
+      expect(Array.from(compiled.recover([]))).toEqual([0]);
+      expect(findSemanticTransformViolation([equation], compiled.rows)).toBeUndefined();
     }
   });
 
@@ -558,12 +525,12 @@ describe("XF-001 compensated long-row accumulation (reviewer Phase 1.2)", () => 
     expect(violation!.normalizedResidual).toBeCloseTo(expectedNormalized, 14);
   });
 
-  it("XF-001 3003-DOF compiler canary rejects with a transform-column violation (test C)", () => {
+  it("XF-001 3003-DOF compiler canary compiles to full rank and recovers zero (test C)", () => {
     // u_i = u_master for i = 0..N, u_special = 2 * u_master, then the original
-    // semantic equation 2*u0 + sum(1e-16 * u_i, i = 1..N) - u_special = 0.
-    // The canonicalizer drops the tiny terms so the compiled transform leaves
-    // master free; the semantic oracle must reject the column residual
-    // (N * 1e-16) / (4 + N * 1e-16) ~ 7.5e-14 > tolerance.
+    // semantic equation 2*u0 + sum(1e-16 * u_i, i = 1..N) - u_special = 0 pins
+    // u_master to zero. The canonicalizer must retain the tiny terms so the
+    // compiled transform is full rank, recovers exactly zero, and satisfies
+    // every original equation within the frozen semantic tolerance.
     const count = 3000;
     const masterDof = count + 2;
     const specialDof = count + 1;
@@ -600,14 +567,16 @@ describe("XF-001 compensated long-row accumulation (reviewer Phase 1.2)", () => 
       rightHandSide: 0,
     });
     expect(equations).toHaveLength(fullDofCount);
-    const error = catchError(() => compileConstraints(fullDofCount, equations));
-    expect(error.code).toBe("CONSTRAINT_SEMANTIC_VIOLATION");
-    if (error.context.kind !== "analysis") throw new Error("Expected analysis context.");
-    expect(error.context.stage).toBe("constraint-semantic-validation");
-    expect(error.context.violation).toBe("transform-column");
-    expect(error.context.entityId).toBe("z-semantic");
-    expect(error.context.normalizedResidual).toBeGreaterThan(SEMANTIC_CONSTRAINT_TOLERANCE);
-  });
+    const compiled = compileConstraints(fullDofCount, equations);
+    expect(compiled.reducedDofCount).toBe(0);
+    expect(compiled.freeDofs).toEqual([]);
+    expect(compiled.pivotDofs).toHaveLength(fullDofCount);
+    expect([...compiled.pivotDofs].toSorted((a, b) => a - b)).toEqual(
+      Array.from({ length: fullDofCount }, (_, index) => index),
+    );
+    expect(Array.from(compiled.recover([])).every((value) => value === 0)).toBe(true);
+    expect(findSemanticTransformViolation(equations, compiled.rows)).toBeUndefined();
+  }, 30_000);
 
   it("XF-001 compensated accumulation retains tiny scale contributions (test D)", () => {
     const count = 2000;

@@ -6,8 +6,6 @@ import type {
   CanonicalAffineConstraint,
 } from "./affine-equation.js";
 
-const ZERO_TOLERANCE = 64 * Number.EPSILON;
-
 function checkedDof(value: number, path: string): number {
   if (!Number.isSafeInteger(value) || value < 0) {
     throw new XFrameError(
@@ -24,9 +22,31 @@ function checkedDof(value: number, path: string): number {
   return value;
 }
 
+function compensatedCoefficientSum(values: number[]): number {
+  // Deterministic: ascending |value| with numeric tie-break, then Neumaier
+  // compensated accumulation. Every permutation of the same multiset takes
+  // the identical numerical path, so the effective coefficient is
+  // independent of user term order and survives catastrophic-looking
+  // cancellation without tolerance pruning.
+  const ordered = values.toSorted(
+    (left, right) => Math.abs(left) - Math.abs(right) || left - right,
+  );
+  let sum = 0;
+  let compensation = 0;
+  for (const value of ordered) {
+    const next = sum + value;
+    if (Math.abs(sum) >= Math.abs(value)) {
+      compensation += sum - next + value;
+    } else {
+      compensation += value - next + sum;
+    }
+    sum = next;
+  }
+  return finiteNumber(sum + compensation, "constraint.effectiveCoefficient");
+}
+
 export function canonicalizeConstraint(input: AffineConstraintEquation): CanonicalAffineConstraint {
-  const sums = new Map<number, number>();
-  let maximumOriginalCoefficient = 0;
+  const grouped = new Map<number, number[]>();
   for (let index = 0; index < input.terms.length; index += 1) {
     const term = input.terms[index]!;
     const dof = checkedDof(term.dof, `constraint[${input.sourceId}].terms[${index}].dof`);
@@ -34,19 +54,23 @@ export function canonicalizeConstraint(input: AffineConstraintEquation): Canonic
       term.coefficient,
       `constraint[${input.sourceId}].terms[${index}].coefficient`,
     );
-    const absoluteCoefficient = Math.abs(coefficient);
-    if (absoluteCoefficient > maximumOriginalCoefficient) {
-      maximumOriginalCoefficient = absoluteCoefficient;
+    const coefficients = grouped.get(dof);
+    if (coefficients === undefined) {
+      grouped.set(dof, [coefficient]);
+    } else {
+      coefficients.push(coefficient);
     }
-    sums.set(dof, finiteNumber((sums.get(dof) ?? 0) + coefficient, "constraint.coefficientSum"));
   }
   const rightHandSide = finiteNumber(
     input.rightHandSide,
     `constraint[${input.sourceId}].rightHandSide`,
   );
   const terms: Array<[number, number]> = [];
-  for (const [dof, coefficient] of sums) {
-    if (Math.abs(coefficient) / maximumOriginalCoefficient > ZERO_TOLERANCE) {
+  for (const [dof, coefficients] of grouped) {
+    // Delete a DOF term only when the compensated aggregate is exactly zero;
+    // rank decisions belong to the rank engine, not canonicalization.
+    const coefficient = compensatedCoefficientSum(coefficients);
+    if (coefficient !== 0) {
       terms.push([dof, coefficient]);
     }
   }
@@ -66,17 +90,22 @@ export function canonicalizeConstraint(input: AffineConstraintEquation): Canonic
     }
     return Object.freeze({ sourceId: input.sourceId, terms: Object.freeze([]), rightHandSide: 0 });
   }
-  const first = terms[0]![1];
-  const divisor = Math.abs(first);
-  const sign = first < 0 ? -1 : 1;
+  let rowScale = 0;
+  for (const [, coefficient] of terms) {
+    rowScale = Math.max(rowScale, Math.abs(coefficient));
+  }
+  const sign = terms[0]![1] < 0 ? -1 : 1;
   const normalizedTerms: AffineConstraintTerm[] = terms.map(([dof, coefficient]) =>
     Object.freeze({
       dof,
-      coefficient: finiteNumber((coefficient / divisor) * sign, "constraint.normalizedCoefficient"),
+      coefficient: finiteNumber(
+        (coefficient / rowScale) * sign,
+        "constraint.normalizedCoefficient",
+      ),
     }),
   );
   const normalizedRhs = finiteNumber(
-    (rightHandSide / divisor) * sign,
+    (rightHandSide / rowScale) * sign,
     "constraint.normalizedRightHandSide",
   );
   return Object.freeze({

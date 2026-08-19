@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { compileConstraints } from "../../src/constraints/compile-constraints.js";
+import {
+  findSemanticTransformViolation,
+  maximumSemanticConstraintResidual,
+} from "../../src/constraints/semantic-constraint-validation.js";
 import { XFrameError } from "../../src/errors/xframe-error.js";
 
 describe("constraint failures", () => {
@@ -37,7 +41,11 @@ describe("constraint failures", () => {
   it("FR-CON-003: rejects out-of-range DOFs and unsafe transform storage", () => {
     expect(() =>
       compileConstraints(2, [
-        { sourceId: "bad", terms: [{ dof: 2, coefficient: 1 }], rightHandSide: 0 },
+        {
+          sourceId: "bad",
+          terms: [{ dof: 2, coefficient: 1 }],
+          rightHandSide: 0,
+        },
       ]),
     ).toThrow(XFrameError);
     expect(() => compileConstraints(100, [], { maximumTransformNonzeros: 50 })).toThrow(
@@ -129,55 +137,47 @@ describe("constraint failures", () => {
   );
 
   it.each([1, 2 ** 45])(
-    "FR-SAFE-003 XF-001: backward-tail chains fail closed at tail scale %s (compiler cancellation noise)",
+    "FR-SAFE-003 XF-001: backward-tail chains compile at tail scale %s and pass frozen semantic validation",
     (tailScale) => {
-      // Phase 1 containment regression (mandated by the XF-001 semantic
-      // gate): the elimination constructs the chain tail rows through
-      // f*r - f style updates, whose catastrophic cancellation leaves the
-      // stored rows inconsistent with the original equations at ~1e-3
-      // relative (measured 7.6e-4 for this chain), 13 orders of magnitude
-      // above the 256*EPSILON gate. Same silent-math-change defect class as
-      // XF-001, so the compiled transform is rejected instead of solved.
+      // Phase 2 success requirement (was Phase 1 containment): the compiler
+      // must build the chain tail rows without catastrophic cancellation, so
+      // the compiled transform satisfies every original equation within the
+      // frozen 256*EPSILON gate and solves to one free coordinate.
       const q = 3.2515731794557063e-14;
       const r = 0.999999999999943;
-      let thrown: unknown;
-      try {
-        compileConstraints(26, [
-          ...Array.from({ length: 23 }, (_, index) => ({
-            sourceId: `a${String(index).padStart(2, "0")}`,
-            terms: [
-              { dof: index, coefficient: 1 },
-              { dof: index + 1, coefficient: q },
-            ],
-            rightHandSide: 0,
-          })),
-          {
-            sourceId: "a23",
-            terms: [
-              { dof: 23, coefficient: 1 },
-              { dof: 24, coefficient: tailScale },
-              { dof: 25, coefficient: tailScale * r },
-            ],
-            rightHandSide: 0,
-          },
-          {
-            sourceId: "z",
-            terms: [
-              { dof: 24, coefficient: 1 },
-              { dof: 25, coefficient: 1 },
-            ],
-            rightHandSide: 0,
-          },
-        ]);
-      } catch (error) {
-        thrown = error;
-      }
-      expect(thrown).toBeInstanceOf(XFrameError);
-      const context = (thrown as XFrameError).context;
-      if (context.kind !== "analysis") throw new Error("Expected analysis context.");
-      expect((thrown as XFrameError).code).toBe("CONSTRAINT_SEMANTIC_VIOLATION");
-      expect(context.stage).toBe("constraint-semantic-validation");
-      expect(context.violation).toBe("transform-column");
+      const equations = [
+        ...Array.from({ length: 23 }, (_, index) => ({
+          sourceId: `a${String(index).padStart(2, "0")}`,
+          terms: [
+            { dof: index, coefficient: 1 },
+            { dof: index + 1, coefficient: q },
+          ],
+          rightHandSide: 0,
+        })),
+        {
+          sourceId: "a23",
+          terms: [
+            { dof: 23, coefficient: 1 },
+            { dof: 24, coefficient: tailScale },
+            { dof: 25, coefficient: tailScale * r },
+          ],
+          rightHandSide: 0,
+        },
+        {
+          sourceId: "z",
+          terms: [
+            { dof: 24, coefficient: 1 },
+            { dof: 25, coefficient: 1 },
+          ],
+          rightHandSide: 0,
+        },
+      ];
+      const compiled = compileConstraints(26, equations);
+      expect(compiled.reducedDofCount).toBe(1);
+      expect(findSemanticTransformViolation(equations, compiled.rows)).toBeUndefined();
+      const sample = compiled.recover([1]);
+      const sampleResidual = maximumSemanticConstraintResidual(equations, sample);
+      expect(sampleResidual).toBeLessThanOrEqual(256 * Number.EPSILON);
     },
   );
 
@@ -189,8 +189,16 @@ describe("constraint failures", () => {
       let thrown: unknown;
       try {
         compileConstraints(1, [
-          { sourceId: "a", terms: [{ dof: 0, coefficient: 1 }], rightHandSide: p },
-          { sourceId: "b", terms: [{ dof: 0, coefficient: 1 }], rightHandSide: m },
+          {
+            sourceId: "a",
+            terms: [{ dof: 0, coefficient: 1 }],
+            rightHandSide: p,
+          },
+          {
+            sourceId: "b",
+            terms: [{ dof: 0, coefficient: 1 }],
+            rightHandSide: m,
+          },
         ]);
       } catch (error) {
         thrown = error;

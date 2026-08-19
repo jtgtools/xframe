@@ -2,8 +2,11 @@ import { XFrameError } from "../errors/xframe-error.js";
 import { finiteNumber } from "../geometry/finite.js";
 import { compareIdentifiers } from "../model/identifier.js";
 import type { CanonicalAffineConstraint } from "./affine-equation.js";
+import { WorkingScalar } from "./constraint-numerics.js";
 
 export const TOLERANCE = 256 * Number.EPSILON;
+
+const ROUNDING_EPSILON = Number.EPSILON;
 
 export interface ReducedConstraintRow {
   readonly sourceId: string;
@@ -18,174 +21,172 @@ export interface ConstraintRankAnalysis {
   readonly redundantSourceIds: readonly string[];
 }
 
-function maximumAbsoluteMapValue(values: ReadonlyMap<number, number>, path: string): number {
-  let maximum = 0;
-  for (const value of values.values()) {
-    const checkedValue = finiteNumber(value, path);
-    const absoluteValue = finiteNumber(Math.abs(checkedValue), path);
-    if (absoluteValue > maximum) maximum = absoluteValue;
-  }
-  return maximum;
+interface ActiveRow {
+  readonly sourceId: string;
+  readonly coefficients: Map<number, WorkingScalar>;
+  readonly coefficientBounds: Map<number, number>;
+  rhs: WorkingScalar;
+  rhsBound: number;
+  pivotDof: number;
 }
 
-function minimumMapKey(values: ReadonlyMap<number, number>): number {
-  let minimum = Number.POSITIVE_INFINITY;
-  for (const key of values.keys()) if (key < minimum) minimum = key;
-  return minimum;
+interface PivotCandidate {
+  readonly row: ActiveRow;
+  readonly dof: number;
 }
 
-function isWithinRelativeTolerance(valueInput: number, scaleInput: number, path: string): boolean {
-  const value = finiteNumber(valueInput, path);
-  const scale = finiteNumber(scaleInput, `${path}Scale`);
-  if (value === 0) return true;
-  if (scale === 0) return false;
-  return finiteNumber(Math.abs(value) / scale, `${path}Relative`) <= TOLERANCE;
+function initialBound(value: number): number {
+  return ROUNDING_EPSILON * Math.abs(value);
 }
 
-function removeScaledZeros(
-  row: Map<number, number>,
-  scale: number,
-  candidates: ReadonlyMap<number, number>,
-): void {
-  const checkedScale = finiteNumber(scale, "constraint-rank.coefficientCancellationScale");
-  for (const dof of candidates.keys()) {
-    const value = row.get(dof);
-    if (value === undefined) continue;
-    if (isWithinRelativeTolerance(value, checkedScale, `constraint-rank.coefficient[${dof}]`))
-      row.delete(dof);
-  }
+function dividedBound(bound: number, divisor: number, dividedValue: number): number {
+  return bound / Math.abs(divisor) + ROUNDING_EPSILON * Math.abs(dividedValue);
 }
 
-function eliminateRow(
-  coefficients: Map<number, number>,
-  rightHandSideInput: number,
-  pivot: Readonly<ReducedConstraintRow>,
+function combinedBound(
+  operandBound: number,
+  factor: number,
+  factorBound: number,
+  pivotValue: number,
+  pivotBound: number,
+  contribution: number,
+  residual: number,
 ): number {
-  const factor = finiteNumber(
-    coefficients.get(pivot.pivotDof) ?? 0,
-    `constraint-rank.factor[${pivot.pivotDof}]`,
+  return (
+    operandBound +
+    Math.abs(factor) * pivotBound +
+    Math.abs(pivotValue) * factorBound +
+    ROUNDING_EPSILON * (Math.abs(contribution) + Math.abs(residual))
   );
-  let rightHandSide = finiteNumber(rightHandSideInput, "constraint-rank.rightHandSide");
-  if (factor === 0) return rightHandSide;
+}
 
-  coefficients.delete(pivot.pivotDof);
-  const coefficientOperands = new Map<number, number>();
-  const coefficientContributions = new Map<number, number>();
-  for (const [dof, pivotCoefficientInput] of pivot.coefficients) {
-    if (dof === pivot.pivotDof) continue;
-    const operand = finiteNumber(
-      coefficients.get(dof) ?? 0,
-      `constraint-rank.coefficientOperand[${dof}]`,
-    );
-    const pivotCoefficient = finiteNumber(
-      pivotCoefficientInput,
-      `constraint-rank.pivotCoefficient[${dof}]`,
-    );
-    const contribution = finiteNumber(
-      factor * pivotCoefficient,
-      `constraint-rank.coefficientContribution[${dof}]`,
-    );
-    const residual = finiteNumber(
-      operand - contribution,
-      `constraint-rank.coefficientResidual[${dof}]`,
-    );
-    coefficients.set(dof, residual);
-    coefficientOperands.set(dof, operand);
-    coefficientContributions.set(dof, contribution);
+function coefficientTotal(row: ActiveRow, dof: number): number {
+  return row.coefficients.get(dof)!.total(`constraint-rank.coefficient[${row.sourceId}][${dof}]`);
+}
+
+function sortedRowEntries(row: ActiveRow): Array<[number, number]> {
+  return Array.from(row.coefficients.entries())
+    .map(([dof, scalar]): [number, number] => [
+      dof,
+      scalar.total(`constraint-rank.rowEntry[${dof}]`),
+    ])
+    .toSorted(([leftDof], [rightDof]) => leftDof - rightDof);
+}
+
+function compareRows(left: ActiveRow, right: ActiveRow): number {
+  const leftEntries = sortedRowEntries(left);
+  const rightEntries = sortedRowEntries(right);
+  const sharedLength = Math.min(leftEntries.length, rightEntries.length);
+  for (let index = 0; index < sharedLength; index += 1) {
+    const [leftDof, leftValue] = leftEntries[index]!;
+    const [rightDof, rightValue] = rightEntries[index]!;
+    if (leftDof !== rightDof) return leftDof - rightDof;
+    if (leftValue !== rightValue) return leftValue - rightValue;
   }
-  const operandScale = maximumAbsoluteMapValue(
-    coefficientOperands,
-    "constraint-rank.coefficientOperand",
-  );
-  const contributionScale = maximumAbsoluteMapValue(
-    coefficientContributions,
-    "constraint-rank.coefficientContribution",
-  );
-  const coefficientScale = operandScale > contributionScale ? operandScale : contributionScale;
-  removeScaledZeros(coefficients, coefficientScale, coefficientOperands);
+  if (leftEntries.length !== rightEntries.length) {
+    return leftEntries.length - rightEntries.length;
+  }
+  const leftRhs = left.rhs.total(`constraint-rank.rhs[${left.sourceId}]`);
+  const rightRhs = right.rhs.total(`constraint-rank.rhs[${right.sourceId}]`);
+  return leftRhs - rightRhs;
+}
 
-  const rightHandSideOperand = finiteNumber(rightHandSide, "constraint-rank.rhsOperand");
-  const rightHandSideContribution = finiteNumber(
-    factor * finiteNumber(pivot.rightHandSide, "constraint-rank.pivotRhs"),
-    "constraint-rank.rhsContribution",
+function isBetterCandidate(candidate: PivotCandidate, incumbent: PivotCandidate): boolean {
+  const candidateStrength = Math.abs(coefficientTotal(candidate.row, candidate.dof));
+  const incumbentStrength = Math.abs(coefficientTotal(incumbent.row, incumbent.dof));
+  if (candidateStrength > incumbentStrength) return true;
+  if (candidateStrength < incumbentStrength) return false;
+  if (candidate.dof !== incumbent.dof) return candidate.dof < incumbent.dof;
+  if (candidate.row.coefficients.size !== incumbent.row.coefficients.size) {
+    return candidate.row.coefficients.size < incumbent.row.coefficients.size;
+  }
+  const rowComparison = compareRows(candidate.row, incumbent.row);
+  if (rowComparison !== 0) return rowComparison < 0;
+  return compareIdentifiers(candidate.row.sourceId, incumbent.row.sourceId) < 0;
+}
+
+function equilibrate(row: ActiveRow): void {
+  let maximum = 0;
+  for (const [dof, scalar] of row.coefficients) {
+    const magnitude = Math.abs(scalar.total(`constraint-rank.coefficient[${dof}]`));
+    if (magnitude > maximum) maximum = magnitude;
+  }
+  if (maximum === 0) return;
+  for (const [dof, scalar] of row.coefficients) {
+    scalar.divideBy(maximum, `constraint-rank.equilibration[${row.sourceId}]`);
+    row.coefficientBounds.set(dof, row.coefficientBounds.get(dof)! / maximum);
+  }
+  row.rhs.divideBy(maximum, `constraint-rank.rhsEquilibration[${row.sourceId}]`);
+  row.rhsBound = row.rhsBound / maximum;
+}
+
+function classifyRow(row: ActiveRow, redundantSourceIds: string[]): void {
+  const rhs = row.rhs.total(`constraint-rank.rhs[${row.sourceId}]`);
+  if (rhs === 0) {
+    redundantSourceIds.push(row.sourceId);
+    return;
+  }
+  throw new XFrameError(
+    "CONSTRAINT_CONTRADICTION",
+    "Constraint system contains conflicting dependent equations.",
+    {
+      kind: "analysis",
+      stage: "constraint-rank",
+      detail: `source=${row.sourceId}, reducedRhs=${String(rhs)}`,
+      entityId: row.sourceId,
+    },
   );
-  const rightHandSideResidual = finiteNumber(
-    rightHandSideOperand - rightHandSideContribution,
-    "constraint-rank.rhsResidual",
-  );
-  const rightHandSideOperandAbsolute = finiteNumber(
-    Math.abs(rightHandSideOperand),
-    "constraint-rank.rhsOperand",
-  );
-  const rightHandSideContributionAbsolute = finiteNumber(
-    Math.abs(rightHandSideContribution),
-    "constraint-rank.rhsContribution",
-  );
-  const rightHandSideScale =
-    rightHandSideOperandAbsolute > rightHandSideContributionAbsolute
-      ? rightHandSideOperandAbsolute
-      : rightHandSideContributionAbsolute;
-  rightHandSide = rightHandSideResidual;
-  if (
-    isWithinRelativeTolerance(
-      rightHandSideResidual,
-      rightHandSideScale,
-      "constraint-rank.rhsResidual",
-    )
-  )
-    rightHandSide = 0;
-  return rightHandSide;
 }
 
 export function analyzeConstraintRank(
   equationsInput: readonly CanonicalAffineConstraint[],
 ): ConstraintRankAnalysis {
-  const equations = equationsInput.toSorted((left, right) =>
-    compareIdentifiers(left.sourceId, right.sourceId),
-  );
-  const rows: {
-    sourceId: string;
-    coefficients: Map<number, number>;
-    rightHandSide: number;
-    pivotDof: number;
-  }[] = [];
+  let active: ActiveRow[] = [];
   const redundantSourceIds: string[] = [];
+  for (const equation of equationsInput) {
+    const coefficients = new Map<number, WorkingScalar>();
+    const coefficientBounds = new Map<number, number>();
+    for (const term of equation.terms) {
+      coefficients.set(
+        term.dof,
+        new WorkingScalar(
+          finiteNumber(
+            term.coefficient,
+            `constraint[${equation.sourceId}].coefficient[${term.dof}]`,
+          ),
+        ),
+      );
+      coefficientBounds.set(term.dof, initialBound(term.coefficient));
+    }
+    const row: ActiveRow = {
+      sourceId: equation.sourceId,
+      coefficients,
+      coefficientBounds,
+      rhs: new WorkingScalar(
+        finiteNumber(equation.rightHandSide, `constraint[${equation.sourceId}].rightHandSide`),
+      ),
+      rhsBound: initialBound(equation.rightHandSide),
+      pivotDof: -1,
+    };
+    if (row.coefficients.size === 0) {
+      classifyRow(row, redundantSourceIds);
+    } else {
+      active.push(row);
+    }
+  }
+  const rows: ActiveRow[] = [];
 
-  for (const equation of equations) {
-    const coefficients = new Map(
-      equation.terms.map(({ dof, coefficient }) => [
-        dof,
-        finiteNumber(coefficient, `constraint[${equation.sourceId}].coefficient[${dof}]`),
-      ]),
-    );
-    let rhs = finiteNumber(
-      equation.rightHandSide,
-      `constraint[${equation.sourceId}].rightHandSide`,
-    );
-    for (const pivot of rows) {
-      rhs = eliminateRow(coefficients, rhs, pivot);
-    }
-    if (coefficients.size === 0) {
-      if (rhs !== 0) {
-        throw new XFrameError(
-          "CONSTRAINT_CONTRADICTION",
-          "Constraint system contains conflicting dependent equations.",
-          {
-            kind: "analysis",
-            stage: "constraint-rank",
-            detail: `source=${equation.sourceId}, reducedRhs=${String(rhs)}`,
-            entityId: equation.sourceId,
-          },
-        );
+  while (active.length > 0) {
+    let best: PivotCandidate | undefined;
+    for (const row of active) {
+      for (const dof of row.coefficients.keys()) {
+        const candidate = { row, dof };
+        if (best === undefined || isBetterCandidate(candidate, best)) best = candidate;
       }
-      redundantSourceIds.push(equation.sourceId);
-      continue;
     }
-    const pivotDof = minimumMapKey(coefficients);
-    const pivot = finiteNumber(
-      coefficients.get(pivotDof),
-      `constraint[${equation.sourceId}].pivot[${pivotDof}]`,
-    );
+    const pivotRow = best!.row;
+    const pivotDof = best!.dof;
+    const pivot = coefficientTotal(pivotRow, pivotDof);
     if (pivot === 0) {
       throw new XFrameError(
         "CONSTRAINT_RANK_DEFICIENT",
@@ -193,30 +194,112 @@ export function analyzeConstraintRank(
         {
           kind: "analysis",
           stage: "constraint-rank",
-          detail: `source=${equation.sourceId}, pivot=${String(pivotDof)}`,
-          entityId: equation.sourceId,
+          detail: `source=${pivotRow.sourceId}, pivot=${String(pivotDof)}`,
+          entityId: pivotRow.sourceId,
           equation: pivotDof,
         },
       );
     }
-    for (const [dof, value] of coefficients) {
-      coefficients.set(
+    for (const [dof, scalar] of pivotRow.coefficients) {
+      scalar.divideBy(pivot, `constraint[${pivotRow.sourceId}].normalized[${dof}]`);
+      pivotRow.coefficientBounds.set(
         dof,
-        finiteNumber(value / pivot, `constraint[${equation.sourceId}].normalized[${dof}]`),
+        dividedBound(
+          pivotRow.coefficientBounds.get(dof)!,
+          pivot,
+          scalar.total(`constraint[${pivotRow.sourceId}].normalizedValue[${dof}]`),
+        ),
       );
     }
-    rhs = finiteNumber(rhs / pivot, `constraint[${equation.sourceId}].normalizedRightHandSide`);
+    pivotRow.rhs.divideBy(pivot, `constraint[${pivotRow.sourceId}].normalizedRightHandSide`);
+    pivotRow.rhsBound = dividedBound(
+      pivotRow.rhsBound,
+      pivot,
+      pivotRow.rhs.total(`constraint[${pivotRow.sourceId}].normalizedRhsValue`),
+    );
+    pivotRow.coefficients.set(pivotDof, new WorkingScalar(1));
+    pivotRow.coefficientBounds.set(pivotDof, 0);
+    pivotRow.pivotDof = pivotDof;
+    active.splice(active.indexOf(pivotRow), 1);
+    rows.push(pivotRow);
 
-    for (const previous of rows) {
-      previous.rightHandSide = eliminateRow(previous.coefficients, previous.rightHandSide, {
-        sourceId: equation.sourceId,
-        coefficients,
-        rightHandSide: rhs,
-        pivotDof,
-      });
+    for (const row of active) {
+      const factorScalar = row.coefficients.get(pivotDof);
+      if (factorScalar === undefined) continue;
+      const factor = factorScalar.total(`constraint-rank.factor[${row.sourceId}][${pivotDof}]`);
+      const factorBound = row.coefficientBounds.get(pivotDof)!;
+      row.coefficients.delete(pivotDof);
+      row.coefficientBounds.delete(pivotDof);
+      for (const [dof, pivotCoefficientScalar] of pivotRow.coefficients) {
+        if (dof === pivotDof) continue;
+        const pivotCoefficient = pivotCoefficientScalar.total(
+          `constraint-rank.pivotCoefficient[${pivotDof}][${dof}]`,
+        );
+        const pivotCoefficientBound = pivotRow.coefficientBounds.get(dof)!;
+        const contribution = finiteNumber(
+          factor * pivotCoefficient,
+          `constraint-rank.coefficientContribution[${row.sourceId}][${dof}]`,
+        );
+        const existing = row.coefficients.get(dof);
+        const operandBound = existing === undefined ? 0 : row.coefficientBounds.get(dof)!;
+        if (existing === undefined) {
+          row.coefficients.set(dof, new WorkingScalar(0));
+          row.coefficientBounds.set(dof, 0);
+        }
+        const scalar = row.coefficients.get(dof)!;
+        scalar.add(-contribution);
+        const residual = scalar.total(`constraint-rank.coefficientResidual[${dof}]`);
+        const residualBound = combinedBound(
+          operandBound,
+          factor,
+          factorBound,
+          pivotCoefficient,
+          pivotCoefficientBound,
+          contribution,
+          residual,
+        );
+        if (Math.abs(residual) <= residualBound) {
+          row.coefficients.delete(dof);
+          row.coefficientBounds.delete(dof);
+        } else {
+          row.coefficientBounds.set(dof, residualBound);
+        }
+      }
+      const rhsOperandBound = row.rhsBound;
+      const pivotRhs = pivotRow.rhs.total(`constraint-rank.pivotRhs[${pivotDof}]`);
+      const pivotRhsBound = pivotRow.rhsBound;
+      const rhsContribution = finiteNumber(
+        factor * pivotRhs,
+        `constraint-rank.rhsContribution[${row.sourceId}]`,
+      );
+      row.rhs.add(-rhsContribution);
+      const rhsResidual = row.rhs.total(`constraint-rank.rhsResidual[${row.sourceId}]`);
+      const rhsResidualBound = combinedBound(
+        rhsOperandBound,
+        factor,
+        factorBound,
+        pivotRhs,
+        pivotRhsBound,
+        rhsContribution,
+        rhsResidual,
+      );
+      if (Math.abs(rhsResidual) <= rhsResidualBound) {
+        row.rhs = new WorkingScalar(0);
+        row.rhsBound = 0;
+      } else {
+        row.rhsBound = rhsResidualBound;
+      }
+      if (row.coefficients.size === 0) {
+        classifyRow(row, redundantSourceIds);
+      } else {
+        equilibrate(row);
+      }
     }
-    rows.push({ sourceId: equation.sourceId, coefficients, rightHandSide: rhs, pivotDof });
-    rows.sort((left, right) => left.pivotDof - right.pivotDof);
+    const remaining: ActiveRow[] = [];
+    for (const row of active) {
+      if (row.coefficients.size > 0) remaining.push(row);
+    }
+    active = remaining;
   }
 
   return Object.freeze({
@@ -224,18 +307,24 @@ export function analyzeConstraintRank(
     rows: Object.freeze(
       rows.map((row) => {
         const orderedCoefficients = new Map<number, number>();
-        const entries = Array.from(row.coefficients.entries()).toSorted(
+        for (const [dof, scalar] of [...row.coefficients.entries()].toSorted(
           ([left], [right]) => left - right,
-        );
-        for (const [dof, coefficient] of entries) orderedCoefficients.set(dof, coefficient);
+        )) {
+          orderedCoefficients.set(
+            dof,
+            scalar.total(`constraint[${row.sourceId}].outputCoefficient[${dof}]`),
+          );
+        }
         return Object.freeze({
           sourceId: row.sourceId,
           coefficients: orderedCoefficients,
-          rightHandSide: row.rightHandSide,
+          rightHandSide: row.rhs.total(`constraint[${row.sourceId}].outputRightHandSide`),
           pivotDof: row.pivotDof,
         });
       }),
     ),
-    redundantSourceIds: Object.freeze(redundantSourceIds),
+    redundantSourceIds: Object.freeze(
+      [...redundantSourceIds].toSorted((left, right) => compareIdentifiers(left, right)),
+    ),
   });
 }
