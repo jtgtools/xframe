@@ -25,6 +25,7 @@ interface ActiveRow {
   readonly sourceId: string;
   readonly coefficients: Map<number, WorkingScalar>;
   readonly coefficientBounds: Map<number, number>;
+  readonly compareBounds: Map<number, number>;
   rhs: WorkingScalar;
   rhsBound: number;
   pivotDof: number;
@@ -39,11 +40,36 @@ function initialBound(value: number): number {
   return ROUNDING_EPSILON * Math.abs(value);
 }
 
-function dividedBound(bound: number, divisor: number, dividedValue: number): number {
-  return bound / Math.abs(divisor) + ROUNDING_EPSILON * Math.abs(dividedValue);
+function dividedBound(
+  bound: number,
+  divisor: number,
+  divisorBound: number,
+  dividedValue: number,
+): number {
+  return (
+    bound / Math.abs(divisor) +
+    Math.abs(dividedValue) * (divisorBound / Math.abs(divisor) + 2 * ROUNDING_EPSILON)
+  );
 }
 
 function combinedBound(
+  operandBound: number,
+  factor: number,
+  factorBound: number,
+  pivotValue: number,
+  pivotBound: number,
+  contribution: number,
+): number {
+  return (
+    operandBound +
+    Math.abs(factor) * pivotBound +
+    Math.abs(pivotValue) * factorBound +
+    factorBound * pivotBound +
+    ROUNDING_EPSILON * Math.abs(contribution)
+  );
+}
+
+function combinedCompareBound(
   operandBound: number,
   factor: number,
   factorBound: number,
@@ -56,6 +82,7 @@ function combinedBound(
     operandBound +
     Math.abs(factor) * pivotBound +
     Math.abs(pivotValue) * factorBound +
+    factorBound * pivotBound +
     ROUNDING_EPSILON * (Math.abs(contribution) + Math.abs(residual))
   );
 }
@@ -94,8 +121,10 @@ function compareRows(left: ActiveRow, right: ActiveRow): number {
 function isBetterCandidate(candidate: PivotCandidate, incumbent: PivotCandidate): boolean {
   const candidateStrength = Math.abs(coefficientTotal(candidate.row, candidate.dof));
   const incumbentStrength = Math.abs(coefficientTotal(incumbent.row, incumbent.dof));
-  if (candidateStrength > incumbentStrength) return true;
-  if (candidateStrength < incumbentStrength) return false;
+  const candidateBound = candidate.row.compareBounds.get(candidate.dof)!;
+  const incumbentBound = incumbent.row.compareBounds.get(incumbent.dof)!;
+  if (candidateStrength > incumbentStrength + candidateBound + incumbentBound) return true;
+  if (incumbentStrength > candidateStrength + candidateBound + incumbentBound) return false;
   if (candidate.dof !== incumbent.dof) return candidate.dof < incumbent.dof;
   if (candidate.row.coefficients.size !== incumbent.row.coefficients.size) {
     return candidate.row.coefficients.size < incumbent.row.coefficients.size;
@@ -103,21 +132,6 @@ function isBetterCandidate(candidate: PivotCandidate, incumbent: PivotCandidate)
   const rowComparison = compareRows(candidate.row, incumbent.row);
   if (rowComparison !== 0) return rowComparison < 0;
   return compareIdentifiers(candidate.row.sourceId, incumbent.row.sourceId) < 0;
-}
-
-function equilibrate(row: ActiveRow): void {
-  let maximum = 0;
-  for (const [dof, scalar] of row.coefficients) {
-    const magnitude = Math.abs(scalar.total(`constraint-rank.coefficient[${dof}]`));
-    if (magnitude > maximum) maximum = magnitude;
-  }
-  if (maximum === 0) return;
-  for (const [dof, scalar] of row.coefficients) {
-    scalar.divideBy(maximum, `constraint-rank.equilibration[${row.sourceId}]`);
-    row.coefficientBounds.set(dof, row.coefficientBounds.get(dof)! / maximum);
-  }
-  row.rhs.divideBy(maximum, `constraint-rank.rhsEquilibration[${row.sourceId}]`);
-  row.rhsBound = row.rhsBound / maximum;
 }
 
 function classifyRow(row: ActiveRow, redundantSourceIds: string[]): void {
@@ -146,6 +160,7 @@ export function analyzeConstraintRank(
   for (const equation of equationsInput) {
     const coefficients = new Map<number, WorkingScalar>();
     const coefficientBounds = new Map<number, number>();
+    const compareBounds = new Map<number, number>();
     for (const term of equation.terms) {
       coefficients.set(
         term.dof,
@@ -157,11 +172,13 @@ export function analyzeConstraintRank(
         ),
       );
       coefficientBounds.set(term.dof, initialBound(term.coefficient));
+      compareBounds.set(term.dof, initialBound(term.coefficient));
     }
     const row: ActiveRow = {
       sourceId: equation.sourceId,
       coefficients,
       coefficientBounds,
+      compareBounds,
       rhs: new WorkingScalar(
         finiteNumber(equation.rightHandSide, `constraint[${equation.sourceId}].rightHandSide`),
       ),
@@ -187,6 +204,8 @@ export function analyzeConstraintRank(
     const pivotRow = best!.row;
     const pivotDof = best!.dof;
     const pivot = coefficientTotal(pivotRow, pivotDof);
+    const pivotBound = pivotRow.coefficientBounds.get(pivotDof)!;
+    const pivotCompareBound = pivotRow.compareBounds.get(pivotDof)!;
     if (pivot === 0) {
       throw new XFrameError(
         "CONSTRAINT_RANK_DEFICIENT",
@@ -202,23 +221,26 @@ export function analyzeConstraintRank(
     }
     for (const [dof, scalar] of pivotRow.coefficients) {
       scalar.divideBy(pivot, `constraint[${pivotRow.sourceId}].normalized[${dof}]`);
+      const dividedValue = scalar.total(`constraint[${pivotRow.sourceId}].normalizedValue[${dof}]`);
       pivotRow.coefficientBounds.set(
         dof,
-        dividedBound(
-          pivotRow.coefficientBounds.get(dof)!,
-          pivot,
-          scalar.total(`constraint[${pivotRow.sourceId}].normalizedValue[${dof}]`),
-        ),
+        dividedBound(pivotRow.coefficientBounds.get(dof)!, pivot, pivotBound, dividedValue),
+      );
+      pivotRow.compareBounds.set(
+        dof,
+        dividedBound(pivotRow.compareBounds.get(dof)!, pivot, pivotCompareBound, dividedValue),
       );
     }
     pivotRow.rhs.divideBy(pivot, `constraint[${pivotRow.sourceId}].normalizedRightHandSide`);
     pivotRow.rhsBound = dividedBound(
       pivotRow.rhsBound,
       pivot,
+      pivotBound,
       pivotRow.rhs.total(`constraint[${pivotRow.sourceId}].normalizedRhsValue`),
     );
     pivotRow.coefficients.set(pivotDof, new WorkingScalar(1));
     pivotRow.coefficientBounds.set(pivotDof, 0);
+    pivotRow.compareBounds.set(pivotDof, 0);
     pivotRow.pivotDof = pivotDof;
     active.splice(active.indexOf(pivotRow), 1);
     rows.push(pivotRow);
@@ -228,23 +250,28 @@ export function analyzeConstraintRank(
       if (factorScalar === undefined) continue;
       const factor = factorScalar.total(`constraint-rank.factor[${row.sourceId}][${pivotDof}]`);
       const factorBound = row.coefficientBounds.get(pivotDof)!;
+      const factorCompareBound = row.compareBounds.get(pivotDof)!;
       row.coefficients.delete(pivotDof);
       row.coefficientBounds.delete(pivotDof);
+      row.compareBounds.delete(pivotDof);
       for (const [dof, pivotCoefficientScalar] of pivotRow.coefficients) {
         if (dof === pivotDof) continue;
         const pivotCoefficient = pivotCoefficientScalar.total(
           `constraint-rank.pivotCoefficient[${pivotDof}][${dof}]`,
         );
         const pivotCoefficientBound = pivotRow.coefficientBounds.get(dof)!;
+        const pivotCoefficientCompareBound = pivotRow.compareBounds.get(dof)!;
         const contribution = finiteNumber(
           factor * pivotCoefficient,
           `constraint-rank.coefficientContribution[${row.sourceId}][${dof}]`,
         );
         const existing = row.coefficients.get(dof);
         const operandBound = existing === undefined ? 0 : row.coefficientBounds.get(dof)!;
+        const operandCompareBound = existing === undefined ? 0 : row.compareBounds.get(dof)!;
         if (existing === undefined) {
           row.coefficients.set(dof, new WorkingScalar(0));
           row.coefficientBounds.set(dof, 0);
+          row.compareBounds.set(dof, 0);
         }
         const scalar = row.coefficients.get(dof)!;
         scalar.add(-contribution);
@@ -256,13 +283,23 @@ export function analyzeConstraintRank(
           pivotCoefficient,
           pivotCoefficientBound,
           contribution,
+        );
+        const residualCompareBound = combinedCompareBound(
+          operandCompareBound,
+          factor,
+          factorCompareBound,
+          pivotCoefficient,
+          pivotCoefficientCompareBound,
+          contribution,
           residual,
         );
         if (Math.abs(residual) <= residualBound) {
           row.coefficients.delete(dof);
           row.coefficientBounds.delete(dof);
+          row.compareBounds.delete(dof);
         } else {
           row.coefficientBounds.set(dof, residualBound);
+          row.compareBounds.set(dof, residualCompareBound);
         }
       }
       const rhsOperandBound = row.rhsBound;
@@ -281,7 +318,6 @@ export function analyzeConstraintRank(
         pivotRhs,
         pivotRhsBound,
         rhsContribution,
-        rhsResidual,
       );
       if (Math.abs(rhsResidual) <= rhsResidualBound) {
         row.rhs = new WorkingScalar(0);
@@ -291,8 +327,6 @@ export function analyzeConstraintRank(
       }
       if (row.coefficients.size === 0) {
         classifyRow(row, redundantSourceIds);
-      } else {
-        equilibrate(row);
       }
     }
     const remaining: ActiveRow[] = [];

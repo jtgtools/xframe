@@ -360,3 +360,190 @@ describe("XF-003 rank regression", () => {
     expect(recovered.some((entry) => entry !== 0)).toBe(true);
   });
 });
+
+function makeRawEquations(rows: readonly (readonly number[])[]): Array<{
+  sourceId: string;
+  terms: Array<{ dof: number; coefficient: number }>;
+  rightHandSide: number;
+}> {
+  return rows.map((coefficients, index) => ({
+    sourceId: `r${index}`,
+    terms: coefficients.flatMap((coefficient, dof) =>
+      coefficient === 0 ? [] : [{ dof, coefficient }],
+    ),
+    rightHandSide: 0,
+  }));
+}
+
+function expectRecoveredParallelToNullVector(
+  recovered: readonly number[],
+  nullVector: readonly bigint[],
+): void {
+  let reference = 0;
+  for (let index = 1; index < nullVector.length; index += 1) {
+    if (Math.abs(Number(nullVector[index])) > Math.abs(Number(nullVector[reference]))) {
+      reference = index;
+    }
+  }
+  const scale = recovered[reference]! / Number(nullVector[reference]);
+  expect(scale).not.toBe(0);
+  for (let index = 0; index < nullVector.length; index += 1) {
+    if (index === reference) continue;
+    expect(recovered[index]!).toBeCloseTo(scale * Number(nullVector[index]), 4);
+  }
+}
+
+describe("XF-003 adversarial review remediation", () => {
+  const ADVERSE_ROWS = [
+    [-1025, 11, -1028] as const,
+    [4950, 7082, -51] as const,
+    [-43525, -63749, 1487] as const,
+  ] as const;
+
+  const ADVERSE_NULL_VECTOR = [7279735n, -5140875n, -7313500n] as const;
+
+  it("FR-XF-003-05: adversarial counterexample r2=-r0-9*r1 ranks 2 with the exact null vector locked by zero dot products", () => {
+    expect(exactRankInteger(ADVERSE_ROWS)).toBe(2);
+    for (const row of ADVERSE_ROWS) {
+      const dot =
+        BigInt(row[0]) * ADVERSE_NULL_VECTOR[0] +
+        BigInt(row[1]) * ADVERSE_NULL_VECTOR[1] +
+        BigInt(row[2]) * ADVERSE_NULL_VECTOR[2];
+      expect(dot).toBe(0n);
+    }
+    const equations = ADVERSE_ROWS.map((coefficients, index) =>
+      equation(`r${index}`, coefficients),
+    );
+    const analysis = analyzeConstraintRank(equations);
+    expect(analysis.rank).toBe(2);
+    expect(analysis.redundantSourceIds).toHaveLength(1);
+    const compiled = compileConstraints(3, equations);
+    expect(compiled.reducedDofCount).toBe(1);
+    expect(compiled.freeDofs).toHaveLength(1);
+    expectRecoveredParallelToNullVector(Array.from(compiled.recover([1])), ADVERSE_NULL_VECTOR);
+    const violation = findSemanticTransformViolation(makeRawEquations(ADVERSE_ROWS), compiled.rows);
+    expect(violation).toBeUndefined();
+  });
+
+  it("FR-XF-003-06: public grounded-spring solve returns u=[7279735,-5140875,-7313500,0,0,0], not zero, with pass diagnostics", () => {
+    const builder = modelBuilderModule
+      .createModelBuilder()
+      .setUnitSystem({
+        version: "1",
+        length: "m",
+        force: "N",
+        moment: "N*m",
+        modulus: "Pa",
+        distributedForce: "N/m",
+        density: "kg/m^3",
+        rotation: "rad",
+      })
+      .addNode({ id: "n1", coordinates: [0, 0, 0] })
+      .addSpring({ id: "s1", startNodeId: "n1", stiffness: [1, 1, 1, 1, 1, 1] });
+    for (const [id, coefficients] of ADVERSE_ROWS.map(
+      (row, index) => [`c${index}`, row] as const,
+    )) {
+      builder.addConstraint({
+        id,
+        terms: (["tx", "ty", "tz"] as const).map((dof, index) => ({
+          nodeId: "n1",
+          dof,
+          coefficient: coefficients[index]!,
+        })),
+        rightHandSide: 0,
+      });
+    }
+    builder.addLoadCase({
+      id: "LC",
+      loads: [
+        {
+          kind: "nodal",
+          nodeId: "n1",
+          force: [
+            Number(ADVERSE_NULL_VECTOR[0]),
+            Number(ADVERSE_NULL_VECTOR[1]),
+            Number(ADVERSE_NULL_VECTOR[2]),
+          ],
+        },
+      ],
+    });
+    const result = prepareAnalysis(builder.finalize()).solveCase("LC");
+    expect(result.diagnostics.status).toBe("pass");
+    const displacements = Array.from(result.fullDisplacements);
+    expect(displacements).not.toEqual([0, 0, 0, 0, 0, 0]);
+    expect(displacements[0]!).toBeCloseTo(7279735, 4);
+    expect(displacements[1]!).toBeCloseTo(-5140875, 4);
+    expect(displacements[2]!).toBeCloseTo(-7313500, 4);
+    expect(displacements[3]!).toBeCloseTo(0, 4);
+    expect(displacements[4]!).toBeCloseTo(0, 4);
+    expect(displacements[5]!).toBeCloseTo(0, 4);
+  });
+
+  it.each([
+    ["identity", 1],
+    ["0.1", 0.1],
+    ["0.2", 0.2],
+    ["1.1", 1.1],
+    ["1.3", 1.3],
+    ["sqrt(2)", Math.SQRT2],
+    ["1e-200", 1e-200],
+    ["1e-100", 1e-100],
+    ["1e100", 1e100],
+    ["-0.1", -0.1],
+    ["-1.3", -1.3],
+  ] as const)(
+    "FR-XF-003-07: scaling exactly one row by %s leaves rank, redundancy, and the recovered null direction invariant",
+    (_label, factor) => {
+      const scaledRows = ADVERSE_ROWS.map((row, index) =>
+        index === 1 ? row.map((coefficient) => coefficient * factor) : [...row],
+      );
+      const equations = scaledRows.map((coefficients, index) =>
+        equation(`r${index}`, coefficients),
+      );
+      const analysis = analyzeConstraintRank(equations);
+      expect(analysis.rank).toBe(2);
+      expect(analysis.redundantSourceIds).toHaveLength(1);
+      const compiled = compileConstraints(3, equations);
+      expect(compiled.reducedDofCount).toBe(1);
+      expect(compiled.freeDofs).toHaveLength(1);
+      expectRecoveredParallelToNullVector(Array.from(compiled.recover([1])), ADVERSE_NULL_VECTOR);
+      const violation = findSemanticTransformViolation(makeRawEquations(scaledRows), compiled.rows);
+      expect(violation).toBeUndefined();
+    },
+  );
+
+  it("FR-XF-003-08: mixed-scale exact-rank oracle sweep — rank matches BigInt oracle on 100,000 systems with a in +/-2000, b in +/-8000, c=alpha*a+beta*b", () => {
+    const random = mulberry32(20260417);
+    const randomCoefficient = randomInteger(random);
+    const scalingFactors = [1, -1, 9, -9];
+    let overRanks = 0;
+    let underRanks = 0;
+    for (let trial = 0; trial < 100_000; trial += 1) {
+      const a = [
+        randomCoefficient(-2000, 2000),
+        randomCoefficient(-2000, 2000),
+        randomCoefficient(-2000, 2000),
+      ];
+      const b = [
+        randomCoefficient(-8000, 8000),
+        randomCoefficient(-8000, 8000),
+        randomCoefficient(-8000, 8000),
+      ];
+      const alpha = scalingFactors[randomCoefficient(0, 3)]!;
+      const beta = scalingFactors[randomCoefficient(0, 3)]!;
+      const c = [
+        alpha * a[0]! + beta * b[0]!,
+        alpha * a[1]! + beta * b[1]!,
+        alpha * a[2]! + beta * b[2]!,
+      ];
+      if (exactRankInteger([a, b, c]) !== 2) continue;
+      const analysis = analyzeConstraintRank(
+        [a, b, c].map((row, index) => equation(`r${index}`, row)),
+      );
+      if (analysis.rank !== 2) overRanks += 1;
+      else if (analysis.redundantSourceIds.length !== 1) underRanks += 1;
+    }
+    expect(overRanks).toBe(0);
+    expect(underRanks).toBe(0);
+  }, 120_000);
+});
