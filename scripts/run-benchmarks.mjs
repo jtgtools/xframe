@@ -1,12 +1,6 @@
 import { writeFileSync } from "node:fs";
 import { performance } from "node:perf_hooks";
-import { assembleStiffness } from "../dist/analysis/assemble-stiffness.js";
-import { prepareAnalysis } from "../dist/analysis/prepare-analysis.js";
-import { buildAdjacency } from "../dist/linalg/adjacency.js";
-import { reverseCuthillMcKee } from "../dist/linalg/reverse-cuthill-mckee.js";
-import { factorSkylineCholesky } from "../dist/linalg/skyline-cholesky.js";
-import { createSkylineProfile } from "../dist/linalg/skyline-profile.js";
-import { createModelBuilder } from "../dist/model/model-builder.js";
+import { createModelBuilder, prepareAnalysis } from "../dist/index.js";
 
 const units = {
   version: "1",
@@ -47,45 +41,31 @@ function buildChain(equations) {
 
 function run(equations) {
   const topology = timed(() => buildChain(equations));
-  const assembly = timed(() => assembleStiffness(topology.value));
-  const ordering = timed(() => reverseCuthillMcKee(buildAdjacency(assembly.value.reduced)));
-  const profile = timed(() => createSkylineProfile(assembly.value.reduced, ordering.value));
-  const factorization = timed(() => factorSkylineCholesky(profile.value));
-  const rhs = new Float64Array(equations);
-  rhs[equations - 1] = 1;
-  const solve = timed(() => factorization.value.solve(rhs));
-  const recovery = timed(() => assembly.value.constraints.recover(solve.value));
   const preparation = timed(() => prepareAnalysis(topology.value));
   const firstCase = timed(() => preparation.value.solveCase("P1"));
   const secondCase = timed(() => preparation.value.solveCase("P2"));
-  const coordinateNonzeros = [...assembly.value.full.entries()].length;
+  const statistics = preparation.value.statistics;
+  const coordinateNonzeros = statistics.fullNonzeros;
   const estimatedBytes =
-    coordinateNonzeros * 24 + profile.value.storageCount * 8 + equations * 8 * 5;
+    coordinateNonzeros * 24 + statistics.skylineStorage * 8 + equations * 8 * 5;
   return {
     equations,
     coordinateNonzeros,
-    skylineStorage: profile.value.storageCount,
+    skylineStorage: statistics.skylineStorage,
     estimatedSparseWorkingBytes: estimatedBytes,
     timingsMilliseconds: {
       topology: topology.milliseconds,
-      assembly: assembly.milliseconds,
-      ordering: ordering.milliseconds,
-      profile: profile.milliseconds,
-      factorization: factorization.milliseconds,
-      solve: solve.milliseconds,
-      recovery: recovery.milliseconds,
       prepareEndToEnd: preparation.milliseconds,
       firstCase: firstCase.milliseconds,
       reusedSecondCase: secondCase.milliseconds,
     },
-    reuse: preparation.value.statistics,
+    reuse: statistics,
     checks: {
-      finalDisplacement: recovery.value[equations - 1],
+      finalDisplacement: firstCase.value.fullDisplacements[equations - 1],
       loadScalingRatio:
         secondCase.value.fullDisplacements[equations - 1] /
         firstCase.value.fullDisplacements[equations - 1],
       normalizedResidual: firstCase.value.diagnostics.normalizedResidual,
-      minimumNormalizedPivot: factorization.value.diagnostics.minimumNormalizedPivot,
     },
   };
 }
@@ -93,7 +73,7 @@ function run(equations) {
 const sizes = [500, 2000, 5000];
 if (process.env.XFRAME_BENCH_10000 === "1") sizes.push(10000);
 const report = {
-  schemaVersion: "1",
+  schemaVersion: "2",
   runtime: { node: process.version, platform: process.platform, architecture: process.arch },
   model:
     "deterministic one-DOF spring chain with one ground spring, N-1 link springs, and two load cases",

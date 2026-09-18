@@ -103,3 +103,5 @@ No nonlinearity, dynamics, buckling, temperature, staged construction, meshing, 
 npm ci
 npm run check
 ```
+
+`npm run build` bundles the package into `dist/` with tsdown.

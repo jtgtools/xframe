@@ -1,8 +1,8 @@
 {
-  "schemaVersion": "1",
+  "schemaVersion": "2",
   "runtime": {
-    "node": "v24.15.0",
-    "platform": "win32",
+    "node": "v24.20.0",
+    "platform": "linux",
     "architecture": "x64"
   },
   "model": "deterministic one-DOF spring chain with one ground spring, N-1 link springs, and two load cases",
@@ -13,16 +13,10 @@
       "skylineStorage": 999,
       "estimatedSparseWorkingBytes": 51968,
       "timingsMilliseconds": {
-        "topology": 15.966099999999983,
-        "assembly": 10.405999999999977,
-        "ordering": 0.897199999999998,
-        "profile": 0.48409999999998377,
-        "factorization": 0.2879000000000076,
-        "solve": 0.25669999999999504,
-        "recovery": 0.19389999999998508,
-        "prepareEndToEnd": 6.650299999999987,
-        "firstCase": 16.265000000000015,
-        "reusedSecondCase": 12.325900000000019
+        "topology": 24.396317000000003,
+        "prepareEndToEnd": 23.482418000000003,
+        "firstCase": 29.241991999999996,
+        "reusedSecondCase": 21.570502000000005
       },
       "reuse": {
         "assemblyCount": 1,
@@ -37,8 +31,7 @@
       "checks": {
         "finalDisplacement": 0.4960779451528093,
         "loadScalingRatio": 2,
-        "normalizedResidual": 1.7053025658242404e-13,
-        "minimumNormalizedPivot": 0.4997501249375313
+        "normalizedResidual": 1.7053025658242404e-13
       }
     },
     {
@@ -47,16 +40,10 @@
       "skylineStorage": 3999,
       "estimatedSparseWorkingBytes": 207968,
       "timingsMilliseconds": {
-        "topology": 20.827300000000008,
-        "assembly": 19.557299999999998,
-        "ordering": 1.8021999999999991,
-        "profile": 1.1888999999999896,
-        "factorization": 0.18600000000000705,
-        "solve": 0.18629999999998859,
-        "recovery": 0.1542999999999779,
-        "prepareEndToEnd": 22.33419999999998,
-        "firstCase": 114.69279999999998,
-        "reusedSecondCase": 108.67340000000002
+        "topology": 42.31998199999998,
+        "prepareEndToEnd": 42.370389999999986,
+        "firstCase": 197.870875,
+        "reusedSecondCase": 213.381256
       },
       "reuse": {
         "assemblyCount": 1,
@@ -71,8 +58,7 @@
       "checks": {
         "finalDisplacement": 1.9842062781062504,
         "loadScalingRatio": 2,
-        "normalizedResidual": 6.821210263296962e-13,
-        "minimumNormalizedPivot": 0.4997501249375313
+        "normalizedResidual": 6.821210263296962e-13
       }
     },
     {
@@ -81,16 +67,10 @@
       "skylineStorage": 9999,
       "estimatedSparseWorkingBytes": 519968,
       "timingsMilliseconds": {
-        "topology": 46.692800000000034,
-        "assembly": 49.524,
-        "ordering": 2.6099000000000387,
-        "profile": 0.8170000000000073,
-        "factorization": 0.36559999999997217,
-        "solve": 0.4157000000000153,
-        "recovery": 0.26940000000001874,
-        "prepareEndToEnd": 46.486999999999966,
-        "firstCase": 605.8676,
-        "reusedSecondCase": 609.2630999999999
+        "topology": 87.98894599999994,
+        "prepareEndToEnd": 113.92670600000008,
+        "firstCase": 1126.671176,
+        "reusedSecondCase": 1159.293066
       },
       "reuse": {
         "assemblyCount": 1,
@@ -105,8 +85,34 @@
       "checks": {
         "finalDisplacement": 4.960449457857828,
         "loadScalingRatio": 2,
-        "normalizedResidual": 2.7284841053187847e-12,
-        "minimumNormalizedPivot": 0.4997501249375313
+        "normalizedResidual": 2.7284841053187847e-12
+      }
+    },
+    {
+      "equations": 10000,
+      "coordinateNonzeros": 19999,
+      "skylineStorage": 19999,
+      "estimatedSparseWorkingBytes": 1039968,
+      "timingsMilliseconds": {
+        "topology": 188.91004900000007,
+        "prepareEndToEnd": 190.2549610000001,
+        "firstCase": 4356.953639,
+        "reusedSecondCase": 4233.9706080000005
+      },
+      "reuse": {
+        "assemblyCount": 1,
+        "factorizationCount": 1,
+        "solveCount": 2,
+        "fullNonzeros": 19999,
+        "reducedNonzeros": 19999,
+        "skylineStorage": 19999,
+        "skylineMaximumRowWidth": 2,
+        "skylineBandwidth": 2
+      },
+      "checks": {
+        "finalDisplacement": 9.920894927604477,
+        "loadScalingRatio": 2,
+        "normalizedResidual": 7.275957614183426e-12
       }
     }
   ]

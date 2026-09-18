@@ -1,16 +1,11 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { findRuntimeBoundaryViolations } from "./runtime-boundary-utils.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const sourceRoot = join(root, "src");
-const forbidden = [
-  { pattern: /(?:from\s+|import\s*\()\s*["']node:/u, reason: "Node built-in import" },
-  { pattern: /\bprocess\s*\./u, reason: "process global" },
-  { pattern: /\bBuffer\b/u, reason: "Buffer global" },
-  { pattern: /\b__dirname\b|\b__filename\b/u, reason: "CommonJS path global" },
-  { pattern: /\brequire\s*\(/u, reason: "CommonJS require" },
-];
+const distRoot = join(root, "dist");
 
 function files(directory) {
   return readdirSync(directory)
@@ -20,16 +15,26 @@ function files(directory) {
 
 const violations = [];
 for (const path of files(sourceRoot).filter((entry) => entry.endsWith(".ts"))) {
-  const source = readFileSync(path, "utf8");
-  for (const rule of forbidden) {
-    if (rule.pattern.test(source)) violations.push(`${relative(root, path)}: ${rule.reason}`);
+  for (const reason of findRuntimeBoundaryViolations(readFileSync(path, "utf8"))) {
+    violations.push(`${relative(root, path)}: ${reason}`);
+  }
+}
+const builtEntry = join(distRoot, "index.js");
+if (existsSync(builtEntry)) {
+  for (const reason of findRuntimeBoundaryViolations(readFileSync(builtEntry, "utf8"))) {
+    violations.push(`${relative(root, builtEntry)}: ${reason}`);
+  }
+  const stray = files(distRoot).filter((entry) => entry.endsWith(".js") && entry !== builtEntry);
+  if (stray.length > 0) {
+    violations.push(
+      `dist is not a single-file bundle: ${stray.map((entry) => relative(root, entry)).join(", ")}`,
+    );
   }
 }
 if (violations.length > 0) {
   console.error("Browser runtime boundary violations:\n" + violations.join("\n"));
   process.exitCode = 1;
 } else {
-  const builtEntry = join(root, "dist", "index.js");
   if (existsSync(builtEntry)) await import(pathToFileURL(builtEntry).href);
   console.log(
     `Browser runtime boundary clean (${files(sourceRoot).filter((entry) => entry.endsWith(".ts")).length} source modules).`,

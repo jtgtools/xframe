@@ -148,15 +148,14 @@ export function derivePhysicalDofTopology(model: ModelSnapshot): PhysicalDofTabl
     const nodeOrder = compareIdentifiers(left.nodeId, right.nodeId);
     return nodeOrder === 0 ? DOF_ORDER.get(left.dof)! - DOF_ORDER.get(right.dof)! : nodeOrder;
   });
-  const entries = ordered.map(
-    (entry, physicalIndex): PhysicalDofMetadata =>
-      Object.freeze({
-        key: createDofKey(entry.nodeId, entry.dof),
-        nodeId: entry.nodeId,
-        dof: entry.dof,
-        physicalIndex,
-        requestedBy: Object.freeze([...entry.sources].toSorted()),
-      }),
+  const entries = ordered.map((entry, physicalIndex): PhysicalDofMetadata =>
+    Object.freeze({
+      key: createDofKey(entry.nodeId, entry.dof),
+      nodeId: entry.nodeId,
+      dof: entry.dof,
+      physicalIndex,
+      requestedBy: Object.freeze([...entry.sources].toSorted()),
+    }),
   );
   const table = new PhysicalDofTable(Object.freeze(entries));
   validateConstraintTargets(model.constraints, table);
