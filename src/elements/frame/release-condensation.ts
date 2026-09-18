@@ -32,7 +32,7 @@ function checkedMatrix(values: ArrayLike<number>, length: number, path: string):
 function factorPositiveDefinite(matrix: number[][]): number[][] {
   const size = matrix.length;
   const factor = Array.from({ length: size }, () => Array.from({ length: size }, () => 0));
-  const scale = Math.max(1, ...matrix.map((row, index) => Math.abs(row[index]!)));
+  const scale = Math.max(...matrix.map((row, index) => Math.abs(row[index]!)));
   for (let row = 0; row < size; row += 1) {
     for (let column = 0; column <= row; column += 1) {
       let value = matrix[row]![column]!;

@@ -97,7 +97,7 @@ function frameResults(
       );
       return Object.freeze({
         id: frame.record.id,
-        localEndDisplacements: frozenNumbers(localDisplacements),
+        localEndDisplacements: frozenNumbers(kernel.recoverLocalDisplacements(localDisplacements)),
         globalEndDisplacements: frozenNumbers(globalDisplacements),
         localEndForces: frozenNumbers(localEndForces),
         globalEndForces: frozenNumbers(transform.forceToGlobal(localEndForces)),

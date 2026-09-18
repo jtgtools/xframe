@@ -39,6 +39,40 @@ describe("frame release condensation", () => {
     );
   });
 
+  it.each([1, 1e-24, 1e-100, 1e100])(
+    "FR-ELE-005: preserves release condensation under stiffness and load scaling by %s",
+    (scale) => {
+      const load = new Float64Array(12);
+      load[11] = 1;
+      const reference = condenseFrameEndReleases(k, load, 1 << 11);
+      const scaled = condenseFrameEndReleases(
+        k.map((value) => value * scale),
+        load.map((value) => value * scale),
+        1 << 11,
+      );
+      for (let index = 0; index < k.length; index += 1) {
+        expect(scaled.stiffness[index]! / scale / k[143]!).toBeCloseTo(
+          reference.stiffness[index]! / k[143]!,
+          12,
+        );
+      }
+      for (let index = 0; index < load.length; index += 1) {
+        expect(scaled.load[index]! / scale).toBeCloseTo(reference.load[index]!, 12);
+      }
+      expect(scaled.recoverLocalDisplacements(new Float64Array(12))[11]! * k[143]!).toBeCloseTo(
+        1,
+        12,
+      );
+      expect(() =>
+        condenseFrameEndReleases(
+          k.map((value) => value * scale),
+          new Float64Array(12),
+          (1 << 0) | (1 << 6),
+        ),
+      ).toThrow(expect.objectContaining({ code: "ELEMENT_LOCAL_MECHANISM" }));
+    },
+  );
+
   it("FR-ELE-006: classifies every one of the 4,096 masks", () => {
     const summary = classifyAllFrameReleaseMasks(k);
     expect(summary.validCount + summary.invalidCount).toBe(4096);

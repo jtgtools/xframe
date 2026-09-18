@@ -1,6 +1,7 @@
 import { expect, it } from "vitest";
 import { prepareAnalysis } from "../../src/analysis/prepare-analysis.js";
 import { createModelBuilder } from "../../src/model/model-builder.js";
+import type { FrameReleaseInput } from "../../src/model/domain-records.js";
 
 function fixedFrame(
   length: number,
@@ -12,6 +13,7 @@ function fixedFrame(
     "ry",
     "rz",
   ],
+  releases?: FrameReleaseInput,
 ) {
   const builder = createModelBuilder()
     .setUnitSystem({
@@ -42,6 +44,7 @@ function fixedFrame(
       sectionId: "s",
       theory: { kind: "euler-bernoulli" },
       orientation: [0, 1, 0],
+      ...(releases === undefined ? {} : { releases }),
     });
   for (const dof of startDofs)
     builder.addConstraint({
@@ -202,6 +205,50 @@ it("FR-RES-002/FR-RES-005: returns independent global and local frame end displa
   expect(Object.isFrozen(frame.globalEndDisplacements)).toBe(true);
   expect(Object.isFrozen(frame.localEndDisplacements)).toBe(true);
 });
+
+it.each(["start", "end"] as const)(
+  "FR-RES-002/FR-ELE-005: reports recovered %s hinge rotation separately from fixed joint rotation",
+  (end) => {
+    const length = 4;
+    const intensity = 1000;
+    const builder = fixedFrame(length, undefined, { [end]: ["rz"] });
+    for (const dof of ["tx", "ty", "tz", "rx", "ry", "rz"] as const) {
+      builder.addConstraint({
+        id: `b:${dof}`,
+        terms: [{ nodeId: "b", dof, coefficient: 1 }],
+        rightHandSide: 0,
+      });
+    }
+    const result = prepareAnalysis(
+      builder
+        .addLoadCase({
+          id: "q",
+          loads: [
+            {
+              kind: "member-distributed",
+              frameId: "f",
+              coordinateSystem: "local",
+              startIntensity: [0, -intensity, 0],
+              endIntensity: [0, -intensity, 0],
+            },
+          ],
+        })
+        .finalize(),
+    ).solveCase("q");
+    const frame = result.frames[0]!;
+    const releasedDof = end === "start" ? 5 : 11;
+    const rotation = (intensity * length ** 3) / (48 * 200e9 * 2e-5);
+    expect(frame.localEndDisplacements[releasedDof]! / rotation).toBeCloseTo(
+      end === "start" ? -1 : 1,
+      12,
+    );
+    expect(frame.globalEndDisplacements).toEqual(Array(12).fill(0));
+    expect(result.fullDisplacements).toEqual(Array(12).fill(0));
+    expect(frame.localEndForces[releasedDof]).toBeCloseTo(0, 9);
+    expect(Object.isFrozen(frame.localEndDisplacements)).toBe(true);
+    expect(result.diagnostics.status).toBe("pass");
+  },
+);
 
 it("FR-RES-004: inserts left and right stations at point-force discontinuities", () => {
   const length = 4;
