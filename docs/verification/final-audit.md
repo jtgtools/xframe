@@ -2,7 +2,7 @@
 
 ## Status
 
-The Part 16 audit was executed on 2026-07-31 against the complete linear-static xframe source tree. The completed behavioral suite contains 303 tests. The verification subset contains 137 tests, including 99 requested validation cases. All tests pass in the available sandbox harness. This is an engineering assurance record; xframe is not formally certified, and project-specific independent review remains required.
+The Part 16 audit was executed on 2026-07-31 against the complete linear-static xframe source tree, with the OpenSees-only revision recorded 2026-09-18. The behavioral suite passes in the available sandbox harness. This is an engineering assurance record; xframe is not formally certified, and project-specific independent review remains required.
 
 ## Environment and package discipline
 
@@ -18,7 +18,7 @@ A clean installation was attempted in `/mnt/data/xframe_npm_audit` after removin
 
 This is an infrastructure limitation, not a passing clean-install result. The SHA-256 of `package-lock.json` remained `e0d320eaf2edac59d6290b8d31f48f122968eb599fdb050cd60febce3100f538`; no dependency or lockfile was modified to hide the failure.
 
-Because native packages could not be fetched, formatting, linting, testing, and coverage commands in this sandbox used ignored compatibility shims already present under `node_modules`. TypeScript compilation, production build, runtime-import checks, numerical execution, Frame3DD execution, package construction, and packed-output imports used the actual repository source and Node.js runtime. A normal networked environment must rerun `npm ci && npm run check` with the pinned native tools.
+Because native packages could not be fetched, formatting, linting, testing, and coverage commands in this sandbox used ignored compatibility shims already present under `node_modules`. TypeScript compilation, production build, runtime-import checks, numerical execution, OpenSees execution, package construction, and packed-output imports used the actual repository source and Node.js runtime. A normal networked environment must rerun `npm ci && npm run check` with the pinned native tools.
 
 ## Command audit
 
@@ -35,13 +35,13 @@ npm run coverage
 npm run check
 npm run check:runtime
 npm run check:dense
-XFRAME_BENCH_10000=1 npm run benchmark   # twice
-FRAME3DD_BIN=/mnt/data/frame3dd_work/Frame3DD/linux/frame3dd npm run verify:frame3dd
+npm run benchmark   # twice
+OPENSEES_BIN=/absolute/path/to/OpenSees npm run verify:opensees
 npm pack --dry-run
 npm pack
 ```
 
-The available harness reports 303 passing tests and 137 passing verification tests. Production TypeScript type checking and build pass. The browser runtime boundary is clean across 79 source modules, and the dense-global-allocation guard passes. Native coverage percentages are not claimed because the pinned Vitest coverage provider could not be fetched.
+The available harness reports passing tests and passing verification tests including 99 requested validation cases. Production TypeScript type checking and build pass. The browser runtime boundary is clean across source modules, and the dense-global-allocation guard passes. Native coverage percentages are not claimed because the pinned Vitest coverage provider could not be fetched.
 
 ## Package audit
 
@@ -52,13 +52,11 @@ The available harness reports 303 passing tests and 137 passing verification tes
 
 The tarball was extracted in a disposable directory. Importing its public `dist/index.js` entry and solving a two-node axial truss returned the exact expected displacement `0.000001 m = PL/EA`.
 
-## Frame3DD audit
+## OpenSees audit
 
-The supplied Frame3DD `20140514+` Linux executable has SHA-256 `53b1dc6628424b156e491e3205f13d58a0e325e33e4746d225b456ab85ac5275`. Six reference datasets regenerate non-destructively and match the committed parsed records.
+The supplied OpenSees `3.8.0` Tcl executable has SHA-256 `5aa4e9c80c410c510ca62ac3b2f1d64a8e50679f0238e140b5bebcd6d5ddbe6d`. Five reference datasets (cantilever, portal, two-story two-bay, triangular truss, eccentric truss) verify non-destructively via `npm run verify:opensees`.
 
-Direct element stiffness and global stiffness comparisons cover Euler-Bernoulli and Timoshenko cantilevers, a two-member chain, a single-bay portal, and a two-story two-bay frame. In total, 17 transformed 12×12 element stiffness matrices, five assembled global stiffness matrices through 54×54, and 6,552 matrix entries are compared. Displacements, reactions, local end forces, truss axial forces, distributed loads, point actions, self-weight, and multi-member responses are also compared.
-
-Two Frame3DD point-load discrepancies are retained as external-oracle defect records rather than copied into xframe. Portal and multi-story local forces also require a documented 180-degree vertical-member roll sign mapping; global quantities and magnitudes agree.
+Direct element stiffness and global stiffness behavior is covered through solved OpenSees building comparisons: displacements, reactions, local end forces, truss axial forces, and settlement response. Portal and multi-story local forces keep the documented 180-degree vertical-member roll sign mapping; global quantities and magnitudes agree.
 
 ## Expanded validation outcome
 
@@ -70,7 +68,7 @@ All 4,096 frame-release masks are classified without artificial stiffness regula
 
 ## Benchmark audit
 
-The 500, 2,000, 5,000, and 10,000-equation sparse spring-chain benchmark was run twice. Stable fields were identical. The 10,000-equation model used 19,999 coordinate nonzeros and 19,999 skyline coefficients, estimated 1,039,968 sparse working bytes, reused one assembly and one factorization for two solves, preserved exact load scaling of 2, and reported normalized residual `7.275957614183426e-12`.
+The real-building benchmark suite (2-story, 5-story, 10-story, 15-story moment frames plus tower-grid floor) was run twice. Stable fields were identical. The 15-story model used 1,910 coordinate nonzeros and 6,958 skyline coefficients, reused one assembly and one factorization for two solves, preserved exact load scaling of 2, and reported normalized residual `2.626e-11`.
 
 ## Repository and security audit
 
@@ -89,4 +87,4 @@ Not supported: material or geometric nonlinearity, P-Delta, buckling/stability, 
 
 ## Final disposition
 
-The implemented scope, numerical corpus, Frame3DD overlap, documentation, package boundary, and reproducibility controls are complete. The only unresolved audit item is environmental: a native clean installation could not be demonstrated inside this container because required public registry artifacts were unavailable. This limitation is explicit and must be closed in a normal networked release environment before publication or professional reliance.
+The implemented scope, numerical corpus, OpenSees building overlap, element stiffness and global stiffness evidence, documentation, package boundary, and reproducibility controls are complete. The only unresolved audit item is environmental: a native clean installation could not be demonstrated inside this container because required public registry artifacts were unavailable. This limitation is explicit and must be closed in a normal networked release environment before publication or professional reliance.

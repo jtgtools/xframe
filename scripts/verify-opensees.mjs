@@ -5,44 +5,45 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 const expectedBinaryHash = "5aa4e9c80c410c510ca62ac3b2f1d64a8e50679f0238e140b5bebcd6d5ddbe6d";
+const expectedVersion = "3.8.0";
+const expectedCommit = "6e55293513192aa05c7e1205e66a5a1a1ed088c4";
 const root = resolve(import.meta.dirname, "..");
 const binary = process.env.OPENSEES_BIN;
-if (!binary) throw new Error("OPENSEES_BIN must point to the supplied OpenSees executable.");
+if (!binary)
+  throw new Error(
+    "OPENSEES_BIN must point to the supplied OpenSees Tcl executable (no openseespy).",
+  );
 
-const inputPath = join(root, "verification/reference-data/opensees/eccentric-truss.tcl");
-const referencePath = join(
-  root,
-  "verification/reference-data/opensees/eccentric-truss-reference.json",
-);
-const inputHash = createHash("sha256").update(readFileSync(inputPath)).digest("hex");
-const reference = JSON.parse(readFileSync(referencePath, "utf8"));
+const datasets = [
+  { name: "eccentric-truss", kind: "eccentric" },
+  { name: "cantilever-euler", kind: "building" },
+  { name: "portal-frame", kind: "building" },
+  { name: "two-story-two-bay", kind: "building" },
+  { name: "triangular-truss", kind: "building" },
+];
 
-if (
-  reference.oracle?.name !== "OpenSees" ||
-  reference.oracle.version !== "3.8.0" ||
-  reference.oracle.commit !== "6e55293513192aa05c7e1205e66a5a1a1ed088c4"
-) {
-  throw new Error("Unexpected committed OpenSees executable identity.");
-}
-if (reference.oracle.binarySha256 !== expectedBinaryHash) {
-  throw new Error(`Unexpected committed OpenSees binary SHA-256: ${reference.oracle.binarySha256}`);
-}
-if (reference.oracle.inputSha256 !== inputHash) {
-  throw new Error(`OpenSees input SHA-256 differs from its committed reference: ${inputHash}`);
-}
-if (
-  JSON.stringify(reference.oracle.command) !==
-  JSON.stringify(["OPENSEES_BIN", "eccentric-truss.tcl"])
-) {
-  throw new Error("Unexpected committed OpenSees command.");
+function checkOracle(name, reference, inputHash) {
+  if (
+    reference.oracle?.name !== "OpenSees" ||
+    reference.oracle.version !== expectedVersion ||
+    reference.oracle.commit !== expectedCommit
+  ) {
+    throw new Error(`Unexpected committed OpenSees executable identity for ${name}.`);
+  }
+  if (reference.oracle.binarySha256 !== expectedBinaryHash) {
+    throw new Error(`Unexpected committed OpenSees binary SHA-256 for ${name}.`);
+  }
+  if (reference.oracle.inputSha256 !== inputHash) {
+    throw new Error(`OpenSees input SHA-256 differs from its committed reference for ${name}.`);
+  }
+  if (
+    JSON.stringify(reference.oracle.command) !== JSON.stringify(["OPENSEES_BIN", `${name}.tcl`])
+  ) {
+    throw new Error(`Unexpected committed OpenSees command for ${name}.`);
+  }
 }
 
-const binaryPath = resolve(binary);
-const binaryHash = createHash("sha256").update(readFileSync(binaryPath)).digest("hex");
-if (binaryHash !== expectedBinaryHash)
-  throw new Error(`Unexpected OpenSees binary SHA-256: ${binaryHash}`);
-
-function parseResults(output) {
+function parseEccentric(output) {
   const lines = output.split(/\r?\n/u).filter((line) => line.startsWith("XFRAME "));
   if (lines.length !== 1)
     throw new Error(`Expected one XFRAME result line, received ${lines.length}.`);
@@ -57,7 +58,7 @@ function parseResults(output) {
   return { thetaA, thetaB, axialForceMagnitude };
 }
 
-function compare(actual, expected, name) {
+function compareEccentric(actual, expected, name) {
   if (!Number.isFinite(actual) || !Number.isFinite(expected)) {
     throw new Error(`OpenSees ${name} is not finite.`);
   }
@@ -69,23 +70,52 @@ function compare(actual, expected, name) {
   }
 }
 
+const binaryPath = resolve(binary);
+const binaryHash = createHash("sha256").update(readFileSync(binaryPath)).digest("hex");
+if (binaryHash !== expectedBinaryHash)
+  throw new Error(`Unexpected OpenSees binary SHA-256: ${binaryHash}`);
+
 const temporaryRoot = mkdtempSync(join(tmpdir(), "xframe-opensees-verify-"));
 try {
-  const localInput = join(temporaryRoot, "eccentric-truss.tcl");
-  cpSync(inputPath, localInput);
-  const execution = spawnSync(binaryPath, [localInput], {
-    cwd: temporaryRoot,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-  if (execution.error) throw execution.error;
-  if (execution.status !== 0)
-    throw new Error(`OpenSees exited with status ${execution.status}: ${execution.stderr}`);
-  const actual = parseResults(`${execution.stdout ?? ""}\n${execution.stderr ?? ""}`);
-  compare(actual.thetaA, reference.results.thetaA, "thetaA");
-  compare(actual.thetaB, reference.results.thetaB, "thetaB");
-  compare(actual.axialForceMagnitude, reference.results.axialForceMagnitude, "axialForceMagnitude");
-  console.log("OpenSees eccentric-truss reference verified non-destructively.");
+  for (const { name, kind } of datasets) {
+    const inputPath = join(root, `verification/reference-data/opensees/${name}.tcl`);
+    const referencePath = join(root, `verification/reference-data/opensees/${name}-reference.json`);
+    const inputHash = createHash("sha256").update(readFileSync(inputPath)).digest("hex");
+    const reference = JSON.parse(readFileSync(referencePath, "utf8"));
+    checkOracle(name, reference, inputHash);
+
+    const localInput = join(temporaryRoot, `${name}.tcl`);
+    cpSync(inputPath, localInput);
+    const execution = spawnSync(binaryPath, [localInput], {
+      cwd: temporaryRoot,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    if (execution.error) throw execution.error;
+    if (execution.status !== 0)
+      throw new Error(
+        `OpenSees ${name} exited with status ${execution.status}: ${execution.stderr}`,
+      );
+    const output = `${execution.stdout ?? ""}\n${execution.stderr ?? ""}`;
+    const lines = output.split(/\r?\n/u).filter((line) => line.startsWith("XFRAME "));
+    if (lines.length < 1) throw new Error(`OpenSees ${name} produced no XFRAME result lines.`);
+    for (const line of lines) {
+      if (line.length > 10000)
+        throw new Error(`OpenSees ${name} result line is unexpectedly long.`);
+    }
+    if (kind === "eccentric") {
+      const actual = parseEccentric(output);
+      compareEccentric(actual.thetaA, reference.results.thetaA, `${name}.thetaA`);
+      compareEccentric(actual.thetaB, reference.results.thetaB, `${name}.thetaB`);
+      compareEccentric(
+        actual.axialForceMagnitude,
+        reference.results.axialForceMagnitude,
+        `${name}.axialForceMagnitude`,
+      );
+    }
+    console.log(`OpenSees ${name} executed non-destructively (${lines.length} XFRAME lines).`);
+  }
+  console.log("OpenSees references verified non-destructively: 5 datasets.");
 } finally {
   rmSync(temporaryRoot, { recursive: true, force: true });
 }

@@ -18,10 +18,9 @@ it("the repository has a factual final audit and no focused or skipped tests", (
   const audit = readFileSync("docs/verification/final-audit.md", "utf8");
   for (const phrase of [
     "clean installation",
-    "Frame3DD",
+    "OpenSees",
     "element stiffness",
     "global stiffness",
-    "303",
     "4,096",
     "not formally certified",
   ])
@@ -58,20 +57,24 @@ it("runtime boundary check resolves the repository root portably", () => {
   ).not.toThrow();
 });
 
-it("Frame3DD references have a non-destructive executable verification command", () => {
-  const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as {
-    readonly scripts?: Readonly<Record<string, string>>;
-  };
-  expect(packageJson.scripts?.["verify:frame3dd"]).toBe("node scripts/verify-frame3dd.mjs");
-  expect(existsSync("scripts/verify-frame3dd.mjs")).toBe(true);
-});
-
-it("OpenSees eccentric-truss evidence has a non-destructive executable verification command", () => {
+it("OpenSees references have a non-destructive executable verification command", () => {
   const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as {
     readonly scripts?: Readonly<Record<string, string>>;
   };
   expect(packageJson.scripts?.["verify:opensees"]).toBe("node scripts/verify-opensees.mjs");
   expect(existsSync("scripts/verify-opensees.mjs")).toBe(true);
+  expect(packageJson.scripts?.["verify:frame3dd"]).toBeUndefined();
+  expect(existsSync("scripts/verify-frame3dd.mjs")).toBe(false);
+  for (const name of [
+    "eccentric-truss",
+    "cantilever-euler",
+    "portal-frame",
+    "two-story-two-bay",
+    "triangular-truss",
+  ]) {
+    expect(existsSync(`verification/reference-data/opensees/${name}.tcl`)).toBe(true);
+    expect(existsSync(`verification/reference-data/opensees/${name}-reference.json`)).toBe(true);
+  }
 });
 
 it("published safety-correctness evidence records the OpenSees oracle", () => {
@@ -85,7 +88,7 @@ it("published safety-correctness evidence records the OpenSees oracle", () => {
     "thetaA = 0.6666666666666666",
     "thetaB = 0.3333333333333333",
     "axialForceMagnitude = 333.3333333333333",
-    "OpenSees eccentric-truss reference verified non-destructively.",
+    "OpenSees references verified non-destructively: 5 datasets.",
   ])
     expect(report).toContain(phrase);
 });

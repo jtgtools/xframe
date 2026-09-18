@@ -40,13 +40,15 @@ Skyline storage is estimated before `Float64Array` allocation. The estimate incl
 
 Command: `npm run benchmark`
 Runtime: Node.js v22.16.0
-Synthetic matrix: sparse tridiagonal SPD; one RHS; RCM + skyline Cholesky.
+Real-building suite: 6-DOF moment frames plus tower-grid floor; two proportional RHS; RCM + skyline Cholesky.
 
-| Equations | Stored coefficients | Assembly ms | Ordering ms | Profile ms | Factorization ms | Solve ms |
-| --------: | ------------------: | ----------: | ----------: | ---------: | ---------------: | -------: |
-|       500 |                 999 |       2.329 |       1.034 |      0.586 |            0.486 |    0.342 |
-|     2,000 |               3,999 |       4.757 |       5.059 |      0.899 |            0.474 |    0.744 |
-|     5,000 |               9,999 |       7.124 |       6.834 |      2.647 |            1.624 |    2.119 |
+| Scenario       | Equations | Stored coefficients | Skyline coefficients | Bandwidth |
+| -------------- | --------: | ------------------: | -------------------: | --------: |
+| 2-story-2-bay  |        54 |                 174 |                  204 |         9 |
+| 5-story-3-bay  |       144 |                 530 |                1,370 |        18 |
+| 10-story-4-bay |       330 |               1,290 |                4,458 |        20 |
+| 15-story-4-bay |       480 |               1,910 |                6,958 |        20 |
+| tower-grid     |        72 |                 230 |                  255 |        13 |
 
 Timing is a local observation, not a pass/fail criterion. Equation counts, storage counts, pivot diagnostics, residuals, and solution checks are deterministic.
 

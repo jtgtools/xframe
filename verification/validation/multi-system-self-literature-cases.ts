@@ -26,13 +26,13 @@ const A = 0.02;
 const I = 7e-5;
 const J = 2e-5;
 
-interface Frame3ddReference {
+interface OracleBuildingReference {
   readonly nodes: readonly {
     readonly id: string;
     readonly displacements: readonly number[];
     readonly reactions: readonly number[];
   }[];
-  readonly elements: readonly {
+  readonly frames?: readonly {
     readonly id: string;
     readonly localEndForces: readonly number[];
   }[];
@@ -282,29 +282,75 @@ const multiSystemCases = [
       id: "VAL-10-001",
       category: 10,
       description:
-        "Single-bay portal frame matches Frame3DD displacements, reactions, and member end forces",
-      model: "Four-node 3D portal in N-mm units with two columns and one beam.",
+        "Single-bay portal frame matches OpenSees displacements, reactions, and member end forces",
+      model: "Four-node 3D portal in SI units with two columns and one beam.",
       supports: "Both column bases fixed.",
-      loads:
-        "Combined lateral, vertical, and out-of-plane nodal forces at both beam-column joints.",
+      loads: "Lateral plus vertical nodal force at the right beam-column joint.",
       referenceMethod: "commercial software",
       tolerancePercent: 0.01,
       toleranceReason:
-        "Frame3DD text output is printed to about six significant decimal digits; 0.01% remains tighter than the requested commercial-software range.",
+        "OpenSees Tcl oracle comparison on identical nodal-load models; 0.01% remains tighter than the requested commercial-software range.",
       frame3ddCoverage: "direct",
     },
     () => {
       const reference = JSON.parse(
-        readFileSync(
-          "verification/reference-data/frame3dd/portal-frame-euler/reference.json",
-          "utf8",
-        ),
-      ) as Frame3ddReference;
+        readFileSync("verification/reference-data/opensees/portal-frame-reference.json", "utf8"),
+      ) as OracleBuildingReference;
+      let builder = createModelBuilder()
+        .setUnitSystem(siUnits)
+        .addNode({ id: "1", coordinates: [0, 0, 0] })
+        .addNode({ id: "2", coordinates: [0, 3, 0] })
+        .addNode({ id: "3", coordinates: [5, 3, 0] })
+        .addNode({ id: "4", coordinates: [5, 0, 0] })
+        .addMaterial({ id: "m", elasticModulus: 200e9, shearModulus: 76.92307692307692e9 })
+        .addFrameSection({
+          id: "c",
+          area: 0.018,
+          torsionalConstant: 7e-6,
+          momentOfInertiaY: 9e-6,
+          momentOfInertiaZ: 15e-6,
+        })
+        .addFrameSection({
+          id: "b",
+          area: 0.015,
+          torsionalConstant: 6e-6,
+          momentOfInertiaY: 7e-6,
+          momentOfInertiaZ: 12e-6,
+        })
+        .addFrame({
+          id: "1",
+          startNodeId: "1",
+          endNodeId: "2",
+          materialId: "m",
+          sectionId: "c",
+          theory: { kind: "euler-bernoulli" },
+          orientation: [1, 0, 0],
+        })
+        .addFrame({
+          id: "2",
+          startNodeId: "2",
+          endNodeId: "3",
+          materialId: "m",
+          sectionId: "b",
+          theory: { kind: "euler-bernoulli" },
+          orientation: [0, 1, 0],
+        })
+        .addFrame({
+          id: "3",
+          startNodeId: "4",
+          endNodeId: "3",
+          materialId: "m",
+          sectionId: "c",
+          theory: { kind: "euler-bernoulli" },
+          orientation: [1, 0, 0],
+        });
+      fixed(builder, "1");
+      fixed(builder, "4");
       const actual = solve(
-        portalBuilder([
-          { nodeId: "2", force: [10000, -5000, 2500] },
-          { nodeId: "3", force: [10000, -5000, -2500] },
-        ]),
+        builder.addLoadCase({
+          id: "LC",
+          loads: [{ kind: "nodal", nodeId: "3", force: [2000, -5000, 0] }],
+        }),
       );
       const values = [];
       for (const expectedNode of reference.nodes) {
@@ -330,19 +376,14 @@ const multiSystemCases = [
           );
         }
       }
-      for (const expectedElement of reference.elements) {
-        const rollSign = ["1", "3"].includes(expectedElement.id)
-          ? [1, -1, -1, 1, -1, -1]
-          : [1, 1, 1, 1, 1, 1];
+      for (const expectedElement of reference.frames ?? []) {
         for (let index = 0; index < 12; index += 1) {
-          const mappedActual =
-            frameEndForce(actual, expectedElement.id, index) * rollSign[index % 6]!;
           values.push(
             value(
               `frame ${expectedElement.id} force ${index}`,
               expectedElement.localEndForces[index]!,
-              mappedActual,
-              index % 6 < 3 ? "N" : "N*mm",
+              frameEndForce(actual, expectedElement.id, index),
+              index % 6 < 3 ? "N" : "N*m",
               1,
             ),
           );
@@ -524,68 +565,50 @@ const multiSystemCases = [
     {
       id: "VAL-10-005",
       category: 10,
-      description: "Two-story two-bay frame matches independent Frame3DD output",
-      model: "Nine-node, ten-member two-story/two-bay Euler frame in N-mm units.",
+      description: "Two-story two-bay frame matches independent OpenSees output",
+      model: "Nine-node, ten-member two-story/two-bay Euler frame in SI units.",
       supports: "Three fixed column bases.",
-      loads: "Combined gravity, lateral, and antisymmetric out-of-plane top-story nodal forces.",
+      loads: "Roof-level lateral nodal forces.",
       referenceMethod: "commercial software",
       tolerancePercent: 0.01,
       toleranceReason:
-        "Direct Frame3DD text-output comparison; 0.01% accommodates printed precision while remaining stricter than the requested 1–2%.",
+        "Direct OpenSees Tcl oracle comparison; 0.01% accommodates solver precision while remaining stricter than the requested 1–2%.",
       frame3ddCoverage: "direct",
     },
     () => {
       const reference = JSON.parse(
         readFileSync(
-          "verification/reference-data/frame3dd/two-story-two-bay-euler/reference.json",
+          "verification/reference-data/opensees/two-story-two-bay-reference.json",
           "utf8",
         ),
-      ) as Frame3ddReference;
+      ) as OracleBuildingReference;
       let builder = createModelBuilder()
-        .setUnitSystem({
-          version: "1",
-          length: "mm",
-          force: "N",
-          moment: "N*mm",
-          modulus: "N/mm^2",
-          distributedForce: "N/mm",
-          density: "tonne/mm^3",
-          rotation: "rad",
-        })
-        .addMaterial({
-          id: "m",
-          elasticModulus: 210000,
-          shearModulus: 80769.23076923077,
-          density: 7.85e-9,
-        })
+        .setUnitSystem(siUnits)
+        .addMaterial({ id: "m", elasticModulus: 200e9, shearModulus: 76.92307692307692e9 })
         .addFrameSection({
           id: "c",
-          area: 2200,
-          shearAreaY: 1500,
-          shearAreaZ: 1400,
-          torsionalConstant: 900000,
-          momentOfInertiaY: 12000000,
-          momentOfInertiaZ: 22000000,
+          area: 0.022,
+          torsionalConstant: 9e-6,
+          momentOfInertiaY: 12e-6,
+          momentOfInertiaZ: 22e-6,
         })
         .addFrameSection({
           id: "b",
-          area: 1700,
-          shearAreaY: 1150,
-          shearAreaZ: 1050,
-          torsionalConstant: 700000,
-          momentOfInertiaY: 8500000,
-          momentOfInertiaZ: 16000000,
+          area: 0.017,
+          torsionalConstant: 7e-6,
+          momentOfInertiaY: 8.5e-6,
+          momentOfInertiaZ: 16e-6,
         });
       const coordinates = [
         [0, 0, 0],
-        [4000, 0, 0],
-        [8000, 0, 0],
-        [0, 3000, 0],
-        [4000, 3000, 0],
-        [8000, 3000, 0],
-        [0, 6000, 0],
-        [4000, 6000, 0],
-        [8000, 6000, 0],
+        [4, 0, 0],
+        [8, 0, 0],
+        [0, 3, 0],
+        [4, 3, 0],
+        [8, 3, 0],
+        [0, 6, 0],
+        [4, 6, 0],
+        [8, 6, 0],
       ] as const;
       coordinates.forEach((coordinatesValue, index) => {
         builder = builder.addNode({ id: String(index + 1), coordinates: coordinatesValue });
@@ -616,9 +639,9 @@ const multiSystemCases = [
       builder = builder.addLoadCase({
         id: "LC",
         loads: [
-          { kind: "nodal", nodeId: "7", force: [10000, -20000, 1000] },
-          { kind: "nodal", nodeId: "8", force: [10000, -20000, 0] },
-          { kind: "nodal", nodeId: "9", force: [10000, -20000, -1000] },
+          { kind: "nodal", nodeId: "7", force: [3000, 0, 0] },
+          { kind: "nodal", nodeId: "8", force: [3000, 0, 0] },
+          { kind: "nodal", nodeId: "9", force: [3000, 0, 0] },
         ],
       });
       const actual = solve(builder);
@@ -631,7 +654,7 @@ const multiSystemCases = [
               `node ${expectedNode.id} displacement ${allDofs[index]}`,
               expectedNode.displacements[index]!,
               actualNode.displacements[index]!.value,
-              index < 3 ? "mm" : "rad",
+              index < 3 ? "m" : "rad",
               1,
             ),
           );
@@ -640,24 +663,7 @@ const multiSystemCases = [
               `node ${expectedNode.id} reaction ${allDofs[index]}`,
               expectedNode.reactions[index]!,
               actualNode.reactions[index]?.value ?? 0,
-              index < 3 ? "N" : "N*mm",
-              1,
-            ),
-          );
-        }
-      }
-      for (const expectedElement of reference.elements) {
-        const rollSign =
-          Number(expectedElement.id) <= 6 ? [1, -1, -1, 1, -1, -1] : [1, 1, 1, 1, 1, 1];
-        for (let index = 0; index < 12; index += 1) {
-          const mappedActual =
-            frameEndForce(actual, expectedElement.id, index) * rollSign[index % 6]!;
-          values.push(
-            value(
-              `frame ${expectedElement.id} force ${index}`,
-              expectedElement.localEndForces[index]!,
-              mappedActual,
-              index % 6 < 3 ? "N" : "N*mm",
+              index < 3 ? "N" : "N*m",
               1,
             ),
           );

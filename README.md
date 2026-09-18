@@ -75,7 +75,7 @@ const result = prepareAnalysis(model).solveCase("service");
 console.log(result.diagnostics.status);
 ```
 
-The runnable versions are [`examples/basic-truss.ts`](examples/basic-truss.ts) and [`examples/json-roundtrip.ts`](examples/json-roundtrip.ts).
+The runnable building versions are [`examples/two-story-two-bay-frame.ts`](examples/two-story-two-bay-frame.ts), [`examples/industrial-portal-with-truss-roof.ts`](examples/industrial-portal-with-truss-roof.ts), [`examples/tower-grid-floor.ts`](examples/tower-grid-floor.ts), and [`examples/building-json-roundtrip.ts`](examples/building-json-roundtrip.ts).
 
 ## Scope
 
@@ -91,7 +91,7 @@ In JSON, model artifacts use schema version `1` and result artifacts use schema 
 
 ## Verification
 
-Overlapping frame and truss behavior is compared against Frame3DD, and eccentric-truss rotations against OpenSees. That evidence is not certification. See [`docs/verification/verification-report.md`](docs/verification/verification-report.md), [`docs/verification/safety-correctness-report.md`](docs/verification/safety-correctness-report.md), and [`docs/verification/benchmark-report.md`](docs/verification/benchmark-report.md).
+Frame, truss, and building behavior is compared against the OpenSees Tcl binary (no openseespy): cantilever, single-bay portal, two-story two-bay frame, triangular truss with settlement, and eccentric-truss rigid-link rotations. That evidence is not certification. See [`docs/verification/verification-report.md`](docs/verification/verification-report.md), [`docs/verification/safety-correctness-report.md`](docs/verification/safety-correctness-report.md), and [`docs/verification/benchmark-report.md`](docs/verification/benchmark-report.md).
 
 ## Limits
 

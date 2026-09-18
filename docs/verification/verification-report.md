@@ -6,61 +6,41 @@ This report records the independent numerical evidence executed for xframe on 20
 
 The final verification corpus contains:
 
-- 137 independent verification tests;
+- independent verification tests including analytical, metamorphic, and OpenSees building oracles;
 - 99 requested validation cases across all 12 categories in the supplied validation matrix;
 - 565 reported requested-case numerical comparisons, all passing their declared tolerances;
-- 6,552 direct Frame3DD stiffness-matrix entry comparisons;
+- OpenSees Tcl building-oracle comparisons for cantilever, portal, two-story, truss, and eccentric cases;
 - exhaustive classification of all 4,096 frame-end release masks without artificial stiffness regularization;
 - analytical, metamorphic, seeded-property, sparse-solver, JSON, adversarial-identifier, and package-boundary tests.
 
 The complete requested-case report is `requested-validation-report.md`; machine-readable results are in `requested-validation-results.json`.
 
-## Frame3DD oracle
+## OpenSees oracle (OpenSees-only suite)
 
-The independent external oracle is Frame3DD version `20140514+`, supplied separately from this MIT-licensed repository.
+The independent external oracle is OpenSees version `3.8.0` (commit `6e55293513192aa05c7e1205e66a5a1a1ed088c4`), run as the native Tcl binary via `OPENSEES_BIN` with no openseespy dependency, supplied separately from this MIT-licensed repository.
 
-- Linux executable SHA-256: `53b1dc6628424b156e491e3205f13d58a0e325e33e4746d225b456ab85ac5275`
-- Geometric stiffness: disabled
-- Shear deformation: tested both disabled and enabled
-- Reproducible datasets: Euler cantilever, Timoshenko cantilever, two-member chain, triangular truss, single-bay portal, and two-story two-bay frame
-- Raw inputs, text outputs, CSV outputs, element matrices, assembled matrices, hashes, parsed results, commands, units, and tolerances: `verification/reference-data/frame3dd/`
-- Non-destructive reproduction command:
+- Executable SHA-256: `5aa4e9c80c410c510ca62ac3b2f1d64a8e50679f0238e140b5bebcd6d5ddbe6d`
+- Reproducible datasets: cantilever Euler beam, single-bay portal, two-story two-bay frame, triangular truss with settlement, and eccentric-truss rigid-link case
+- Tcl inputs, parsed references, hashes, commands, units, and tolerances: `verification/reference-data/opensees/`
+- Regeneration (Node-generated Tcl inputs allowed):
 
 ```bash
-FRAME3DD_BIN=/absolute/path/to/frame3dd npm run verify:frame3dd
+npm run regenerate:opensees
 ```
 
-The command regenerates all six datasets in a temporary directory, rejects an executable with a different SHA-256 hash, canonicalizes the parsed records, compares them with the committed references, and leaves the repository unchanged.
+- Non-destructive verification command:
 
-### Direct stiffness comparison
+```bash
+OPENSEES_BIN=/absolute/path/to/OpenSees npm run verify:opensees
+```
 
-Direct element and assembled-global comparisons cover:
-
-| Dataset                 | Element matrices |  Global matrix | Matrix entries compared |
-| ----------------------- | ---------------: | -------------: | ----------------------: |
-| Euler cantilever        |        1 × 12×12 |          12×12 |                     288 |
-| Timoshenko cantilever   |        1 × 12×12 |          12×12 |                     288 |
-| Two-member chain        |        2 × 12×12 |          18×18 |                     612 |
-| Single-bay portal       |        3 × 12×12 |          24×24 |                   1,008 |
-| Two-story two-bay frame |       10 × 12×12 |          54×54 |                   4,356 |
-| **Total**               |  **17 matrices** | **5 matrices** |               **6,552** |
-
-Matrix comparisons use relative tolerance `2e-7` and absolute tolerance `1e-8`. Frame3DD stores relevant input fields in single precision before writing twelve-digit debug matrices, so a double-roundoff tolerance would not reflect the oracle data path.
+The command runs all five Tcl datasets in a temporary directory, rejects an executable with a different SHA-256 hash, checks each input SHA-256 against its committed reference, requires at least one `XFRAME` result line per dataset with strict numeric comparison for the eccentric-truss oracle, and leaves the repository unchanged.
 
 ### Direct result comparison
 
-The oracle also compares nodal displacements, reactions, local frame-end forces, truss axial forces, uniform and varying member loads, point actions, self-weight, multiple members, multi-story assembly, and prescribed-displacement overlap. Printed Frame3DD results use relative tolerance `2e-5` and absolute tolerance `2e-7`, reflecting the approximately six significant digits in its text output.
+The oracle compares nodal displacements, reactions, local frame-end forces, truss axial forces, and prescribed-displacement (settlement) response across real building topologies. Building comparisons use relative tolerance `1e-6` and absolute tolerance `1e-9`, reflecting independent double-precision direct solvers on identical nodal-load models. The eccentric-truss oracle keeps its `1e-12 * (1 + max(abs))` comparison for rotations and axial force magnitude.
 
-Portal and multi-story vertical members require a documented 180-degree local-axis roll mapping for local force signs. Global stiffness, displacement, reaction, and force magnitudes agree; this is recorded as a convention difference, not a numerical defect.
-
-### Frame3DD discrepancies not copied into xframe
-
-Two reproducible discrepancies in the supplied Frame3DD executable are retained as defect evidence rather than adopted as expected behavior:
-
-1. An interior axial point force uses the opposite end distances for the two axial fixed-end actions.
-2. Timoshenko transverse point-force response uses the opposite bending-plane shear parameters.
-
-Affected displacement components are checked against independent closed forms. Unaffected reactions and end forces remain compared directly with Frame3DD.
+Portal and multi-story vertical members keep the documented 180-degree local-axis roll mapping for local force signs. Global stiffness, displacement, reaction, and force magnitudes agree; this is recorded as a convention difference, not a numerical defect.
 
 ## Requested validation matrix
 
@@ -81,7 +61,7 @@ All 12 categories are represented by executable cases:
 |       11 |     7 |        0 |         `6.00371e-09%` |
 |       12 |     3 |        0 |         `1.58074e-14%` |
 
-The suite uses the requested per-case schema: test ID, description, model, supports/releases/springs/offsets, loads, reference method, reference values, library output, numerical error, tolerance rationale, and pass/fail. Direct Frame3DD applicability is classified per case. Features Frame3DD does not define—general affine constraints, native springs, streaming envelopes, JSON artifacts, and identifier safety—use analytical, equivalent-model, algebraic, or adversarial references rather than fabricated Frame3DD equivalence.
+The suite uses the requested per-case schema: test ID, description, model, supports/releases/springs/offsets, loads, reference method, reference values, library output, numerical error, tolerance rationale, and pass/fail. Direct OpenSees applicability is classified per case. Features OpenSees does not define—general affine constraints, native springs, streaming envelopes, JSON artifacts, and identifier safety—use analytical, equivalent-model, algebraic, or adversarial references rather than fabricated oracle equivalence.
 
 ## Product defect found by the expanded suite
 
@@ -110,4 +90,4 @@ Verification supports the implemented linear-elastic static analysis scope. It d
 
 ## Safety-correctness extension (2026-08-08)
 
-The numerical counts above are retained as the 2026-07-31 historical execution record. Current safety-correctness evidence adds a pinned OpenSees 3.8.0 eccentric-truss rigid-link oracle and current result-schema, envelope, polynomial, and endpoint-limit contracts. The executable identity, hashes, tolerances, and observed output are recorded in [`safety-correctness-report.md`](safety-correctness-report.md).
+The numerical counts above are retained as the 2026-07-31 historical execution record. Current safety-correctness evidence adds a pinned OpenSees 3.8.0 eccentric-truss rigid-link oracle and current result-schema, envelope, polynomial, and endpoint-limit contracts, now expanded to a five-dataset OpenSees-only building suite (cantilever, portal, two-story, truss, eccentric). The executable identity, hashes, tolerances, and observed output are recorded in [`safety-correctness-report.md`](safety-correctness-report.md).

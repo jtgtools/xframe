@@ -32,7 +32,7 @@ Euler-Bernoulli bending uses cubic Hermite interpolation. Timoshenko bending use
 
 Each plane uses `12EI/(L³(1+φ))`, `6EI/(L²(1+φ))`, `(4+φ)EI/(L(1+φ))`, and `(2-φ)EI/(L(1+φ))`. Local `y` bending consumes `Iz`; local `z` bending consumes `Iy`.
 
-Implementation: `src/elements/frame-stiffness.ts`. Evidence: `test/unit/frame-stiffness.test.ts` and direct Frame3DD matrix comparisons in `verification/external/`.
+Implementation: `src/elements/frame-stiffness.ts`. Evidence: `test/unit/frame-stiffness.test.ts` and OpenSees building comparisons in `verification/external/`.
 
 ## Truss and spring elements
 
@@ -50,7 +50,7 @@ For an endpoint with rigid offset `r`, the elastic-end translation is `ue = un +
 
 A grounded spring contributes its explicit six component stiffnesses to one node. A two-node spring contributes equal/opposite diagonal component blocks after optional basis rotation. Zero components remain absent rather than stabilized.
 
-Implementation: `src/elements/truss-element.ts`, `src/elements/spring-element.ts`. Evidence: analytical and Frame3DD truss cases plus exact spring closed forms.
+Implementation: `src/elements/truss-element.ts`, `src/elements/spring-element.ts`. Evidence: analytical and OpenSees truss cases plus exact spring closed forms.
 
 ## Rigid offsets
 

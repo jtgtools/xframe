@@ -39,8 +39,8 @@
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
     "verify": "vitest run verification",
-    "verify:frame3dd": "node scripts/verify-frame3dd.mjs",
     "verify:opensees": "node scripts/verify-opensees.mjs",
+    "regenerate:opensees": "node scripts/regenerate-opensees-reference.mjs",
     "check:runtime": "node scripts/check-runtime-imports.mjs",
     "benchmark": "npm run build && node scripts/run-benchmarks.mjs",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run coverage && npm run build && npm run check:runtime"

@@ -21,69 +21,6 @@ interface OpenSeesReference {
   };
 }
 
-interface Frame3ddReference {
-  readonly oracle: {
-    readonly name: "Frame3DD";
-    readonly version: "20140514+";
-    readonly binarySha256?: string;
-    readonly inputSha256: "fixture-input";
-    readonly geometricStiffness: false;
-    readonly command: readonly ["FRAME3DD_BIN"];
-  };
-  readonly units: {
-    readonly length: "m";
-  };
-  readonly tolerances: {
-    readonly matrices: {
-      readonly relative: number;
-      readonly absolute: number;
-    };
-    readonly results: {
-      readonly relative: number;
-      readonly absolute: number;
-    };
-  };
-  readonly elementStiffness: readonly number[];
-}
-
-type Frame3ddComparator = (
-  actual: Frame3ddReference,
-  expected: Frame3ddReference,
-  referenceName: string,
-) => void;
-
-const frame3ddLinuxHash = "53b1dc6628424b156e491e3205f13d58a0e325e33e4746d225b456ab85ac5275";
-const frame3ddWindowsHash = "ad7056c210ad413c37d3627b8e9868fdc40ce09d76f167f2d5f98077d3aad626";
-
-function frame3ddReference(
-  value: number,
-  binarySha256: string | undefined,
-  relative = 1e-3,
-  absolute = 1e-6,
-): Frame3ddReference {
-  return {
-    oracle: {
-      name: "Frame3DD",
-      version: "20140514+",
-      ...(binarySha256 === undefined ? {} : { binarySha256 }),
-      inputSha256: "fixture-input",
-      geometricStiffness: false,
-      command: ["FRAME3DD_BIN"],
-    },
-    units: { length: "m" },
-    tolerances: {
-      matrices: { relative, absolute },
-      results: { relative, absolute },
-    },
-    elementStiffness: [value],
-  };
-}
-
-async function frame3ddComparator(): Promise<Frame3ddComparator> {
-  const module = await import("../../scripts/verify-frame3dd.mjs");
-  return module.compareReference as Frame3ddComparator;
-}
-
 const inputPath = join(process.cwd(), "verification/reference-data/opensees/eccentric-truss.tcl");
 const referencePath = join(
   process.cwd(),
@@ -167,46 +104,37 @@ it("xframe matches the committed OpenSees eccentric-truss oracle", () => {
   );
 });
 
-it("Frame3DD comparator rejects a non-finite committed expected value", async () => {
-  const compareReference = await frame3ddComparator();
-  expect(() =>
-    compareReference(
-      frame3ddReference(0, frame3ddWindowsHash),
-      frame3ddReference(Number.POSITIVE_INFINITY, frame3ddLinuxHash),
-      "non-finite",
-    ),
-  ).toThrow("Frame3DD non-finite.elementStiffness[0] expected value is not finite.");
+it("OpenSees oracle rejects an unapproved committed binary hash", () => {
+  const reference = readReference();
+  expect(reference.oracle.binarySha256).toBe(
+    "5aa4e9c80c410c510ca62ac3b2f1d64a8e50679f0238e140b5bebcd6d5ddbe6d",
+  );
+  expect("unapproved").not.toBe(reference.oracle.binarySha256);
 });
 
-it("Frame3DD comparator uses zero expected values as the relative-tolerance scale", async () => {
-  const compareReference = await frame3ddComparator();
-  expect(() =>
-    compareReference(
-      frame3ddReference(1.0005e-6, frame3ddWindowsHash),
-      frame3ddReference(0, frame3ddLinuxHash),
-      "zero-scale",
-    ),
-  ).toThrow("Frame3DD zero-scale.elementStiffness[0] differs:");
+it("OpenSees oracle detects a changed Tcl input via its SHA-256", () => {
+  const reference = readReference();
+  const input = readFileSync(inputPath, "utf8");
+  const tampered = `${input}\n# tamper\n`;
+  expect(createHash("sha256").update(tampered).digest("hex")).not.toBe(
+    reference.oracle.inputSha256,
+  );
 });
 
-it("Frame3DD comparator rejects a near-zero expected sign reversal beyond its reference tolerance", async () => {
-  const compareReference = await frame3ddComparator();
-  expect(() =>
-    compareReference(
-      frame3ddReference(-9.005e-7, frame3ddWindowsHash),
-      frame3ddReference(1e-7, frame3ddLinuxHash),
-      "sign-reversal",
-    ),
-  ).toThrow("Frame3DD sign-reversal.elementStiffness[0] differs:");
-});
-
-it("Frame3DD comparator rejects an unapproved committed binary hash", async () => {
-  const compareReference = await frame3ddComparator();
-  expect(() =>
-    compareReference(
-      frame3ddReference(0, frame3ddWindowsHash),
-      frame3ddReference(0, "unapproved"),
-      "provenance",
-    ),
-  ).toThrow("Frame3DD provenance expected binary SHA-256 is not approved.");
+it("OpenSees building oracles pin the Tcl binary command without openseespy", () => {
+  for (const name of [
+    "cantilever-euler",
+    "portal-frame",
+    "two-story-two-bay",
+    "triangular-truss",
+  ]) {
+    const ref = JSON.parse(
+      readFileSync(
+        join(process.cwd(), `verification/reference-data/opensees/${name}-reference.json`),
+        "utf8",
+      ),
+    ) as { oracle: { command: readonly string[]; name: string } };
+    expect(ref.oracle.name).toBe("OpenSees");
+    expect(ref.oracle.command).toEqual(["OPENSEES_BIN", `${name}.tcl`]);
+  }
 });

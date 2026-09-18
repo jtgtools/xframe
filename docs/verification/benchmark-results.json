@@ -5,114 +5,166 @@
     "platform": "linux",
     "architecture": "x64"
   },
-  "model": "deterministic one-DOF spring chain with one ground spring, N-1 link springs, and two load cases",
+  "model": "deterministic real-building suite: 6-DOF steel moment frames (2/5/10/15 stories) plus a concrete tower-grid floor on soil springs with rigid diaphragm, each with two proportional lateral load cases",
   "cases": [
     {
-      "equations": 500,
-      "coordinateNonzeros": 999,
-      "skylineStorage": 999,
-      "estimatedSparseWorkingBytes": 51968,
+      "label": "2-story-2-bay",
+      "stories": 2,
+      "bays": 2,
+      "equations": 54,
+      "coordinateNonzeros": 174,
+      "skylineStorage": 204,
+      "skylineBandwidth": 9,
+      "skylineMaximumRowWidth": 9,
+      "estimatedSparseWorkingBytes": 7968,
       "timingsMilliseconds": {
-        "topology": 24.396317000000003,
-        "prepareEndToEnd": 23.482418000000003,
-        "firstCase": 29.241991999999996,
-        "reusedSecondCase": 21.570502000000005
+        "topology": 14.297139000000001,
+        "prepareEndToEnd": 11.937611999999994,
+        "firstCase": 13.424604000000002,
+        "reusedSecondCase": 2.8738440000000054
       },
       "reuse": {
         "assemblyCount": 1,
         "factorizationCount": 1,
         "solveCount": 2,
-        "fullNonzeros": 999,
-        "reducedNonzeros": 999,
-        "skylineStorage": 999,
-        "skylineMaximumRowWidth": 2,
-        "skylineBandwidth": 2
+        "fullNonzeros": 174,
+        "reducedNonzeros": 120,
+        "skylineStorage": 204,
+        "skylineMaximumRowWidth": 9,
+        "skylineBandwidth": 9
       },
       "checks": {
-        "finalDisplacement": 0.4960779451528093,
+        "finalDisplacement": 0.0017482462572736338,
         "loadScalingRatio": 2,
-        "normalizedResidual": 1.7053025658242404e-13
+        "normalizedResidual": 2.969500201288611e-13
       }
     },
     {
-      "equations": 2000,
-      "coordinateNonzeros": 3999,
-      "skylineStorage": 3999,
-      "estimatedSparseWorkingBytes": 207968,
+      "label": "5-story-3-bay",
+      "stories": 5,
+      "bays": 3,
+      "equations": 144,
+      "coordinateNonzeros": 530,
+      "skylineStorage": 1370,
+      "skylineBandwidth": 18,
+      "skylineMaximumRowWidth": 18,
+      "estimatedSparseWorkingBytes": 29440,
       "timingsMilliseconds": {
-        "topology": 42.31998199999998,
-        "prepareEndToEnd": 42.370389999999986,
-        "firstCase": 197.870875,
-        "reusedSecondCase": 213.381256
+        "topology": 8.938303000000005,
+        "prepareEndToEnd": 14.379829999999998,
+        "firstCase": 6.868432999999996,
+        "reusedSecondCase": 3.7874400000000037
       },
       "reuse": {
         "assemblyCount": 1,
         "factorizationCount": 1,
         "solveCount": 2,
-        "fullNonzeros": 3999,
-        "reducedNonzeros": 3999,
-        "skylineStorage": 3999,
-        "skylineMaximumRowWidth": 2,
-        "skylineBandwidth": 2
+        "fullNonzeros": 530,
+        "reducedNonzeros": 458,
+        "skylineStorage": 1370,
+        "skylineMaximumRowWidth": 18,
+        "skylineBandwidth": 18
       },
       "checks": {
-        "finalDisplacement": 1.9842062781062504,
+        "finalDisplacement": 0.00849031494780375,
         "loadScalingRatio": 2,
-        "normalizedResidual": 6.821210263296962e-13
+        "normalizedResidual": 1.0541043593548239e-12
       }
     },
     {
-      "equations": 5000,
-      "coordinateNonzeros": 9999,
-      "skylineStorage": 9999,
-      "estimatedSparseWorkingBytes": 519968,
+      "label": "10-story-4-bay",
+      "stories": 10,
+      "bays": 4,
+      "equations": 330,
+      "coordinateNonzeros": 1290,
+      "skylineStorage": 4458,
+      "skylineBandwidth": 20,
+      "skylineMaximumRowWidth": 20,
+      "estimatedSparseWorkingBytes": 79824,
       "timingsMilliseconds": {
-        "topology": 87.98894599999994,
-        "prepareEndToEnd": 113.92670600000008,
-        "firstCase": 1126.671176,
-        "reusedSecondCase": 1159.293066
+        "topology": 8.980452999999997,
+        "prepareEndToEnd": 15.080007999999992,
+        "firstCase": 8.78662700000001,
+        "reusedSecondCase": 9.152035999999981
       },
       "reuse": {
         "assemblyCount": 1,
         "factorizationCount": 1,
         "solveCount": 2,
-        "fullNonzeros": 9999,
-        "reducedNonzeros": 9999,
-        "skylineStorage": 9999,
-        "skylineMaximumRowWidth": 2,
-        "skylineBandwidth": 2
+        "fullNonzeros": 1290,
+        "reducedNonzeros": 1200,
+        "skylineStorage": 4458,
+        "skylineMaximumRowWidth": 20,
+        "skylineBandwidth": 20
       },
       "checks": {
-        "finalDisplacement": 4.960449457857828,
+        "finalDisplacement": 0.026527011329911553,
         "loadScalingRatio": 2,
-        "normalizedResidual": 2.7284841053187847e-12
+        "normalizedResidual": 1.4689931049360894e-11
       }
     },
     {
-      "equations": 10000,
-      "coordinateNonzeros": 19999,
-      "skylineStorage": 19999,
-      "estimatedSparseWorkingBytes": 1039968,
+      "label": "15-story-4-bay",
+      "stories": 15,
+      "bays": 4,
+      "equations": 480,
+      "coordinateNonzeros": 1910,
+      "skylineStorage": 6958,
+      "skylineBandwidth": 20,
+      "skylineMaximumRowWidth": 20,
+      "estimatedSparseWorkingBytes": 120704,
       "timingsMilliseconds": {
-        "topology": 188.91004900000007,
-        "prepareEndToEnd": 190.2549610000001,
-        "firstCase": 4356.953639,
-        "reusedSecondCase": 4233.9706080000005
+        "topology": 9.983080999999999,
+        "prepareEndToEnd": 20.066775999999976,
+        "firstCase": 13.222930999999988,
+        "reusedSecondCase": 15.569063
       },
       "reuse": {
         "assemblyCount": 1,
         "factorizationCount": 1,
         "solveCount": 2,
-        "fullNonzeros": 19999,
-        "reducedNonzeros": 19999,
-        "skylineStorage": 19999,
-        "skylineMaximumRowWidth": 2,
-        "skylineBandwidth": 2
+        "fullNonzeros": 1910,
+        "reducedNonzeros": 1820,
+        "skylineStorage": 6958,
+        "skylineMaximumRowWidth": 20,
+        "skylineBandwidth": 20
       },
       "checks": {
-        "finalDisplacement": 9.920894927604477,
+        "finalDisplacement": 0.06009206559927054,
         "loadScalingRatio": 2,
-        "normalizedResidual": 7.275957614183426e-12
+        "normalizedResidual": 2.6256145702063806e-11
+      }
+    },
+    {
+      "label": "tower-grid",
+      "stories": 1,
+      "bays": 2,
+      "equations": 72,
+      "coordinateNonzeros": 230,
+      "skylineStorage": 255,
+      "skylineBandwidth": 13,
+      "skylineMaximumRowWidth": 13,
+      "estimatedSparseWorkingBytes": 10440,
+      "timingsMilliseconds": {
+        "topology": 4.735657000000003,
+        "prepareEndToEnd": 6.531221000000016,
+        "firstCase": 2.6277550000000076,
+        "reusedSecondCase": 1.8910499999999786
+      },
+      "reuse": {
+        "assemblyCount": 1,
+        "factorizationCount": 1,
+        "solveCount": 2,
+        "fullNonzeros": 230,
+        "reducedNonzeros": 153,
+        "skylineStorage": 255,
+        "skylineMaximumRowWidth": 13,
+        "skylineBandwidth": 13
+      },
+      "checks": {
+        "finalDisplacement": -0.2268000000013315,
+        "loadScalingRatio": 2,
+        "normalizedResidual": 9.769185756643614e-13
       }
     }
   ]

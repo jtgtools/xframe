@@ -37,16 +37,18 @@ The following commands, identities, tolerances, and outputs were recorded by the
 - Comparison tolerance: `1e-12 * (1 + max(abs(actual), abs(expected)))` for each of `thetaA`, `thetaB`, and `axialForceMagnitude`.
 - Recorded raw output: `XFRAME thetaA              0.66666666666666662966 thetaB              0.33333333333333331483 axialForceMagnitude 333.3333333333333`.
 - Committed expected values: `thetaA = 0.6666666666666666`, `thetaB = 0.3333333333333333`, and `axialForceMagnitude = 333.3333333333333`.
-- Recorded verifier output: `OpenSees eccentric-truss reference verified non-destructively.`
+- Recorded verifier output: `OpenSees references verified non-destructively: 5 datasets.`
 
-### Frame3DD cross-platform reference check
+### OpenSees building-frame oracles (OpenSees-only suite)
 
-- Oracle: Frame3DD `20140514+`.
-- Windows executable: `D:\DEV\tools\Frame3DD\windows\frame3dd.exe`.
-- Windows executable SHA-256: `ad7056c210ad413c37d3627b8e9868fdc40ce09d76f167f2d5f98077d3aad626`.
-- Recorded command: `$env:FRAME3DD_BIN = 'D:\DEV\tools\Frame3DD\windows\frame3dd.exe'; npm run verify:frame3dd`.
-- Recorded verifier output: `Frame3DD references verified non-destructively: 6 datasets.`
-- Matrix comparisons use relative tolerance `2e-7` and absolute tolerance `1e-8`; result comparisons use relative tolerance `2e-5` and absolute tolerance `2e-7`. The comparator limit is `absolute + relative * abs(expected)`.
+- Oracle: OpenSees 3.8.0, commit `6e55293513192aa05c7e1205e66a5a1a1ed088c4`, native Tcl binary via `OPENSEES_BIN` (no openseespy).
+- Executable SHA-256: `5aa4e9c80c410c510ca62ac3b2f1d64a8e50679f0238e140b5bebcd6d5ddbe6d`.
+- Datasets: `cantilever-euler`, `portal-frame`, `two-story-two-bay`, `triangular-truss` (plus `eccentric-truss` above).
+- Tcl inputs: `verification/reference-data/opensees/*.tcl`; references: `verification/reference-data/opensees/*-reference.json`.
+- Regeneration: `npm run regenerate:opensees` (Node-generated Tcl inputs allowed; reference results mirror the committed xframe models for the same nodal-load cases).
+- Non-destructive verification: `$env:OPENSEES_BIN = 'D:\DEV\tools\OpenSees3.8.0\bin\OpenSees.exe'; npm run verify:opensees`.
+- Building tolerances: relative `1e-6`, absolute `1e-9` (independent double-precision direct solvers on identical nodal-load models).
+- Recorded verifier output: `OpenSees references verified non-destructively: 5 datasets.`
 
 ## Documentation-contract command evidence
 

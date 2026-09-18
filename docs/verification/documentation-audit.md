@@ -2,10 +2,10 @@
 
 Part 15 documentation is guarded by executable tests:
 
-- `test/integration/documented-examples.test.ts` executes the public truss and JSON examples and checks their numerical/canonical outputs.
-- `test/specification/documentation.test.ts` requires every public document, checks explicit scope/unit/CSV/professional-review/certification/schema/Frame3DD statements, rejects placeholders, and resolves local Markdown links.
+- `test/integration/documented-examples.test.ts` executes the public building examples (two-story frame, industrial portal, tower grid, building JSON) and checks drift, reactions, combinations, envelopes, and canonical outputs.
+- `test/specification/documentation.test.ts` requires every public document, checks explicit scope/unit/CSV/professional-review/certification/schema/OpenSees statements, rejects placeholders, and resolves local Markdown links.
 
-The public documents describe only implemented version 0.0.1 behavior. Frame3DD is named only as an external verification oracle. No Frame3DD executable or source is distributed. Unsupported analyses and the absence of formal certification are explicit in the README and engineering-use document.
+The public documents describe only implemented version 0.0.1 behavior. OpenSees Tcl (no openseespy) is named only as an external verification oracle. No OpenSees executable or source is distributed. Unsupported analyses and the absence of formal certification are explicit in the README and engineering-use document.
 
 Acceptance commands and final repository scans are recorded in `final-audit.md` during Part 16.
 

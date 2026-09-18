@@ -12,4 +12,4 @@ All 4,096 masks were evaluated for a representative 3D frame kernel: 900 are con
 
 ## External oracle
 
-Frame3DD element and global stiffness, displacement, reaction, and member-force comparisons are executed by the external verification harness in Part 14 using the supplied binary. The element matrix is obtained from Frame3DD's debug `k_001` output rather than inferred from response results.
+OpenSees Tcl element and global building behavior (cantilever, portal, two-story), displacement, reaction, and member-force comparisons are executed by the OpenSees-only verification harness using the supplied native binary. Solved nodal responses carry the stiffness evidence end to end; see `verification/reference-data/opensees/`.

@@ -12,8 +12,10 @@ const requiredFiles = [
   "docs/theory/structural-model.md",
   "docs/theory/solution-and-results.md",
   "docs/verification/documentation-audit.md",
-  "examples/basic-truss.ts",
-  "examples/json-roundtrip.ts",
+  "examples/two-story-two-bay-frame.ts",
+  "examples/industrial-portal-with-truss-roof.ts",
+  "examples/tower-grid-floor.ts",
+  "examples/building-json-roundtrip.ts",
 ] as const;
 
 const task13MarkdownCheck =
@@ -40,7 +42,7 @@ it("public documentation states scope, units, JSON, CSV, review, and certificati
     "professional review",
     "not formally certified",
     "schemaVersion",
-    "Frame3DD",
+    "OpenSees",
   ])
     expect(publicText).toContain(phrase);
   expect(publicText).not.toMatch(/\b(?:TBD|TODO|FIXME)\b/);
@@ -124,11 +126,7 @@ it("current documentation states the remediated safety contracts", () => {
     ],
     [
       "docs/verification/safety-correctness-report.md",
-      [
-        "OpenSees 3.8.0",
-        "OpenSees eccentric-truss reference verified non-destructively.",
-        task13MarkdownCheck,
-      ],
+      ["OpenSees 3.8.0", "OpenSees references verified non-destructively", task13MarkdownCheck],
     ],
   ];
   for (const [path, phrases] of requiredPhrasesByFile) {
