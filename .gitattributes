@@ -1,0 +1,8 @@
+# Keep oracle inputs byte-stable across OS checkouts.
+# OpenSees reference tests hash raw Tcl bytes; CRLF conversion would break inputSha256.
+verification/reference-data/opensees/*.tcl text eol=lf
+verification/reference-data/opensees/*.json text eol=lf
+*.ts text eol=lf
+*.mjs text eol=lf
+*.md text eol=lf
+*.json text eol=lf
