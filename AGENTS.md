@@ -2,16 +2,14 @@
 
 Rules for every agent working in this repository.
 
-## Before any code work
-
-Apply the Ponytail skill (laziest solution that works, shortest diff) at full intensity for the entire task.
-
 ## Toolchain
 
 - npm only. Never Bun, pnpm, or Yarn.
 - Vitest only. Never Jest or the Node built-in test runner.
 - TypeScript with standards-compliant ESM.
 - Runtime modules stay browser-safe (no Node-only imports in runtime code).
+- Bundle with tsdown into single-file `dist/index.js` plus `dist/index.d.ts`.
+- Never deep-import from `dist/`; scripts and benchmarks use the public entry.
 
 ## Testing discipline
 
@@ -40,4 +38,4 @@ Apply the Ponytail skill (laziest solution that works, shortest diff) at full in
 
 ## Naming
 
-- Lowercase kebab-case filenames everywhere except: `AGENTS.md`, `README.md`, `LICENSE`, `SECURITY.md`.
+- Lowercase kebab-case filenames everywhere except: `AGENTS.md`, `README.md`, `LICENSE`, `SECURITY.md`, `*.config.ts`.
