@@ -4,61 +4,66 @@
     "version": "3.8.0",
     "commit": "6e55293513192aa05c7e1205e66a5a1a1ed088c4",
     "binarySha256": "5aa4e9c80c410c510ca62ac3b2f1d64a8e50679f0238e140b5bebcd6d5ddbe6d",
-    "inputSha256": "aac08264b3cf27b2e53737f0d2183896f9b33ac82cf824582a3afd843238d184",
+    "inputSha256": "e5b40aeed0a7340a320c6ad86121a5b106e26f725fa5128b659ad94fbfc8c053",
     "command": ["OPENSEES_BIN", "portal-frame.tcl"]
   },
-  "units": { "length": "m", "force": "N" },
+  "units": {
+    "length": "m",
+    "force": "N"
+  },
   "tolerances": {
     "relative": 1e-6,
     "absolute": 1e-9,
-    "reason": "Independent double-precision direct solvers on identical nodal-load portal models."
+    "reason": "Measured OpenSees 3.8.0 Tcl output on identical nodal-load models. Displacements and member forces use absolute 1e-9; reactions admit an absolute noise floor of 1e-6 because free-DOF reaction residuals from two independent factorizations differ at the 1e-10 level while fixed-end reactions agree to 1e-13 relative.",
+    "reactionAbsolute": 1e-6
   },
+  "notes": "Vertical members (frames 1, 3) differ from xframe local end forces by an exact 180-degree roll about local x: per six-component end block the map is [Fx,-Fy,-Fz,Mx,-My,-Mz]. Global displacements, reactions, and force magnitudes agree; this is a documented convention difference.",
   "nodes": [
     {
       "id": "1",
-      "displacements": [0, 0, 0, 0, 0, 0],
-      "reactions": [-999.5611245957776, -445.06935396082093, 0, 0, 0, 1886.3324279577305]
+      "displacements": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+      "reactions": [-999.5611245958463, -445.06935396085174, 0.0, 0.0, 0.0, 1886.33242795786]
     },
     {
       "id": "2",
       "displacements": [
-        0.0013301569550429292, 3.7089112830068417e-7, 0, 0, 0, -0.00038699074106406393
+        0.0013301569550430207, 3.7089112830071e-7, 0.0, 0.0, 0.0, -0.0003869907410640906
       ],
-      "reactions": [2.3283064365386963e-10, 0, 0, 0, 0, 7.389644451905042e-13]
+      "reactions": [1.7791990103e-10, 0.0, 0.0, 0.0, 0.0, -2.2737368e-13]
     },
     {
       "id": "3",
       "displacements": [
-        0.0013318228902505886, -0.000004537557794967352, 0, 0, 0, -0.00038766248913166853
+        0.0013318228902506801, -4.53755779496738e-6, 0.0, 0.0, 0.0, -0.00038766248913169537
       ],
-      "reactions": [-2.1964297047816217e-10, 0, 0, 0, 0, 9.094947017729282e-13]
+      "reactions": [-1.4904344425e-10, 0.0, 0.0, 0.0, 0.0, -1.13686838e-12]
     },
     {
       "id": "4",
-      "displacements": [0, 0, 0, 0, 0, 0],
-      "reactions": [-1000.4388754041145, 5445.069353960821, 0, 0, 0, 1888.3208022378403]
+      "displacements": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+      "reactions": [-1000.4388754041826, 5445.069353960852, 0.0, 0.0, 0.0, 1888.3208022379692]
     }
   ],
   "frames": [
     {
       "id": "1",
       "localEndForces": [
-        -445.06935396082093, -999.5611245957776, 0, 0, 0, -1886.3324279577305, 445.06935396082093,
-        999.5611245957776, 0, 0, 0, -1112.3509458296028
+        -445.06935396085174, 999.5611245958463, 0.0, -0.0, 0.0, 1886.33242795786,
+        445.06935396085174, -999.5611245958463, 0.0, 0.0, 0.0, 1112.350945829679
       ]
     },
     {
       "id": "2",
       "localEndForces": [
-        -999.5611245955806, -445.06935396082093, 0, 0, 0, -1112.350945829602, 999.5611245955806,
-        445.06935396082093, 0, 0, 0, -1112.9958239745026
+        -999.5611245956684, -445.06935396085174, 0.0, -0.0, 0.0, -1112.3509458296792,
+        999.5611245956684, 445.06935396085174, 0.0, 0.0, 0.0, -1112.9958239745797
       ]
     },
     {
       "id": "3",
       "localEndForces": [
-        5445.069353960821, -1000.4388754041145, 0, 0, 0, -1888.3208022378403, -5445.069353960821,
-        1000.4388754041145, 0, 0, 0, -1112.9958239745033
+        5445.069353960852, 1000.4388754041826, 0.0, -0.0, 0.0, 1888.3208022379692,
+        -5445.069353960852, -1000.4388754041826, 0.0, 0.0, 0.0, 1112.9958239745786
       ]
     }
   ]

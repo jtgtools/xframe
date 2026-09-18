@@ -34,7 +34,11 @@ npm run regenerate:opensees
 OPENSEES_BIN=/absolute/path/to/OpenSees npm run verify:opensees
 ```
 
-The command runs all five Tcl datasets in a temporary directory, rejects an executable with a different SHA-256 hash, checks each input SHA-256 against its committed reference, requires at least one `XFRAME` result line per dataset with strict numeric comparison for the eccentric-truss oracle, and leaves the repository unchanged.
+The command runs all five Tcl datasets in a temporary directory, rejects an executable with a different SHA-256 hash, checks each input SHA-256 against its committed reference, and numerically compares every dataset output (displacements, reactions, member forces, truss axials) against the committed references before leaving the repository unchanged. Committed references hold measured OpenSees output, not xframe-derived values.
+
+Two alignment facts are recorded. First, `geomTransf` vectors use `0 0 1` so in-plane bending activates the same `Iz` in both codes (an earlier `0 1 0` vector silently compared different bending planes). Second, vertical-member local frames differ by an exact 180-degree roll about local x, so those end forces compare through the exact per-end sign map `[Fx,-Fy,-Fz,Mx,-My,-Mz]`; X-beams, global displacements, reactions, truss axials, and all force magnitudes compare directly. Reactions admit an absolute noise floor of `1e-6` for free-DOF residuals from the two independent factorizations; everything else uses `1e-6` relative with `1e-9` absolute.
+
+The suite was additionally executed on Linux through Wine against the downloaded official `OpenSees3.8.0` distribution (SHA-256 `5aa4e9c8…`, banner commit `6e55293…`): all five datasets ran to status zero and matched the committed references, including the eccentric-truss raw line `thetaA 0.66666666666666662966`.
 
 ### Direct result comparison
 

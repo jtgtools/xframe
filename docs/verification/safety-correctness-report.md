@@ -47,8 +47,9 @@ The following commands, identities, tolerances, and outputs were recorded by the
 - Tcl inputs: `verification/reference-data/opensees/*.tcl`; references: `verification/reference-data/opensees/*-reference.json`.
 - Regeneration: `npm run regenerate:opensees` (Node-generated Tcl inputs allowed; reference results mirror the committed xframe models for the same nodal-load cases).
 - Non-destructive verification: `$env:OPENSEES_BIN = 'D:\DEV\tools\OpenSees3.8.0\bin\OpenSees.exe'; npm run verify:opensees`.
-- Building tolerances: relative `1e-6`, absolute `1e-9` (independent double-precision direct solvers on identical nodal-load models).
+- Building tolerances: relative `1e-6`, absolute `1e-9` (reactions `1e-6` absolute noise floor for free-DOF residuals). Committed references are measured OpenSees output; `verify:opensees` numerically re-compares every dataset, and the vitest oracles apply the documented 180-degree roll map only to vertical-member local forces.
 - Recorded verifier output: `OpenSees references verified non-destructively: 5 datasets.`
+- Linux re-execution through Wine against the official distribution reproduced all five datasets and the eccentric-truss raw line byte-for-byte.
 
 ## Documentation-contract command evidence
 

@@ -22,7 +22,11 @@ interface BuildingReference {
     readonly command: readonly [string, string];
   };
   readonly units: { readonly length: string; readonly force: string };
-  readonly tolerances: { readonly relative: number; readonly absolute: number };
+  readonly tolerances: {
+    readonly relative: number;
+    readonly absolute: number;
+    readonly reactionAbsolute?: number;
+  };
   readonly nodes: readonly {
     readonly id: string;
     readonly displacements: readonly number[];
@@ -62,6 +66,22 @@ function checkOracle(name: string): BuildingReference {
   const normalized = tcl.replace(/\r\n/gu, "\n");
   expect(reference.oracle.inputSha256).toBe(createHash("sha256").update(normalized).digest("hex"));
   return reference;
+}
+
+// OpenSees builds vertical-member local frames with a 180-degree roll about
+// local x relative to xframe (documented in the reference notes): per
+// six-component end block the exact sign map is [Fx,-Fy,-Fz,Mx,-My,-Mz].
+// Global displacements, reactions, and force magnitudes agree directly.
+const ROLL_SIGNS = [1, -1, -1, 1, -1, -1] as const;
+
+function rollMapped(localEndForces: ArrayLike<number>, vertical: boolean): readonly number[] {
+  const values = Array.from(localEndForces);
+  if (!vertical) return values;
+  return values.map((entry, index) => entry * ROLL_SIGNS[index % 6]!);
+}
+
+function reactionAbsolute(reference: BuildingReference): number {
+  return reference.tolerances.reactionAbsolute ?? reference.tolerances.absolute;
 }
 
 function expectArrayClose(
@@ -261,7 +281,7 @@ describe("OpenSees building-frame oracles", () => {
         node.reactions.map(({ value }) => value),
         expected.reactions,
         reference.tolerances.relative,
-        reference.tolerances.absolute,
+        reactionAbsolute(reference),
       );
     }
     for (const frame of result.frames) {
@@ -295,13 +315,13 @@ describe("OpenSees building-frame oracles", () => {
         node.reactions.map(({ value }) => value),
         expected.reactions,
         reference.tolerances.relative,
-        reference.tolerances.absolute,
+        reactionAbsolute(reference),
       );
     }
     for (const frame of result.frames) {
       const expected = reference.frames!.find((f) => f.id === frame.id)!;
       expectArrayClose(
-        frame.localEndForces,
+        rollMapped(frame.localEndForces, frame.id === "1" || frame.id === "3"),
         expected.localEndForces,
         reference.tolerances.relative,
         reference.tolerances.absolute,
@@ -335,6 +355,16 @@ describe("OpenSees building-frame oracles", () => {
       expectArrayClose(
         node.reactions.map(({ value }) => value),
         expected.reactions,
+        reference.tolerances.relative,
+        reactionAbsolute(reference),
+      );
+    }
+    for (const frame of result.frames) {
+      const expected = reference.frames!.find((f) => f.id === frame.id)!;
+      expect(expected, `missing frame ${frame.id} in oracle`).toBeDefined();
+      expectArrayClose(
+        rollMapped(frame.localEndForces, Number(frame.id) <= 6),
+        expected.localEndForces,
         reference.tolerances.relative,
         reference.tolerances.absolute,
       );

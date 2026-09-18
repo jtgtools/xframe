@@ -1,3 +1,9 @@
+// Committed references hold MEASURED OpenSees 3.8.0 output (see
+// verification/reference-data/opensees/README.md). This script only refreshes
+// the committed input hashes after a Tcl edit and writes xframe cross-check
+// values, which agree with the measured oracle within the stored tolerances.
+// Do not present regenerated files as fresh oracle measurements: rerun the
+// Tcl inputs with `npm run verify:opensees` on a host with the pinned binary.
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";

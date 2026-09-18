@@ -16,8 +16,9 @@ fix 2 1 1 1 1 1 1
 fix 3 1 1 1 1 1 1
 foreach n {4 5 6 7 8 9} { fix $n 0 0 0 0 0 0 }
 
-geomTransf Linear 1 1 0 0
-geomTransf Linear 2 0 1 0
+# vecxz 0 0 1 aligns both member directions with the xframe model, exactly as
+# in portal-frame.tcl: in-plane (global XY) bending uses Iz in both codes.
+geomTransf Linear 1 0 0 1
 # Column section c / beam section b mirror the xframe reference model.
 element elasticBeamColumn 1 1 4 0.022 200.0e9 76.92307692307692e9 9.0e-6 12.0e-6 22.0e-6 1
 element elasticBeamColumn 2 2 5 0.022 200.0e9 76.92307692307692e9 9.0e-6 12.0e-6 22.0e-6 1
@@ -25,10 +26,10 @@ element elasticBeamColumn 3 3 6 0.022 200.0e9 76.92307692307692e9 9.0e-6 12.0e-6
 element elasticBeamColumn 4 4 7 0.022 200.0e9 76.92307692307692e9 9.0e-6 12.0e-6 22.0e-6 1
 element elasticBeamColumn 5 5 8 0.022 200.0e9 76.92307692307692e9 9.0e-6 12.0e-6 22.0e-6 1
 element elasticBeamColumn 6 6 9 0.022 200.0e9 76.92307692307692e9 9.0e-6 12.0e-6 22.0e-6 1
-element elasticBeamColumn 7 4 5 0.017 200.0e9 76.92307692307692e9 7.0e-6 8.5e-6 16.0e-6 2
-element elasticBeamColumn 8 5 6 0.017 200.0e9 76.92307692307692e9 7.0e-6 8.5e-6 16.0e-6 2
-element elasticBeamColumn 9 7 8 0.017 200.0e9 76.92307692307692e9 7.0e-6 8.5e-6 16.0e-6 2
-element elasticBeamColumn 10 8 9 0.017 200.0e9 76.92307692307692e9 7.0e-6 8.5e-6 16.0e-6 2
+element elasticBeamColumn 7 4 5 0.017 200.0e9 76.92307692307692e9 7.0e-6 8.5e-6 16.0e-6 1
+element elasticBeamColumn 8 5 6 0.017 200.0e9 76.92307692307692e9 7.0e-6 8.5e-6 16.0e-6 1
+element elasticBeamColumn 9 7 8 0.017 200.0e9 76.92307692307692e9 7.0e-6 8.5e-6 16.0e-6 1
+element elasticBeamColumn 10 8 9 0.017 200.0e9 76.92307692307692e9 7.0e-6 8.5e-6 16.0e-6 1
 
 timeSeries Linear 1
 pattern Plain 1 1 {
@@ -47,9 +48,13 @@ analysis Static
 if { [analyze 1] != 0 } {
   error "OpenSees two-story-two-bay analysis failed"
 }
+reactions
 
 foreach n {1 2 3 4 5 6 7 8 9} {
   set d [list [nodeDisp $n 1] [nodeDisp $n 2] [nodeDisp $n 3] [nodeDisp $n 4] [nodeDisp $n 5] [nodeDisp $n 6]]
   set r [list [nodeReaction $n 1] [nodeReaction $n 2] [nodeReaction $n 3] [nodeReaction $n 4] [nodeReaction $n 5] [nodeReaction $n 6]]
   puts "XFRAME node $n disp $d react $r"
+}
+foreach e {1 2 3 4 5 6 7 8 9 10} {
+  puts "XFRAME frame $e forces [eleResponse $e localForces]"
 }

@@ -70,6 +70,105 @@ function compareEccentric(actual, expected, name) {
   }
 }
 
+function numbers(line) {
+  const values = line.match(/-?\d+\.\d+(?:[eE][+-]?\d+)?/gu) ?? [];
+  return values.map(Number);
+}
+
+function compareSequence(actual, expected, relative, absolute, label) {
+  if (actual.length !== expected.length) {
+    throw new Error(`OpenSees ${label} has ${actual.length} values, expected ${expected.length}.`);
+  }
+  expected.forEach((wanted, index) => {
+    const got = actual[index];
+    if (!Number.isFinite(got) || !Number.isFinite(wanted)) {
+      throw new Error(`OpenSees ${label}[${index}] is not finite.`);
+    }
+    const limit = absolute + relative * Math.max(Math.abs(got), Math.abs(wanted));
+    if (Math.abs(got - wanted) > limit) {
+      throw new Error(
+        `OpenSees ${label}[${index}] differs: actual=${got} expected=${wanted} limit=${limit}`,
+      );
+    }
+  });
+}
+
+function verifyBuildingOutput(name, output, reference) {
+  const { relative, absolute } = reference.tolerances;
+  const reactionAbsolute = reference.tolerances.reactionAbsolute ?? absolute;
+  const lines = output.split(/\r?\n/u).filter((line) => line.startsWith("XFRAME "));
+  // Tcl node/element numbers need not equal xframe ids (cantilever uses
+  // n1/n2), so lines match reference entries positionally. Both sequences
+  // are deterministic: the Tcl foreach lists and the reference arrays share
+  // the same order.
+  const nodeLines = lines.filter((line) => {
+    const parts = line.split(/\s+/u);
+    return parts[1] === "node" && parts[3] === "disp";
+  });
+  const frameLines = lines.filter((line) => line.split(/\s+/u)[1] === "frame");
+  const trussLines = lines.filter((line) => line.split(/\s+/u)[1] === "truss");
+  const wantedNodes = reference.nodes ?? [];
+  const wantedFrames = reference.frames ?? [];
+  const wantedTrusses = reference.trusses ?? [];
+  if (nodeLines.length !== wantedNodes.length) {
+    throw new Error(
+      `OpenSees ${name} has ${nodeLines.length} node lines, expected ${wantedNodes.length}.`,
+    );
+  }
+  if (frameLines.length !== wantedFrames.length) {
+    throw new Error(
+      `OpenSees ${name} has ${frameLines.length} frame lines, expected ${wantedFrames.length}.`,
+    );
+  }
+  if (trussLines.length !== wantedTrusses.length) {
+    throw new Error(
+      `OpenSees ${name} has ${trussLines.length} truss lines, expected ${wantedTrusses.length}.`,
+    );
+  }
+  // Node lines carry 6 displacements + 6 reactions, except truss-only
+  // outputs which carry 3 displacements and no reactions.
+  nodeLines.forEach((line, index) => {
+    const expected = wantedNodes[index];
+    const values = numbers(line);
+    compareSequence(
+      values.slice(0, expected.displacements.length),
+      expected.displacements,
+      relative,
+      absolute,
+      `${name}.node.${expected.id}.disp`,
+    );
+    if (expected.displacements.length === 6) {
+      compareSequence(
+        values.slice(6, 12),
+        expected.reactions,
+        relative,
+        reactionAbsolute,
+        `${name}.node.${expected.id}.react`,
+      );
+    }
+  });
+  frameLines.forEach((line, index) => {
+    const expected = wantedFrames[index];
+    compareSequence(
+      numbers(line),
+      expected.localEndForces,
+      relative,
+      absolute,
+      `${name}.frame.${expected.id}`,
+    );
+  });
+  trussLines.forEach((line, index) => {
+    const expected = wantedTrusses[index];
+    compareSequence(
+      numbers(line),
+      [expected.axialForce],
+      relative,
+      absolute,
+      `${name}.truss.${expected.id}`,
+    );
+  });
+}
+
 const binaryPath = resolve(binary);
 const binaryHash = createHash("sha256").update(readFileSync(binaryPath)).digest("hex");
 if (binaryHash !== expectedBinaryHash)
@@ -114,6 +213,8 @@ try {
         reference.results.axialForceMagnitude,
         `${name}.axialForceMagnitude`,
       );
+    } else {
+      verifyBuildingOutput(name, output, reference);
     }
     console.log(`OpenSees ${name} executed non-destructively (${lines.length} XFRAME lines).`);
   }

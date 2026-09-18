@@ -19,7 +19,9 @@ Verify non-destructively with:
 OPENSEES_BIN=/absolute/path/to/OpenSees npm run verify:opensees
 ```
 
-The verifier checks each committed input SHA-256, pins the binary hash, runs every Tcl input in a temporary directory, requires `XFRAME` result lines, strictly compares the eccentric-truss oracle, and leaves the repository unchanged.
+The verifier checks each committed input SHA-256, pins the binary hash, runs every Tcl input in a temporary directory, and numerically compares every dataset output against the committed measured references (displacements, reactions, member forces, truss axials; strict `1e-12` comparison for the eccentric-truss oracle). It leaves the repository unchanged.
+
+Axis convention: `geomTransf` vectors use `0 0 1` so in-plane bending uses `Iz` in both codes, matching the xframe orientations. Vertical-member local frames differ by an exact 180-degree roll about local x; those end forces compare through `[Fx,-Fy,-Fz,Mx,-My,-Mz]` per end block (see `verification/external/opensees-building-frames.test.ts`). Tcl `reactions` output requires the `reactions` command after `analyze`; omitting it silently prints zeros.
 
 ## Cases
 

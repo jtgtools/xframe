@@ -4,33 +4,37 @@
     "version": "3.8.0",
     "commit": "6e55293513192aa05c7e1205e66a5a1a1ed088c4",
     "binarySha256": "5aa4e9c80c410c510ca62ac3b2f1d64a8e50679f0238e140b5bebcd6d5ddbe6d",
-    "inputSha256": "24ae687a76206911a2c0fa05464b7c8d9752ef4e5a50aa0757b2ef248464b48d",
+    "inputSha256": "a99f0cca96cfa5629db4b86c15eee229feb8ca0171d4cb45c1e69778e332bc22",
     "command": ["OPENSEES_BIN", "cantilever-euler.tcl"]
   },
-  "units": { "length": "m", "force": "N" },
+  "units": {
+    "length": "m",
+    "force": "N"
+  },
   "tolerances": {
     "relative": 1e-6,
     "absolute": 1e-9,
-    "reason": "Independent double-precision direct solvers on identical nodal-load models; OpenSees Tcl output carries full precision."
+    "reason": "Measured OpenSees 3.8.0 Tcl output on identical nodal-load models. Displacements and member forces use absolute 1e-9; reactions admit an absolute noise floor of 1e-6 because free-DOF reaction residuals from two independent factorizations differ at the 1e-10 level while fixed-end reactions agree to 1e-13 relative.",
+    "reactionAbsolute": 1e-6
   },
   "nodes": [
     {
       "id": "n1",
-      "displacements": [0, 0, 0, 0, 0, 0],
-      "reactions": [0, 2000.0000000000018, 0, 0, 0, 8999.999999999996]
+      "displacements": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+      "reactions": [0.0, 2000.0000000000027, 0.0, 0.0, 0.0, 9000.000000000007]
     },
     {
       "id": "n2",
-      "displacements": [0, -0.02624999999999998, 0, 0, 0, -0.014999999999999987],
-      "reactions": [0, -1.8189894035458565e-12, 0, 0, 0, 7.275957614183426e-12]
+      "displacements": [0.0, -0.02625000000000002, 0.0, 0.0, 0.0, -0.015000000000000008],
+      "reactions": [0.0, -2.72848411e-12, 0.0, 0.0, 0.0, 9.094947e-13]
     }
   ],
   "frames": [
     {
       "id": "frame",
       "localEndForces": [
-        0, 2000.0000000000018, 0, 0, 0, 8999.999999999996, 0, -2000.0000000000018, 0, 0, 0,
-        -2999.9999999999927
+        0.0, 2000.0000000000027, 0.0, -0.0, 0.0, 9000.000000000007, 0.0, -2000.0000000000027, 0.0,
+        0.0, 0.0, -2999.999999999999
       ]
     }
   ]

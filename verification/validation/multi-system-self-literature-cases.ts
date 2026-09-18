@@ -376,13 +376,20 @@ const multiSystemCases = [
           );
         }
       }
+      // Vertical members (frames 1, 3) carry the documented exact 180-degree
+      // local-x roll map per six-component end block: [Fx,-Fy,-Fz,Mx,-My,-Mz].
+      const roll = [1, -1, -1, 1, -1, -1] as const;
       for (const expectedElement of reference.frames ?? []) {
+        const vertical = expectedElement.id === "1" || expectedElement.id === "3";
         for (let index = 0; index < 12; index += 1) {
+          const mapped = vertical
+            ? frameEndForce(actual, expectedElement.id, index) * roll[index % 6]!
+            : frameEndForce(actual, expectedElement.id, index);
           values.push(
             value(
               `frame ${expectedElement.id} force ${index}`,
               expectedElement.localEndForces[index]!,
-              frameEndForce(actual, expectedElement.id, index),
+              mapped,
               index % 6 < 3 ? "N" : "N*m",
               1,
             ),

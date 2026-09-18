@@ -7,7 +7,9 @@ node 2 3 0 0
 fix 1 1 1 1 1 1 1
 fix 2 0 0 0 0 0 0
 
-geomTransf Linear 1 0 1 0
+# vecxz 0 0 1 puts local y along global Y, matching the xframe
+# orientation [0, 1, 0]: transverse-Y bending uses Iz in both codes.
+geomTransf Linear 1 0 0 1
 # A E G J Iy Iz mirror xframe section 0.01 / 200e9 / 76.923e9 / 1e-5 / 8e-6 / 6e-6
 element elasticBeamColumn 1 1 2 0.01 200.0e9 76.92307692307692e9 1.0e-5 8.0e-6 6.0e-6 1
 
@@ -26,6 +28,7 @@ analysis Static
 if { [analyze 1] != 0 } {
   error "OpenSees cantilever-euler analysis failed"
 }
+reactions
 
 foreach n {1 2} {
   set d [list [nodeDisp $n 1] [nodeDisp $n 2] [nodeDisp $n 3] [nodeDisp $n 4] [nodeDisp $n 5] [nodeDisp $n 6]]
