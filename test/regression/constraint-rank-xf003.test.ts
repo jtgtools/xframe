@@ -90,7 +90,7 @@ function nullSpaceVector(left: readonly number[], right: readonly number[]): rea
   ];
 }
 
-describe("XF-003 rank regression", () => {
+describe("rank regression", () => {
   it.each([
     [
       "r0=[-9,-5,8], r1=[-7,-4,-10], r2=[-88,-49,62], exact integer r2=9*r0+r1",
@@ -105,7 +105,7 @@ describe("XF-003 rank regression", () => {
       [[-7, -3, -9] as const, [-36, -37, 20] as const, [20, -13, 92] as const] as const,
     ],
   ])(
-    "FR-XF-003-01: exact rank-2 three-row system classifies rank 2 with a recoverable null-space direction (%s)",
+    "exact rank-2 three-row system classifies rank 2 with a recoverable null-space direction (%s)",
     (_label, rows) => {
       const canonical = rows.map((coefficients, index) => equation(`r${index}`, coefficients));
       const analysis = analyzeConstraintRank(canonical);
@@ -130,7 +130,7 @@ describe("XF-003 rank regression", () => {
     },
   );
 
-  it("FR-XF-003-01: canonical witness recovers the exact null-space direction [82,-146,1]", () => {
+  it("canonical witness recovers the exact null-space direction [82,-146,1]", () => {
     const equations = [
       equation("r0", [-9, -5, 8]),
       equation("r1", [-7, -4, -10]),
@@ -151,7 +151,7 @@ describe("XF-003 rank regression", () => {
     }
   });
 
-  it("FR-XF-003-02: public grounded-spring solve returns u=[82,-146,1], not zero, with pass diagnostics", () => {
+  it("public grounded-spring solve returns u=[82,-146,1], not zero, with pass diagnostics", () => {
     const builder = modelBuilderModule
       .createModelBuilder()
       .setUnitSystem({
@@ -195,7 +195,7 @@ describe("XF-003 rank regression", () => {
     expect(displacements[2]!).toBeCloseTo(1, 9);
   });
 
-  it("FR-XF-003-03: exact-rank oracle property test — engine rank matches BigInt fraction-free rank on 213,000 deterministic systems", () => {
+  it("exact-rank oracle property test — engine rank matches BigInt fraction-free rank on 213,000 deterministic systems", () => {
     const random = mulberry32(123456789);
     const randomCoefficient = randomInteger(random);
     let overRanks = 0;
@@ -267,7 +267,7 @@ describe("XF-003 rank regression", () => {
     expect(underRanks).toBe(0);
   }, 90_000);
 
-  it("FR-XF-003-03: exact-rank oracle property test — compiled reducedDofCount matches nullity on dependent systems", () => {
+  it("exact-rank oracle property test — compiled reducedDofCount matches nullity on dependent systems", () => {
     const random = mulberry32(20260819);
     const randomCoefficient = randomInteger(random);
     for (let trial = 0; trial < 5_000; trial += 1) {
@@ -311,7 +311,7 @@ describe("XF-003 rank regression", () => {
     }
   }, 90_000);
 
-  it("FR-XF-003-04: nullity/completeness invariant — transform column count equals full DOF count minus exact rank", () => {
+  it("nullity/completeness invariant — transform column count equals full DOF count minus exact rank", () => {
     const equations = [
       equation("r0", [-9, -5, 8]),
       equation("r1", [-7, -4, -10]),
@@ -345,7 +345,7 @@ describe("XF-003 rank regression", () => {
     expect(violation).toBeUndefined();
   });
 
-  it("FR-XF-003-04: nullity/completeness invariant — two independent constraints leave a two-dimensional transform", () => {
+  it("nullity/completeness invariant — two independent constraints leave a two-dimensional transform", () => {
     const equations = [equation("r0", [1, 0, -2]), equation("r1", [0, 1, -3])];
     const oracleNullity =
       3 -
@@ -393,7 +393,7 @@ function expectRecoveredParallelToNullVector(
   }
 }
 
-describe("XF-003 adversarial review remediation", () => {
+describe("adversarial review remediation", () => {
   const ADVERSE_ROWS = [
     [-1025, 11, -1028] as const,
     [4950, 7082, -51] as const,
@@ -402,7 +402,7 @@ describe("XF-003 adversarial review remediation", () => {
 
   const ADVERSE_NULL_VECTOR = [7279735n, -5140875n, -7313500n] as const;
 
-  it("FR-XF-003-05: adversarial counterexample r2=-r0-9*r1 ranks 2 with the exact null vector locked by zero dot products", () => {
+  it("adversarial counterexample r2=-r0-9*r1 ranks 2 with the exact null vector locked by zero dot products", () => {
     expect(exactRankInteger(ADVERSE_ROWS)).toBe(2);
     for (const row of ADVERSE_ROWS) {
       const dot =
@@ -425,7 +425,7 @@ describe("XF-003 adversarial review remediation", () => {
     expect(violation).toBeUndefined();
   });
 
-  it("FR-XF-003-06: public grounded-spring solve returns u=[7279735,-5140875,-7313500,0,0,0], not zero, with pass diagnostics", () => {
+  it("public grounded-spring solve returns u=[7279735,-5140875,-7313500,0,0,0], not zero, with pass diagnostics", () => {
     const builder = modelBuilderModule
       .createModelBuilder()
       .setUnitSystem({
@@ -512,7 +512,7 @@ describe("XF-003 adversarial review remediation", () => {
     },
   );
 
-  it("FR-XF-003-08: mixed-scale exact-rank oracle sweep — rank matches BigInt oracle on 100,000 systems with a in +/-2000, b in +/-8000, c=alpha*a+beta*b", () => {
+  it("mixed-scale exact-rank oracle sweep — rank matches BigInt oracle on 100,000 systems with a in +/-2000, b in +/-8000, c=alpha*a+beta*b", () => {
     const random = mulberry32(20260417);
     const randomCoefficient = randomInteger(random);
     const scalingFactors = [1, -1, 9, -9];

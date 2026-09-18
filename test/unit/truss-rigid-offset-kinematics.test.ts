@@ -42,7 +42,7 @@ function trussModel(rigidOffsets?: {
 }
 
 describe("truss rigid-offset kinematics", () => {
-  it("FR-SAFE-002: maps eccentric truss compatibility and force work exactly", () => {
+  it("maps eccentric truss compatibility and force work exactly", () => {
     const direction = [0.6, 0.8, 0] as const;
     const startOffset = [2, -1, 3] as const;
     const endOffset = [-1, 4, 2] as const;
@@ -76,7 +76,7 @@ describe("truss rigid-offset kinematics", () => {
     );
   });
 
-  it("FR-SAFE-002: preserves the exact-zero six-translation fast path", () => {
+  it("preserves the exact-zero six-translation fast path", () => {
     const kinematics = createTrussRigidOffsetKinematics([1, 0, 0], [0, 0, 0], [-0, 0, 0]);
 
     expect(kinematics.activeReferenceComponents).toEqual([0, 1, 2, 6, 7, 8]);
@@ -88,7 +88,7 @@ describe("truss rigid-offset kinematics", () => {
     ]);
   });
 
-  it("FR-SAFE-002: orders active eccentric truss equations by reference endpoint", () => {
+  it("orders active eccentric truss equations by reference endpoint", () => {
     const zeroOffsetModel = trussModel({ start: [0, 0, 0], end: [-0, 0, 0] });
     const eccentricModel = trussModel({ start: [-Number.MIN_VALUE, 0, 0], end: [0, 0, 0] });
 

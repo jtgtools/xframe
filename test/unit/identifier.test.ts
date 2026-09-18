@@ -12,17 +12,17 @@ function codeOf(action: () => unknown): string | undefined {
 }
 
 describe("parseIdentifier", () => {
-  it("FR-MOD-003: accepts prototype-like identifiers because storage is Map-based", () => {
+  it("accepts prototype-like identifiers because storage is Map-based", () => {
     for (const value of ["__proto__", "constructor", "prototype", "toString"]) {
       expect(parseIdentifier(value, "id")).toBe(value);
     }
   });
 
-  it("FR-MOD-003: normalizes canonically equivalent Unicode identifiers to NFC", () => {
+  it("normalizes canonically equivalent Unicode identifiers to NFC", () => {
     expect(parseIdentifier("e\u0301", "id")).toBe("é");
   });
 
-  it("FR-MOD-003: rejects empty, whitespace-bearing, control-character, and formula-prefixed identifiers", () => {
+  it("rejects empty, whitespace-bearing, control-character, and formula-prefixed identifiers", () => {
     for (const value of [
       "",
       " ",
@@ -40,18 +40,18 @@ describe("parseIdentifier", () => {
     }
   });
 
-  it("FR-MOD-003: rejects identifiers longer than 128 Unicode code points", () => {
+  it("rejects identifiers longer than 128 Unicode code points", () => {
     expect(codeOf(() => parseIdentifier("a".repeat(129), "id"))).toBe("IDENTIFIER_INVALID");
     expect(parseIdentifier("😀".repeat(128), "id")).toBe("😀".repeat(128));
   });
 });
 
-it("FR-MOD-003: rejects boxed strings and other non-string identifier values", () => {
+it("rejects boxed strings and other non-string identifier values", () => {
   expect(codeOf(() => parseIdentifier(new String("alpha"), "id"))).toBe("IDENTIFIER_INVALID");
   expect(codeOf(() => parseIdentifier(42, "id"))).toBe("IDENTIFIER_INVALID");
 });
 
-it("FR-SAFE-010: compares normalized identifiers by ECMAScript code units", () => {
+it("compares normalized identifiers by ECMAScript code units", () => {
   expect(compareIdentifiers("z" as EntityId, "ä" as EntityId)).toBe(-1);
   expect(compareIdentifiers("ä" as EntityId, "z" as EntityId)).toBe(1);
   expect(compareIdentifiers("z" as EntityId, "z" as EntityId)).toBe(0);

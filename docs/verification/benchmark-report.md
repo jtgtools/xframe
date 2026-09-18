@@ -50,7 +50,7 @@ Timing variation between the two runs was expected and was not used as a pass/fa
 
 ## Dense-allocation guard
 
-`scripts/check-no-dense-global.mjs` and `test/regression/no-dense-global-allocation.test.ts` reject obvious dense global allocations. The final audit result was:
+`test/regression/no-dense-global-allocation.test.ts` rejects obvious dense global allocations. The final audit result was:
 
 ```text
 Dense global allocation guard: pass

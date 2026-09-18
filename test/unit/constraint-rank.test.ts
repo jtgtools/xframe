@@ -20,7 +20,7 @@ const numericRows = (result: ReturnType<typeof analyzeConstraintRank>) =>
   }));
 
 describe("constraint rank", () => {
-  it("FR-CON-002: identifies independent pivots and harmless redundancy", () => {
+  it("identifies independent pivots and harmless redundancy", () => {
     const result = analyzeConstraintRank([
       equation("c1", [1, -1, 0], 0),
       equation("c2", [0, 1, -1], 0),
@@ -30,13 +30,13 @@ describe("constraint rank", () => {
     expect(result.redundantSourceIds).toEqual(["c3"]);
   });
 
-  it("FR-CON-002: rejects conflicting dependent right-hand sides", () => {
+  it("rejects conflicting dependent right-hand sides", () => {
     expect(() =>
       analyzeConstraintRank([equation("c1", [1, -1], 0), equation("c2", [2, -2], 1)]),
     ).toThrow(XFrameError);
   });
 
-  it("FR-CON-002: classifies valid canonical zero-identity rows as redundant", () => {
+  it("classifies valid canonical zero-identity rows as redundant", () => {
     const zero = equation("zero", [], 0);
     const identityOnly = analyzeConstraintRank([zero]);
     expect(identityOnly.rank).toBe(0);
@@ -57,7 +57,7 @@ describe("constraint rank", () => {
     }
   });
 
-  it("FR-CON-002: empty constraint with nonzero RHS fails closed as a contradiction", () => {
+  it("empty constraint with nonzero RHS fails closed as a contradiction", () => {
     let thrown: unknown;
     try {
       analyzeConstraintRank([{ sourceId: "bad", terms: [], rightHandSide: 1 }]);
@@ -74,7 +74,7 @@ describe("constraint rank", () => {
   });
 
   it.each([1e-300, -1e-300, 1e300, -1e300])(
-    "FR-SAFE-003: retains independent rows after small coefficient cancellation at scale %s",
+    "retains independent rows after small coefficient cancellation at scale %s",
     (scale) => {
       const result = analyzeConstraintRank([
         equation("a", [scale, scale * 2e-14], 0),
@@ -87,7 +87,7 @@ describe("constraint rank", () => {
   );
 
   it.each([1e-300, -1e-300, 1e300, -1e300])(
-    "FR-SAFE-003: reports a scaled contradictory dependent row at scale %s",
+    "reports a scaled contradictory dependent row at scale %s",
     (scale) => {
       let thrown: unknown;
       try {
@@ -104,13 +104,13 @@ describe("constraint rank", () => {
     },
   );
 
-  it("XF-001: pivot strength beats minimum DOF", () => {
+  it("pivot strength beats minimum DOF", () => {
     const result = analyzeConstraintRank([equation("strong", [1e-12, 1], 0)]);
     expect(result.rank).toBe(1);
     expect(result.rows[0]!.pivotDof).toBe(1);
   });
 
-  it("XF-001: source-ID rename invariance preserves the numeric echelon", () => {
+  it("source-ID rename invariance preserves the numeric echelon", () => {
     const base = analyzeConstraintRank([
       equation("c1", [1, -1, 0], 0),
       equation("c2", [0, 1, -1], 0),
@@ -126,7 +126,7 @@ describe("constraint rank", () => {
     expect(renamed.redundantSourceIds).toEqual(["cc-101"]);
   });
 
-  it("XF-001: equation-order invariance preserves the numeric echelon", () => {
+  it("equation-order invariance preserves the numeric echelon", () => {
     const equations = [
       equation("c1", [1, -1, 0], 0),
       equation("c2", [0, 1, -1], 0),
@@ -139,7 +139,7 @@ describe("constraint rank", () => {
     expect(reversed.redundantSourceIds).toEqual(forward.redundantSourceIds);
   });
 
-  it.each([7, -3, 1e-6, 1e6, -1])("XF-001: row scale and sign invariance at scale %s", (scale) => {
+  it.each([7, -3, 1e-6, 1e6, -1])("row scale and sign invariance at scale %s", (scale) => {
     const base = analyzeConstraintRank([
       equation("c1", [1, -1, 0], 0),
       equation("c2", [0, 1, -1], 0),
@@ -155,7 +155,7 @@ describe("constraint rank", () => {
     expect(scaled.redundantSourceIds).toEqual(base.redundantSourceIds);
   });
 
-  it("XF-001: sparse-row tie at equal pivot strength chooses fewer nonzeros", () => {
+  it("sparse-row tie at equal pivot strength chooses fewer nonzeros", () => {
     const result = analyzeConstraintRank([
       equation("dense", [0, 0, 1, 1e-9], 0),
       equation("sparse", [0, 0, 1, 0], 0),
@@ -167,7 +167,7 @@ describe("constraint rank", () => {
     expect(result.rows[1]!.pivotDof).toBe(3);
   });
 
-  it("XF-001: deterministic complete-row numeric tie-break by coefficient sequence", () => {
+  it("deterministic complete-row numeric tie-break by coefficient sequence", () => {
     const result = analyzeConstraintRank([
       equation("row-b", [1, 2e-8], 0),
       equation("row-a", [1, 1e-8], 0),
@@ -181,7 +181,7 @@ describe("constraint rank", () => {
     expect(result.rows[1]!.coefficients.get(1)).toBe(1);
   });
 
-  it("XF-001: identical numeric rows use sourceId for attribution only", () => {
+  it("identical numeric rows use sourceId for attribution only", () => {
     const result = analyzeConstraintRank([
       equation("row-b", [1, 1, 0], 0),
       equation("row-a", [1, 1, 0], 0),
@@ -222,7 +222,7 @@ describe("constraint rank", () => {
   const q = 3.2515731794557063e-14;
   const f = 3.251573179455313e-14;
 
-  it("FR-SAFE-003 XF-001: forward-echelon invariants and local cancellation keep a meaningful tiny residual", () => {
+  it("forward-echelon invariants and local cancellation keep a meaningful tiny residual", () => {
     const result = analyzeConstraintRank([
       equation("b", [1, 0, f, 0], 0),
       equation("a", [1, 0, q, 0, 1], 0),
@@ -245,7 +245,7 @@ describe("constraint rank", () => {
   });
 
   it.each([1, 2 ** 45])(
-    "XF-001: backward-tail chain ranks to 25 pivots with exactly one free DOF at tail scale %s",
+    "backward-tail chain ranks to 25 pivots with exactly one free DOF at tail scale %s",
     (tailScale) => {
       const r = 0.999999999999943;
       const equations = [
@@ -295,7 +295,7 @@ describe("constraint rank", () => {
     },
   );
 
-  it("XF-001: 3003-DOF cumulative-tiny system ranks to full rank with every DOF as pivot", () => {
+  it("3003-DOF cumulative-tiny system ranks to full rank with every DOF as pivot", () => {
     const count = 3000;
     const masterDof = count + 2;
     const specialDof = count + 1;

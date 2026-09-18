@@ -43,7 +43,7 @@ function physicalBuilder() {
 }
 
 describe("physical DOF topology", () => {
-  it("FR-DOF-001: derives deterministic physical DOFs from element kinematics", () => {
+  it("derives deterministic physical DOFs from element kinematics", () => {
     const model = physicalBuilder().finalize();
     const actual = Array.from(
       model.physicalDofs.values(),
@@ -71,7 +71,7 @@ describe("physical DOF topology", () => {
     expect(model.physicalDofs.keyByPhysicalIndex(15)).toBe(createDofKey("n3", "rz"));
   });
 
-  it("FR-SAFE-002/FR-DOF-002: truss-only nodes have translations and no rotations", () => {
+  it("truss-only nodes have translations and no rotations", () => {
     const model = createModelBuilder()
       .setUnitSystem(units)
       .addNode({ id: "a", coordinates: [0, 0, 0] })
@@ -100,7 +100,7 @@ describe("physical DOF topology", () => {
     expect(model.constraints).toEqual([]);
   });
 
-  it("FR-SAFE-002: eccentric truss endpoints expose all reference rotations", () => {
+  it("eccentric truss endpoints expose all reference rotations", () => {
     const model = createModelBuilder()
       .setUnitSystem(units)
       .addNode({ id: "a", coordinates: [0, 0, 0] })
@@ -138,7 +138,7 @@ describe("physical DOF topology", () => {
     ]);
   });
 
-  it("FR-DOF-001: rejects constraints that target physically unavailable DOFs", () => {
+  it("rejects constraints that target physically unavailable DOFs", () => {
     const builder = createModelBuilder()
       .setUnitSystem(units)
       .addNode({ id: "a", coordinates: [0, 0, 0] })

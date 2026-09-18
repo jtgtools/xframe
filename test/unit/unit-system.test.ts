@@ -23,14 +23,14 @@ function errorCode(action: () => unknown): string | undefined {
 }
 
 describe("parseUnitSystem", () => {
-  it("FR-UNT-001: accepts and freezes the exact version-one unit schema", () => {
+  it("accepts and freezes the exact version-one unit schema", () => {
     const parsed = parseUnitSystem(validUnits);
 
     expect(parsed).toEqual(validUnits);
     expect(Object.isFrozen(parsed)).toBe(true);
   });
 
-  it("FR-UNT-002: rejects missing, additional, and misspelled unit keys", () => {
+  it("rejects missing, additional, and misspelled unit keys", () => {
     const { density: _density, ...missing } = validUnits;
     expect(errorCode(() => parseUnitSystem(missing))).toBe("UNITS_INVALID");
     expect(errorCode(() => parseUnitSystem({ ...validUnits, mass: "kg" }))).toBe("UNITS_INVALID");
@@ -41,7 +41,7 @@ describe("parseUnitSystem", () => {
     ).toBe("UNITS_INVALID");
   });
 
-  it("FR-UNT-001: rejects unsupported schema versions, empty labels, and non-radian rotations", () => {
+  it("rejects unsupported schema versions, empty labels, and non-radian rotations", () => {
     expect(errorCode(() => parseUnitSystem({ ...validUnits, version: "2" }))).toBe("UNITS_INVALID");
     expect(errorCode(() => parseUnitSystem({ ...validUnits, force: "" }))).toBe("UNITS_INVALID");
     expect(errorCode(() => parseUnitSystem({ ...validUnits, rotation: "deg" }))).toBe(
@@ -50,7 +50,7 @@ describe("parseUnitSystem", () => {
   });
 });
 
-it("FR-UNT-001: attaches exact unit metadata to the model builder atomically", async () => {
+it("attaches exact unit metadata to the model builder atomically", async () => {
   const { createModelBuilder } = await import("../../src/model/model-builder.js");
   const builder = createModelBuilder();
 

@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { prepareAnalysis } from "../../src/analysis/prepare-analysis.js";
 import { createModelBuilder } from "../../src/model/model-builder.js";
 
-it("FR-SOL-004: reuses one assembled stiffness and factorization for compatible load cases", () => {
+it("reuses one assembled stiffness and factorization for compatible load cases", () => {
   const model = createModelBuilder()
     .setUnitSystem({
       version: "1",

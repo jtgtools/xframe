@@ -8,7 +8,7 @@ function solve2(a: number, b: number, c: number, f0: number, f1: number): [numbe
 }
 
 describe("analytical frame verification", () => {
-  it("FR-ELE-001/NFR-COR-001: Euler cantilever tip force matches closed-form displacement and rotation", () => {
+  it("Euler cantilever tip force matches closed-form displacement and rotation", () => {
     const length = 3.2;
     const elasticModulus = 205e9;
     const inertia = 8.1e-6;
@@ -33,7 +33,7 @@ describe("analytical frame verification", () => {
     expect(rotation).toBeCloseTo((12_000 * length ** 2) / (2 * elasticModulus * inertia), 12);
   });
 
-  it("FR-LOD-004/NFR-COR-001: uniform load fixed-end vector matches exact beam values", () => {
+  it("uniform load fixed-end vector matches exact beam values", () => {
     const length = 7;
     const load = -18;
     const p = computeFrameEquivalentLoad({

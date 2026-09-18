@@ -13,7 +13,7 @@ function mechanismError(model: Parameters<typeof prepareAnalysis>[0]): XFrameErr
   throw new Error("expected mechanism");
 }
 
-it("FR-SOL-007: rejects an under-restrained truss as a physical global mechanism", () => {
+it("rejects an under-restrained truss as a physical global mechanism", () => {
   const model = createModelBuilder()
     .setUnitSystem({
       version: "1",
@@ -36,7 +36,7 @@ it("FR-SOL-007: rejects an under-restrained truss as a physical global mechanism
   expect(error.context.kind).toBe("analysis");
 });
 
-it("FR-SAFE-002: rejects genuinely free eccentric truss rotations as a global mechanism", () => {
+it("rejects genuinely free eccentric truss rotations as a global mechanism", () => {
   const builder = createModelBuilder()
     .setUnitSystem({
       version: "1",

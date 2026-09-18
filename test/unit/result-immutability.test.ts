@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { prepareAnalysis } from "../../src/analysis/prepare-analysis.js";
 import { createModelBuilder } from "../../src/model/model-builder.js";
 
-it("FR-RES-001/NFR-SEC-001/FR-SAFE-002/FR-SAFE-004: solved results own immutable identity, units, node, and element data", () => {
+it("solved results own immutable identity, units, node, and element data", () => {
   const builder = createModelBuilder()
     .setUnitSystem({
       version: "1",

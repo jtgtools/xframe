@@ -14,7 +14,7 @@ function generator(seed: number): () => number {
   };
 }
 
-it("FR-SOL-001/FR-SOL-003: seed 24701 solves 40 sparse diagonally dominant SPD systems", () => {
+it("seed 24701 solves 40 sparse diagonally dominant SPD systems", () => {
   const random = generator(24701);
   let maximumError = 0;
   let maximumResidual = 0;

@@ -17,7 +17,7 @@ Rules for every agent working in this repository.
 ## Testing discipline
 
 - Strict TDD: every behavior starts with a failing Vitest test.
-- Name each test with its requirement ID (for example `FR-*`) in the title.
+- Use plain behavioral test titles with no ID prefixes.
 - RED first, then GREEN; confirm the failure is for the intended reason.
 - Never use `.skip`, `.only`, or `.todo`.
 - Never weaken a tolerance without written mathematical justification.

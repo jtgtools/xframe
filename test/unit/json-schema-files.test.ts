@@ -5,7 +5,7 @@ function schema(name: string): Record<string, unknown> {
   return JSON.parse(readFileSync(`schemas/${name}.schema.json`, "utf8")) as Record<string, unknown>;
 }
 
-it("FR-JSON-001/FR-JSON-002: publishes a strict complete model JSON Schema", () => {
+it("publishes a strict complete model JSON Schema", () => {
   const value = schema("model");
   expect(value["$schema"]).toBe("https://json-schema.org/draft/2020-12/schema");
   expect(value["additionalProperties"]).toBe(false);
@@ -28,7 +28,7 @@ it("FR-JSON-001/FR-JSON-002: publishes a strict complete model JSON Schema", () 
   expect(definitions["pointLocation"]!["oneOf"]).toBeDefined();
 });
 
-it("FR-JSON-001/FR-JSON-002/FR-SAFE-002/FR-SAFE-004: publishes a strict complete result JSON Schema v2", () => {
+it("publishes a strict complete result JSON Schema v2", () => {
   const value = schema("result");
   expect(value["$schema"]).toBe("https://json-schema.org/draft/2020-12/schema");
   expect(value["additionalProperties"]).toBe(false);

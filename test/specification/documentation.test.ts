@@ -19,11 +19,11 @@ const requiredFiles = [
 const task13MarkdownCheck =
   "npx oxfmt --check README.md docs/api/json-input.md docs/api/public-api.md docs/architecture/system-architecture.md docs/engineering-use.md docs/roadmap/progress.md docs/theory/numerical-conventions.md docs/theory/solution-and-results.md docs/theory/structural-model.md docs/verification/finalization-report.md docs/verification/json-api-report.md docs/verification/result-diagnostics-report.md docs/verification/safety-correctness-report.md docs/verification/truss-spring-offset-report.md docs/verification/verification-report.md";
 
-it("DOC-AUD-001: required public documentation and executable examples exist", () => {
+it("required public documentation and executable examples exist", () => {
   for (const path of requiredFiles) expect(existsSync(path)).toBe(true);
 });
 
-it("DOC-AUD-002: public documentation states scope, units, JSON, CSV, review, and certification limits", () => {
+it("public documentation states scope, units, JSON, CSV, review, and certification limits", () => {
   const publicText = [
     "README.md",
     "docs/api/public-api.md",
@@ -46,7 +46,7 @@ it("DOC-AUD-002: public documentation states scope, units, JSON, CSV, review, an
   expect(publicText).not.toMatch(/\b(?:TBD|TODO|FIXME)\b/);
 });
 
-it("DOC-AUD-003: local Markdown links in public documentation resolve", () => {
+it("local Markdown links in public documentation resolve", () => {
   const markdownFiles = requiredFiles.filter((path) => path.endsWith(".md"));
   const linkPattern = /\[[^\]]+\]\(([^)]+)\)/g;
   for (const file of markdownFiles) {
@@ -61,7 +61,7 @@ it("DOC-AUD-003: local Markdown links in public documentation resolve", () => {
   }
 });
 
-it("FR-SAFE-001/002/004/007/014/DOC-AUD-004: current documentation states the remediated safety contracts", () => {
+it("current documentation states the remediated safety contracts", () => {
   const requiredPhrasesByFile: readonly (readonly [string, readonly string[]])[] = [
     [
       "README.md",

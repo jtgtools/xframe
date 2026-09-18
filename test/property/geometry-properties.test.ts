@@ -31,7 +31,7 @@ function six(random: () => number): readonly [number, number, number, number, nu
 }
 
 describe("geometry properties", () => {
-  it("FR-GEO-003: seed 24301 produces orthonormal right-handed local bases", () => {
+  it("seed 24301 produces orthonormal right-handed local bases", () => {
     const random = generator(24_301);
     for (let index = 0; index < 200; index += 1) {
       const start = sample(random, 1_000);
@@ -49,7 +49,7 @@ describe("geometry properties", () => {
     }
   });
 
-  it("FR-GEO-006: seed 24302 preserves vector components through global/local round-trips", () => {
+  it("seed 24302 preserves vector components through global/local round-trips", () => {
     const random = generator(24_302);
     for (let index = 0; index < 100; index += 1) {
       const start = sample(random, 100);
@@ -66,7 +66,7 @@ describe("geometry properties", () => {
     }
   });
 
-  it("FR-GEO-005: seed 24303 preserves virtual work for rigid offsets", () => {
+  it("seed 24303 preserves virtual work for rigid offsets", () => {
     const random = generator(24_303);
     for (let index = 0; index < 100; index += 1) {
       const offset = sample(random, 5);

@@ -53,11 +53,11 @@ async function webCryptoSha256Hex(text: string): Promise<string> {
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-it("FR-SAFE-001: matches the published SHA-256 empty-string vector", () => {
+it("matches the published SHA-256 empty-string vector", () => {
   expect(sha256Hex("")).toBe("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
 });
 
-it("FR-SAFE-001: matches the published SHA-256 abc vector", () => {
+it("matches the published SHA-256 abc vector", () => {
   expect(sha256Hex("abc")).toBe("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
 });
 
@@ -71,7 +71,7 @@ it.each([
   expect(sha256Hex("a".repeat(length))).toBe(expected);
 });
 
-it("FR-SAFE-001: hashes UTF-8 Unicode exactly as Web Crypto", async () => {
+it("hashes UTF-8 Unicode exactly as Web Crypto", async () => {
   const text = "Zażółć gęślą jaźń 😀";
   expect(sha256Hex(text)).toBe(await webCryptoSha256Hex(text));
   expect(computeModelFingerprint({ text })).toBe(
@@ -79,14 +79,14 @@ it("FR-SAFE-001: hashes UTF-8 Unicode exactly as Web Crypto", async () => {
   );
 });
 
-it("FR-SAFE-001: emits an exact lowercase SHA-256 model identity", () => {
+it("emits an exact lowercase SHA-256 model identity", () => {
   expect(computeModelFingerprint({ value: "model" })).toMatch(/^sha256:[0-9a-f]{64}$/u);
   expect(computeModelFingerprint({ value: "model" })).toBe(
     computeModelFingerprint({ value: "model" }),
   );
 });
 
-it("FR-SAFE-001: separates the reproduced full-model FNV collision", () => {
+it("separates the reproduced full-model FNV collision", () => {
   const collisionAreas = [0.00015793100000000002, 0.000164232] as const;
   const builders = collisionAreas.map(collisionModel);
   const snapshots = builders.map((builder) => builder.snapshot());

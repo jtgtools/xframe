@@ -17,7 +17,7 @@ function solve2(a: number, b: number, c: number, f0: number, f1: number): [numbe
 }
 
 describe("frame local stiffness", () => {
-  it("FR-ELE-001: produces the standard symmetric 3D Euler-Bernoulli matrix", () => {
+  it("produces the standard symmetric 3D Euler-Bernoulli matrix", () => {
     const k = computeFrameLocalStiffness({ ...base, theory: { kind: "euler-bernoulli" } });
     expect(k.length).toBe(144);
     expect(k[0]).toBeCloseTo((base.elasticModulus * base.area) / base.length, 6);
@@ -39,7 +39,7 @@ describe("frame local stiffness", () => {
         expect(k[row * 12 + column]).toBeCloseTo(k[column * 12 + row]!, 12);
   });
 
-  it("FR-ELE-002: reproduces the closed-form Timoshenko cantilever deflection in both planes", () => {
+  it("reproduces the closed-form Timoshenko cantilever deflection in both planes", () => {
     const shearAreaY = 0.012;
     const shearAreaZ = 0.009;
     const k = computeFrameLocalStiffness({

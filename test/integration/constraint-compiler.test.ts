@@ -17,7 +17,7 @@ function inputFailure(action: () => unknown): XFrameError {
 }
 
 describe("constraint compiler", () => {
-  it("FR-CON-003: compiles prescribed and equal-DOF equations to a sparse affine map", () => {
+  it("compiles prescribed and equal-DOF equations to a sparse affine map", () => {
     const compiled = compileConstraints(4, [
       {
         sourceId: "fix",
@@ -44,7 +44,7 @@ describe("constraint compiler", () => {
     expect(compiled.transformNonzeroCount).toBe(3);
   });
 
-  it("FR-CON-003: deterministic output ignores equation insertion order", () => {
+  it("deterministic output ignores equation insertion order", () => {
     const equations = [
       { sourceId: "b", terms: [{ dof: 2, coefficient: 1 }], rightHandSide: 4 },
       { sourceId: "a", terms: [{ dof: 0, coefficient: 1 }], rightHandSide: 1 },
@@ -55,7 +55,7 @@ describe("constraint compiler", () => {
     expect(forward.freeDofs).toEqual(reverse.freeDofs);
   });
 
-  it("FR-SAFE-010: constraint source ordering uses ECMAScript code units without host collation", () => {
+  it("constraint source ordering uses ECMAScript code units without host collation", () => {
     const localeCompare = vi.spyOn(String.prototype, "localeCompare").mockImplementation(() => {
       throw new Error("localeCompare used");
     });
@@ -80,7 +80,7 @@ describe("constraint compiler", () => {
   });
 
   it.each([1e-300, -1e-300, 1e-120, -1e-120, 1, -1, 1e120, -1e120, 1e300, -1e300])(
-    "FR-SAFE-003: preserves compiled pivot/free topology and kinematics at scale %s",
+    "preserves compiled pivot/free topology and kinematics at scale %s",
     (scale) => {
       const compiled = compileConstraints(2, [
         {
@@ -99,7 +99,7 @@ describe("constraint compiler", () => {
     },
   );
 
-  it("FR-CON-004: recovers full displacement and source-traced constraint forces", () => {
+  it("recovers full displacement and source-traced constraint forces", () => {
     const compiled = compileConstraints(2, [
       {
         sourceId: "support",
@@ -119,7 +119,7 @@ describe("constraint compiler", () => {
     ]);
   });
 
-  it("FR-CON-004: recovers coupled constraint reactions and rejects incompatible recovery vectors", () => {
+  it("recovers coupled constraint reactions and rejects incompatible recovery vectors", () => {
     const coupled = compileConstraints(3, [
       {
         sourceId: "a",
@@ -180,7 +180,7 @@ describe("constraint compiler", () => {
     expect(unconstrained.constraintForces).toEqual([]);
   });
 
-  it("FR-SAFE-003: preserves compiled topology and recovery across exact subnormal scaling", () => {
+  it("preserves compiled topology and recovery across exact subnormal scaling", () => {
     const m = 3e-310;
     const p = m - Number.MIN_VALUE;
     const residual = m - p;
@@ -211,7 +211,7 @@ describe("constraint compiler", () => {
     );
   });
 
-  it("XF-001 metamorphic: transform is invariant under source-ID rename, equation/term order, and row scale", () => {
+  it("metamorphic: transform is invariant under source-ID rename, equation/term order, and row scale", () => {
     const base = [
       {
         sourceId: "a",
@@ -309,7 +309,7 @@ describe("constraint compiler", () => {
     }
   });
 
-  it("XF-001 affine back substitution: triangular nonzero-RHS system with one free DOF recovers u = Tq + c", () => {
+  it("affine back substitution: triangular nonzero-RHS system with one free DOF recovers u = Tq + c", () => {
     const compiled = compileConstraints(4, [
       {
         sourceId: "a",
@@ -349,7 +349,7 @@ describe("constraint compiler", () => {
   });
 });
 
-it("FR-CON-001/FR-MOD-005: expands a rigid diaphragm atomically into affine equations", () => {
+it("expands a rigid diaphragm atomically into affine equations", () => {
   const { createModelBuilder } = requireModelBuilder();
   const builder = createModelBuilder()
     .addNode({ id: "m", coordinates: [0, 0, 0] })
@@ -399,7 +399,7 @@ function requireModelBuilder(): typeof import("../../src/model/model-builder.js"
 
 import * as modelBuilderModule from "../../src/model/model-builder.js";
 
-it("FR-CON-003/NFR-COR-001: two oblique restraints preserve the exact free-axis stiffness", () => {
+it("two oblique restraints preserve the exact free-axis stiffness", () => {
   const end = [2.3, 3.7, 1.4] as const;
   const length = Math.hypot(...end);
   const direction = end.map((entry) => entry / length);

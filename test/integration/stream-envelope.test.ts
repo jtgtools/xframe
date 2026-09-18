@@ -67,7 +67,7 @@ function incompatibleError(action: () => unknown): XFrameError {
   return thrown;
 }
 
-it("FR-RES-006/FR-RES-007: streams 150000 records and retains complete deterministic extrema provenance", () => {
+it("streams 150000 records and retains complete deterministic extrema provenance", () => {
   function* records() {
     for (let index = 0; index < 150_000; index += 1) {
       yield {
@@ -110,7 +110,7 @@ it("FR-RES-006/FR-RES-007: streams 150000 records and retains complete determini
   expect(Object.isFrozen(envelope)).toBe(true);
 });
 
-it("FR-RES-006: keeps every tied governor and normalizes negative zero", () => {
+it("keeps every tied governor and normalizes negative zero", () => {
   const envelope = streamEnvelope(
     [
       { resultId: "A", resultKind: "case", compatibility, values: [-0, 2] },
@@ -122,7 +122,7 @@ it("FR-RES-006: keeps every tied governor and normalizes negative zero", () => {
   expect(envelope.maximum[1]!.governing.map(({ resultId }) => resultId)).toEqual(["A", "B"]);
 });
 
-it("FR-RES-006/NFR-COR-002: rejects empty, duplicate, malformed, mismatched, and non-finite records", () => {
+it("rejects empty, duplicate, malformed, mismatched, and non-finite records", () => {
   const invalid = [
     () => streamEnvelope([], components),
     () =>
@@ -152,7 +152,7 @@ it("FR-RES-006/NFR-COR-002: rejects empty, duplicate, malformed, mismatched, and
   for (const action of invalid) expect(action).toThrowError(XFrameError);
 });
 
-it("FR-SAFE-014: rejects a bare legacy record with missing compatibility metadata", () => {
+it("rejects a bare legacy record with missing compatibility metadata", () => {
   const legacy = {
     resultId: "LEGACY",
     resultKind: "case",
@@ -163,7 +163,7 @@ it("FR-SAFE-014: rejects a bare legacy record with missing compatibility metadat
   expect(error.context).toMatchObject({ reason: "missing compatibility metadata" });
 });
 
-it("FR-SAFE-014: accepts unread unrelated own compatibility extensions", () => {
+it("accepts unread unrelated own compatibility extensions", () => {
   let extensionReads = 0;
   const extensionKey = Symbol("extension");
   const compatibilityWithExtensions = {
@@ -190,7 +190,7 @@ it("FR-SAFE-014: accepts unread unrelated own compatibility extensions", () => {
   expect(extensionReads).toBe(0);
 });
 
-it("FR-SAFE-014: rejects model fingerprints that differ before reading values", () => {
+it("rejects model fingerprints that differ before reading values", () => {
   let read = false;
   const record = {
     ...baseRecord,
@@ -209,7 +209,7 @@ it("FR-SAFE-014: rejects model fingerprints that differ before reading values", 
   expect(read).toBe(false);
 });
 
-it("FR-SAFE-014: rejects unit systems that differ", () => {
+it("rejects unit systems that differ", () => {
   const otherUnits = Object.freeze({ ...unitSystem, length: "mm" });
   const record = {
     ...baseRecord,
@@ -221,7 +221,7 @@ it("FR-SAFE-014: rejects unit systems that differ", () => {
   expect(error.context).toMatchObject({ reason: "unit systems differ" });
 });
 
-it("FR-SAFE-014: rejects result conventions that differ", () => {
+it("rejects result conventions that differ", () => {
   const otherConventions = {
     ...conventions,
     internalForces: "other-sign-convention",
@@ -236,7 +236,7 @@ it("FR-SAFE-014: rejects result conventions that differ", () => {
   expect(error.context).toMatchObject({ reason: "result conventions differ" });
 });
 
-it("FR-SAFE-014: rejects component layouts that differ between records", () => {
+it("rejects component layouts that differ between records", () => {
   const otherComponents: readonly EnvelopeComponent[] = [
     { component: "tx", entityId: "n1" },
     { component: "bendingY", entityId: "f1", location: 2 },
@@ -251,7 +251,7 @@ it("FR-SAFE-014: rejects component layouts that differ between records", () => {
   expect(error.context).toMatchObject({ reason: "component layouts differ" });
 });
 
-it("FR-SAFE-014: rejects a first component layout that differs from supplied components before reading values", () => {
+it("rejects a first component layout that differs from supplied components before reading values", () => {
   const otherComponents: readonly EnvelopeComponent[] = [
     { component: "tx", entityId: "n1" },
     { component: "bendingY", entityId: "f1", location: 2 },
@@ -273,7 +273,7 @@ it("FR-SAFE-014: rejects a first component layout that differs from supplied com
   expect(valuesRead).toBe(false);
 });
 
-it("FR-SAFE-014: creates an immutable compatibility copy with normalized nested metadata", () => {
+it("creates an immutable compatibility copy with normalized nested metadata", () => {
   const sourceUnits = { ...unitSystem };
   const sourceConventions = { ...conventions };
   const sourceComponents: EnvelopeComponent[] = [
@@ -307,7 +307,7 @@ it("FR-SAFE-014: creates an immutable compatibility copy with normalized nested 
   expect(created.components[0]!.component).toBe("tx");
 });
 
-it("FR-SAFE-014: creates compatibility from a solver-produced structural result", () => {
+it("creates compatibility from a solver-produced structural result", () => {
   const model = createModelBuilder()
     .setUnitSystem(unitSystem)
     .addNode({ id: "n", coordinates: [0, 0, 0] })
@@ -322,7 +322,7 @@ it("FR-SAFE-014: creates compatibility from a solver-produced structural result"
   expect(created.components).toEqual([{ component: "tx", entityId: "n" }]);
 });
 
-it("FR-SAFE-014: rejects inherited record compatibility before reading values", () => {
+it("rejects inherited record compatibility before reading values", () => {
   let valuesRead = false;
   const record = Object.create({ compatibility }) as EnvelopeInputRecord;
   Object.defineProperties(record, {
@@ -342,7 +342,7 @@ it("FR-SAFE-014: rejects inherited record compatibility before reading values", 
   expect(valuesRead).toBe(false);
 });
 
-it("FR-SAFE-014: enforces exact result convention literals in first metadata", () => {
+it("enforces exact result convention literals in first metadata", () => {
   const invalidConventions = {
     ...conventions,
     rotations: "nonempty-but-unsupported",
@@ -358,7 +358,7 @@ it("FR-SAFE-014: enforces exact result convention literals in first metadata", (
 });
 
 it.each([null, undefined, 1, "result", []] as unknown[])(
-  "FR-SAFE-014: rejects non-object envelope compatibility results as structured errors",
+  "rejects non-object envelope compatibility results as structured errors",
   (result) => {
     const error = incompatibleError(() =>
       createEnvelopeCompatibility(result as unknown as StructuralResult, components),
@@ -371,7 +371,7 @@ it.each([null, undefined, 1, "result", []] as unknown[])(
   },
 );
 
-it("FR-SAFE-014: rejects a metadata-only result without an own identifier", () => {
+it("rejects a metadata-only result without an own identifier", () => {
   const result = {
     modelFingerprint: compatibility.modelFingerprint,
     unitSystem,
@@ -385,7 +385,7 @@ it("FR-SAFE-014: rejects a metadata-only result without an own identifier", () =
   });
 });
 
-it("FR-SAFE-014: rejects a revoked result proxy as a structured error", () => {
+it("rejects a revoked result proxy as a structured error", () => {
   const { proxy, revoke } = Proxy.revocable(
     {
       id: "RESULT",
@@ -450,7 +450,7 @@ it.each(["id", "modelFingerprint", "unitSystem", "conventions"] as const)(
   },
 );
 
-it("FR-SAFE-014: captures each own result metadata getter once", () => {
+it("captures each own result metadata getter once", () => {
   const reads = {
     id: 0,
     modelFingerprint: 0,
@@ -495,7 +495,7 @@ it("FR-SAFE-014: captures each own result metadata getter once", () => {
   expect(reads).toEqual({ id: 1, modelFingerprint: 1, unitSystem: 1, conventions: 1 });
 });
 
-it("FR-SAFE-014: captures stateful unit getters once while creating owned metadata", () => {
+it("captures stateful unit getters once while creating owned metadata", () => {
   let lengthReads = 0;
   const sourceUnits = {
     ...unitSystem,
@@ -515,7 +515,7 @@ it("FR-SAFE-014: captures stateful unit getters once while creating owned metada
   expect(created.unitSystem.length).toBe("m");
 });
 
-it("FR-SAFE-014: copies component arrays by index without calling overridden map", () => {
+it("copies component arrays by index without calling overridden map", () => {
   class OverriddenComponentArray extends Array<EnvelopeComponent> {
     public override map<U>(
       _callbackfn: (value: EnvelopeComponent, index: number, array: EnvelopeComponent[]) => U,
@@ -536,7 +536,7 @@ it("FR-SAFE-014: copies component arrays by index without calling overridden map
   expect(Object.isFrozen(created.components[0])).toBe(true);
 });
 
-it("FR-SAFE-014: rejects inherited component fields", () => {
+it("rejects inherited component fields", () => {
   const inherited = Object.create({ component: "tx", entityId: "n1" });
   const supplied = [inherited, components[1]] as readonly EnvelopeComponent[];
   const error = incompatibleError(() => streamEnvelope([baseRecord], supplied));
@@ -544,7 +544,7 @@ it("FR-SAFE-014: rejects inherited component fields", () => {
   expect(error.context).toMatchObject({ reason: "component layout is invalid" });
 });
 
-it("FR-SAFE-014: rejects an inherited optional component location", () => {
+it("rejects an inherited optional component location", () => {
   const inherited = Object.create({ location: 0 });
   Object.assign(inherited, { component: "tx", entityId: "n1" });
   const supplied = [inherited, components[1]] as readonly EnvelopeComponent[];
@@ -553,7 +553,7 @@ it("FR-SAFE-014: rejects an inherited optional component location", () => {
   expect(error.context).toMatchObject({ reason: "component layout is invalid" });
 });
 
-it("FR-SAFE-014: maps invalid compatibility identifiers to a stable incompatibility", () => {
+it("maps invalid compatibility identifiers to a stable incompatibility", () => {
   const invalidComponents = [{ component: "tx", entityId: "" }, components[1]];
   const error = incompatibleError(() =>
     streamEnvelope(
@@ -668,7 +668,7 @@ it.each(metadataMismatches)(
   },
 );
 
-it("FR-SAFE-014: revalidates a compatibility object that mutates and freezes during capture", () => {
+it("revalidates a compatibility object that mutates and freezes during capture", () => {
   const fingerprintA = compatibility.modelFingerprint;
   const fingerprintB = "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
   const stateful = {
@@ -707,7 +707,7 @@ it("FR-SAFE-014: revalidates a compatibility object that mutates and freezes dur
   expect(valuesRead).toBe(false);
 });
 
-it("FR-SAFE-014: revalidates a frozen component after its prototype gains location", () => {
+it("revalidates a frozen component after its prototype gains location", () => {
   const prototype: { location?: number } = {};
   const mutableComponent = Object.freeze(
     Object.create(prototype, {
@@ -745,7 +745,7 @@ it("FR-SAFE-014: revalidates a frozen component after its prototype gains locati
 });
 
 it.each([null, 1, "record", []] as unknown[])(
-  "FR-SAFE-014: maps a non-object record to a structured malformed record error",
+  "maps a non-object record to a structured malformed record error",
   (record) => {
     const error = incompatibleError(() =>
       streamEnvelope([record as unknown as EnvelopeInputRecord], components),
@@ -755,7 +755,7 @@ it.each([null, 1, "record", []] as unknown[])(
   },
 );
 
-it("FR-SAFE-014: maps revoked record proxies without reading values", () => {
+it("maps revoked record proxies without reading values", () => {
   let valuesRead = false;
   const { proxy, revoke } = Proxy.revocable(
     {
@@ -778,7 +778,7 @@ it("FR-SAFE-014: maps revoked record proxies without reading values", () => {
   expect(valuesRead).toBe(false);
 });
 
-it("FR-SAFE-014: maps throwing record metadata accessors and reads each metadata field once", () => {
+it("maps throwing record metadata accessors and reads each metadata field once", () => {
   let resultIdReads = 0;
   let resultKindReads = 0;
   let compatibilityReads = 0;
@@ -828,7 +828,7 @@ it("FR-SAFE-014: maps throwing record metadata accessors and reads each metadata
   expect(valuesRead).toBe(false);
 });
 
-it("FR-SAFE-014: maps a throwing resultId accessor before reading values", () => {
+it("maps a throwing resultId accessor before reading values", () => {
   let valuesRead = false;
   const record = {
     get resultId(): string {
@@ -847,7 +847,7 @@ it("FR-SAFE-014: maps a throwing resultId accessor before reading values", () =>
   expect(valuesRead).toBe(false);
 });
 
-it("FR-SAFE-014: maps a throwing compatibility accessor before reading values", () => {
+it("maps a throwing compatibility accessor before reading values", () => {
   let valuesRead = false;
   const record = {
     resultId: "BROKEN",
@@ -866,7 +866,7 @@ it("FR-SAFE-014: maps a throwing compatibility accessor before reading values", 
   expect(valuesRead).toBe(false);
 });
 
-it("FR-SAFE-014: maps a throwing metadata accessor before reading values", () => {
+it("maps a throwing metadata accessor before reading values", () => {
   let valuesRead = false;
   const record = {
     resultId: "BROKEN",
@@ -891,7 +891,7 @@ it("FR-SAFE-014: maps a throwing metadata accessor before reading values", () =>
   expect(valuesRead).toBe(false);
 });
 
-it("FR-SAFE-014: maps a throwing supplied component index before reading values", () => {
+it("maps a throwing supplied component index before reading values", () => {
   let valuesRead = false;
   const supplied = new Proxy([...components], {
     get(target, property, receiver) {
@@ -914,7 +914,7 @@ it("FR-SAFE-014: maps a throwing supplied component index before reading values"
   expect(valuesRead).toBe(false);
 });
 
-it("FR-SAFE-014: maps a throwing component field accessor before reading values", () => {
+it("maps a throwing component field accessor before reading values", () => {
   let valuesRead = false;
   const throwingComponent = {
     get component(): string {
@@ -968,7 +968,7 @@ it.each(["ownKeys", "hasOwn"] as const)(
   },
 );
 
-it("FR-SAFE-014: rejects missing or unsupported record metadata before reading values", () => {
+it("rejects missing or unsupported record metadata before reading values", () => {
   const cases = [
     {
       record: {
@@ -1004,7 +1004,7 @@ it("FR-SAFE-014: rejects missing or unsupported record metadata before reading v
   expect(emptyLayout.context).toMatchObject({ reason: "at least one component is required" });
 });
 
-it("FR-SAFE-014: reports malformed value sources with stable record-specific reasons", () => {
+it("reports malformed value sources with stable record-specific reasons", () => {
   const throwingValues = {
     ...baseRecord,
     resultId: "THROWING_VALUES",

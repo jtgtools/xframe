@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { createModelBuilder } from "../../src/model/model-builder.js";
 
-it("FR-DOF-002/FR-DOF-003: finalization preserves every free truss translation without invented restraints", () => {
+it("finalization preserves every free truss translation without invented restraints", () => {
   const model = createModelBuilder()
     .setUnitSystem({
       version: "1",

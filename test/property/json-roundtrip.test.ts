@@ -3,7 +3,7 @@ import { canonicalJson } from "../../src/serialization/canonical-json.js";
 import { modelToJsonValue } from "../../src/serialization/model-schema.js";
 import { parseModelJson } from "../../src/serialization/parse-model-json.js";
 
-it("FR-JSON-006/NFR-DET-001: seed 25301 round-trips 50 generated spring models deterministically", () => {
+it("seed 25301 round-trips 50 generated spring models deterministically", () => {
   let state = 25301;
   const random = () => (state = (1664525 * state + 1013904223) >>> 0) / 2 ** 32;
   for (let index = 0; index < 50; index += 1) {

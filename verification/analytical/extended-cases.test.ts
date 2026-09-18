@@ -60,7 +60,7 @@ function frameBuilder(
 }
 
 describe("extended analytical verification", () => {
-  it("VER-ANA-007: simply supported beam center deflection matches PL^3/(48EI)", () => {
+  it("simply supported beam center deflection matches PL^3/(48EI)", () => {
     const length = 8;
     const elasticModulus = 200e9;
     const inertia = 6e-5;
@@ -115,7 +115,7 @@ describe("extended analytical verification", () => {
     expect(reactions[1]).toBeCloseTo(-load / 2, 8);
   });
 
-  it("VER-ANA-008: prescribed axial displacement produces EAΔ/L and no spurious transverse action", () => {
+  it("prescribed axial displacement produces EAΔ/L and no spurious transverse action", () => {
     const length = 3;
     const elasticModulus = 210e9;
     const area = 0.004;
@@ -140,7 +140,7 @@ describe("extended analytical verification", () => {
     ).toBeCloseTo(force, 8);
   });
 
-  it("VER-ANA-009: interior point moment matches exact cantilever tip displacement and rotation", () => {
+  it("interior point moment matches exact cantilever tip displacement and rotation", () => {
     const length = 5;
     const position = 2;
     const elasticModulus = 205e9;
@@ -176,7 +176,7 @@ describe("extended analytical verification", () => {
     expect(result.frames[0]!.localEndForces[5]).toBeCloseTo(-moment, 8);
   });
 
-  it("VER-ANA-010: partial triangular load reactions equal independent resultant and centroid moment", () => {
+  it("partial triangular load reactions equal independent resultant and centroid moment", () => {
     const length = 6;
     const start = 1;
     const end = 5;

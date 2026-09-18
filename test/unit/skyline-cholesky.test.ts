@@ -18,7 +18,7 @@ function handMatrix() {
 }
 
 describe("skyline profile and Cholesky", () => {
-  it("FR-SOL-003: stores the exact lower skyline for a hand matrix", () => {
+  it("stores the exact lower skyline for a hand matrix", () => {
     const profile = createSkylineProfile(handMatrix(), identityOrdering(3));
     expect(profile.firstColumns).toEqual([0, 0, 1]);
     expect(profile.rowStarts).toEqual([0, 1, 3, 5]);
@@ -26,7 +26,7 @@ describe("skyline profile and Cholesky", () => {
     expect(profile.storageCount).toBe(5);
   });
 
-  it("FR-SOL-003/FR-SOL-004: solves one and multiple right-hand sides", () => {
+  it("solves one and multiple right-hand sides", () => {
     const matrix = handMatrix();
     const factor = factorSkylineCholesky(createSkylineProfile(matrix, identityOrdering(3)));
     const solution = factor.solve([1, 2, 3]);
@@ -43,7 +43,7 @@ describe("skyline profile and Cholesky", () => {
     expect(factor.diagnostics.minimumNormalizedPivot).toBeGreaterThan(0);
   });
 
-  it("FR-DIA-001: computes residual and energy diagnostics against the original sparse matrix", () => {
+  it("computes residual and energy diagnostics against the original sparse matrix", () => {
     const matrix = handMatrix();
     const x = new Float64Array([2 / 9, 1 / 9, 13 / 9]);
     const diagnostics = computeResidualDiagnostics(matrix, x, [1, 2, 3]);
@@ -52,7 +52,7 @@ describe("skyline profile and Cholesky", () => {
     expect(diagnostics.quadraticEnergy).toBeCloseTo(43 / 9, 12);
   });
 
-  it("FR-SOL-007: rejects singular or indefinite pivots structurally", () => {
+  it("rejects singular or indefinite pivots structurally", () => {
     const singular = new SymmetricCoordinateBuilder(2)
       .add(0, 0, 1)
       .add(1, 0, 1)
@@ -67,7 +67,7 @@ describe("skyline profile and Cholesky", () => {
     ).toThrow(XFrameError);
   });
 
-  it("FR-SOL-005: rejects unsafe skyline allocation before creating typed arrays", () => {
+  it("rejects unsafe skyline allocation before creating typed arrays", () => {
     const estimate = estimateSkylineMemory([0, 0, 0, 0], 1024);
     expect(estimate.storageCount).toBe(10);
     expect(estimate.estimatedBytes).toBeGreaterThan(80);

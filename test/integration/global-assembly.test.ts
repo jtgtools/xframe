@@ -57,7 +57,7 @@ function eccentricTruss() {
 }
 
 describe("global sparse assembly", () => {
-  it("FR-SOL-001/FR-CON-003: reduces a restrained axial truss to the exact EA/L scalar", () => {
+  it("reduces a restrained axial truss to the exact EA/L scalar", () => {
     const prepared = prepareAnalysis(restrainedTruss());
     expect(prepared.fullStiffness.size).toBe(6);
     expect(prepared.reducedStiffness.size).toBe(1);
@@ -66,14 +66,14 @@ describe("global sparse assembly", () => {
     ]);
   });
 
-  it("FR-SOL-006: reports sparse storage and never exposes a dense global matrix", () => {
+  it("reports sparse storage and never exposes a dense global matrix", () => {
     const prepared = prepareAnalysis(restrainedTruss());
     expect(prepared.statistics.fullNonzeros).toBeLessThanOrEqual(21);
     expect(prepared.statistics.skylineStorage).toBe(1);
     expect("denseStiffness" in prepared).toBe(false);
   });
 
-  it("FR-SAFE-002: scatters eccentric truss stiffness as the hand-derived sparse B transpose B", () => {
+  it("scatters eccentric truss stiffness as the hand-derived sparse B transpose B", () => {
     const assembled = assembleStiffness(eccentricTruss());
 
     expect(assembled.full.size).toBe(12);

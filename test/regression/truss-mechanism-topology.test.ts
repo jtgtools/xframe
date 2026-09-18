@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { createModelBuilder } from "../../src/model/model-builder.js";
 import { createDofKey } from "../../src/model/dof-key.js";
 
-it("FR-SAFE-002/FR-DOF-002/FR-DOF-003: exact-zero truss offsets expose translations and never manufacture rotations or restraints", () => {
+it("exact-zero truss offsets expose translations and never manufacture rotations or restraints", () => {
   const model = createModelBuilder()
     .setUnitSystem({
       version: "1",

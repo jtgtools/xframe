@@ -106,7 +106,7 @@ function xframeFailure(action: () => unknown): XFrameError {
   throw new Error("Expected an XFrame error.");
 }
 
-it("FR-JSON-001/FR-JSON-003/FR-JSON-005: parses the complete version-one model boundary", () => {
+it("parses the complete version-one model boundary", () => {
   const model = parseModelJson(completeModelJson());
   expect(model.finalized).toBe(true);
   expect(model.frames[0]!.theory.kind).toBe("timoshenko");
@@ -120,7 +120,7 @@ it("FR-JSON-001/FR-JSON-003/FR-JSON-005: parses the complete version-one model b
   expect(model.combinationEvaluationOrder).toEqual(["U"]);
 });
 
-it("FR-JSON-006: model canonical output round-trips byte-for-byte and normalizes negative zero", () => {
+it("model canonical output round-trips byte-for-byte and normalizes negative zero", () => {
   const input = completeModelJson() as Record<string, unknown>;
   (input["nodes"] as { coordinates: number[] }[])[0]!.coordinates[0] = -0;
   const model = parseModelJson(input);
@@ -130,7 +130,7 @@ it("FR-JSON-006: model canonical output round-trips byte-for-byte and normalizes
   expect(first).toContain('"coordinates":[0,0,0]');
 });
 
-it("FR-JSON-002/FR-JSON-003/FR-JSON-004: rejects malformed, ambiguous, hostile, and non-finite model values", () => {
+it("rejects malformed, ambiguous, hostile, and non-finite model values", () => {
   const valid = completeModelJson() as Record<string, unknown>;
   const malformed: unknown[] = [
     { ...valid, schemaVersion: "2" },
@@ -162,7 +162,7 @@ it("FR-JSON-002/FR-JSON-003/FR-JSON-004: rejects malformed, ambiguous, hostile, 
   for (const value of malformed) expect(() => parseModelJson(value)).toThrowError(XFrameError);
 });
 
-it("FR-JSON-003: rejects a null load with its exact array path", () => {
+it("rejects a null load with its exact array path", () => {
   const value = completeModelJson() as Record<string, unknown>;
   value["loadCases"] = [{ id: "L", loads: [null] }];
   let caught: unknown;
@@ -180,7 +180,7 @@ it("FR-JSON-003: rejects a null load with its exact array path", () => {
   expect(context.path).toBe("$.loadCases[0].loads[0]");
 });
 
-it("FR-JSON-003: reports an exact schema field path", () => {
+it("reports an exact schema field path", () => {
   const value = completeModelJson() as Record<string, unknown>;
   value["nodes"] = [{ id: "a", coordinates: [0, 0] }];
   let caught: unknown;
@@ -198,7 +198,7 @@ it("FR-JSON-003: reports an exact schema field path", () => {
   expect(context.path).toBe("$.nodes[0].coordinates");
 });
 
-it("FR-JSON-001/FR-JSON-003: preserves omitted optional model forms without materializing them", () => {
+it("preserves omitted optional model forms without materializing them", () => {
   const input = completeModelJson() as Record<string, unknown>;
   input["materials"] = [{ id: "steel", elasticModulus: 200e9, poissonRatio: 0.3 }];
   input["frameSections"] = [
@@ -277,7 +277,7 @@ it("FR-JSON-001/FR-JSON-003: preserves omitted optional model forms without mate
   expect(loads[3]).not.toHaveProperty("startPositionRatio");
 });
 
-it("FR-JSON-003: rejects contradictory member-load location forms at the model boundary", () => {
+it("rejects contradictory member-load location forms at the model boundary", () => {
   const input = completeModelJson() as Record<string, unknown>;
   input["loadCases"] = [
     {
@@ -306,7 +306,7 @@ it("FR-JSON-003: rejects contradictory member-load location forms at the model b
   });
 });
 
-it("FR-JSON-001: round trips partial optional model forms at every supported load boundary", () => {
+it("round trips partial optional model forms at every supported load boundary", () => {
   const input = completeModelJson() as Record<string, unknown>;
   input["materials"] = [{ id: "steel", elasticModulus: 200e9, shearModulus: 80e9, density: 7850 }];
   input["frames"] = [
@@ -397,7 +397,7 @@ it("FR-JSON-001: round trips partial optional model forms at every supported loa
   expect(loads[4]).toMatchObject({ kind: "self-weight", frameIds: ["f"], trussIds: [] });
 });
 
-it("FR-JSON-001: preserves each one-ended rigid offset and expands omitted self-weight selections", () => {
+it("preserves each one-ended rigid offset and expands omitted self-weight selections", () => {
   const input = completeModelJson() as Record<string, unknown>;
   input["frames"] = [
     {

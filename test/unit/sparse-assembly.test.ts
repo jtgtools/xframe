@@ -9,7 +9,7 @@ function entries(values: readonly [number, number, number][]) {
 }
 
 describe("symmetric coordinate assembly", () => {
-  it("FR-SOL-001: normalizes to the lower triangle and combines duplicates deterministically", () => {
+  it("normalizes to the lower triangle and combines duplicates deterministically", () => {
     const forward = entries([
       [0, 0, 4],
       [0, 1, 0.25],
@@ -36,14 +36,14 @@ describe("symmetric coordinate assembly", () => {
     expect(reverse).toEqual(forward);
   });
 
-  it("FR-SOL-001: rejects invalid indices and nonfinite contributions", () => {
+  it("rejects invalid indices and nonfinite contributions", () => {
     const builder = new SymmetricCoordinateBuilder(2);
     expect(() => builder.add(-1, 0, 1)).toThrow(XFrameError);
     expect(() => builder.add(2, 0, 1)).toThrow(XFrameError);
     expect(() => builder.add(0, 0, Number.NaN)).toThrow(XFrameError);
   });
 
-  it("FR-SOL-001: sparse matvec and quadratic form use symmetric contributions", () => {
+  it("sparse matvec and quadratic form use symmetric contributions", () => {
     const builder = new SymmetricCoordinateBuilder(3);
     builder.add(0, 0, 4).add(1, 0, 1).add(1, 1, 3).add(2, 1, 1).add(2, 2, 2);
     const matrix = builder.finalize();

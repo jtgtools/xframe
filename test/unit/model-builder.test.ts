@@ -5,7 +5,7 @@ import { XFrameError } from "../../src/errors/xframe-error.js";
 const nodeA = { id: "n1", coordinates: [0, 0, 0] as const };
 
 describe("ModelBuilder", () => {
-  it("FR-MOD-001: add methods are fluent and defer cross-reference resolution", () => {
+  it("add methods are fluent and defer cross-reference resolution", () => {
     const builder = createModelBuilder();
 
     expect(builder.addNode(nodeA)).toBe(builder);
@@ -23,7 +23,7 @@ describe("ModelBuilder", () => {
     expect(builder.snapshot().frames[0]?.id).toBe("f1");
   });
 
-  it("FR-MOD-002: copies and freezes caller-owned arrays and records", () => {
+  it("copies and freezes caller-owned arrays and records", () => {
     const coordinates = [1, 2, 3];
     const builder = createModelBuilder().addNode({ id: "n1", coordinates });
     coordinates[0] = 99;
@@ -34,7 +34,7 @@ describe("ModelBuilder", () => {
     expect(Object.isFrozen(stored?.coordinates)).toBe(true);
   });
 
-  it("FR-MOD-005: failed batch additions leave the prior builder state byte-for-byte equivalent", () => {
+  it("failed batch additions leave the prior builder state byte-for-byte equivalent", () => {
     const builder = createModelBuilder().addNode(nodeA);
     const before = JSON.stringify(builder.snapshot());
 
@@ -49,7 +49,7 @@ describe("ModelBuilder", () => {
     expect(JSON.stringify(builder.snapshot())).toBe(before);
   });
 
-  it("FR-ERR-001: local shape failures use structured field paths", () => {
+  it("local shape failures use structured field paths", () => {
     const builder = createModelBuilder();
     let caught: unknown;
     try {
@@ -69,7 +69,7 @@ describe("ModelBuilder", () => {
   });
 });
 
-it("FR-MOD-001: exposes the complete fluent construction surface", () => {
+it("exposes the complete fluent construction surface", () => {
   const builder = createModelBuilder();
   expect(builder.addMaterial({ id: "m1", elasticModulus: 200e9, poissonRatio: 0.3 })).toBe(builder);
   expect(
@@ -117,7 +117,7 @@ it("FR-MOD-001: exposes the complete fluent construction surface", () => {
   expect(snapshot.combinations.map(({ id }) => id)).toEqual(["comb1"]);
 });
 
-it("FR-MOD-005: successful batch additions commit in deterministic category order", () => {
+it("successful batch additions commit in deterministic category order", () => {
   const builder = createModelBuilder().addBatch({
     nodes: [
       { id: "n2", coordinates: [1, 0, 0] },
@@ -130,7 +130,7 @@ it("FR-MOD-005: successful batch additions commit in deterministic category orde
   expect(builder.snapshot().materials.map(({ id }) => id)).toEqual(["m1"]);
 });
 
-it("FR-MOD-005: a later category failure rolls back earlier categories in the same batch", () => {
+it("a later category failure rolls back earlier categories in the same batch", () => {
   const builder = createModelBuilder().addMaterial({
     id: "m1",
     elasticModulus: 1,
@@ -147,7 +147,7 @@ it("FR-MOD-005: a later category failure rolls back earlier categories in the sa
   expect(JSON.stringify(builder.snapshot())).toBe(before);
 });
 
-it("NFR-SEC-001: rejects prototype-pollution payloads at the closed load boundary", () => {
+it("rejects prototype-pollution payloads at the closed load boundary", () => {
   const payload = JSON.parse('{"__proto__":{"polluted":true}}') as never;
   expect(() => createModelBuilder().addLoadCase({ id: "lc1", loads: [payload] })).toThrow(
     XFrameError,

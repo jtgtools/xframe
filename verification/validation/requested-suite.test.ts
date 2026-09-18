@@ -4,7 +4,7 @@ import { requestedValidationCases } from "./requested-validation-cases.js";
 const requiredCategories = Array.from({ length: 12 }, (_, index) => index + 1);
 
 describe("requested comprehensive validation matrix", () => {
-  it("VAL-MATRIX-000: includes every requested category", () => {
+  it("includes every requested category", () => {
     expect(
       [...new Set(requestedValidationCases.map(({ category }) => category))].toSorted(
         (a, b) => a - b,

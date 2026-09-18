@@ -21,7 +21,7 @@ function base() {
 }
 
 describe("load combinations", () => {
-  it("FR-MOD-004: validates nonempty finite unique factor arrays", () => {
+  it("validates nonempty finite unique factor arrays", () => {
     expect(createLoadCombination({ id: "C", factors: [{ resultId: "L", factor: 1.2 }] })).toEqual({
       id: "C",
       factors: [{ resultId: "L", factor: 1.2 }],
@@ -38,7 +38,7 @@ describe("load combinations", () => {
     ).toThrow(XFrameError);
   });
 
-  it("FR-MOD-004: cases and combinations share one result identifier domain", () => {
+  it("cases and combinations share one result identifier domain", () => {
     const builder = base()
       .addLoadCase({ id: "same", loads: [] })
       .addCombination({ id: "same", factors: [{ resultId: "same", factor: 1 }] });
@@ -53,7 +53,7 @@ describe("load combinations", () => {
     expect(caught.code).toBe("RESULT_INCOMPATIBLE");
   });
 
-  it("FR-MOD-004: rejects missing result references and deterministic nested cycles", () => {
+  it("rejects missing result references and deterministic nested cycles", () => {
     expect(() =>
       base()
         .addCombination({ id: "C", factors: [{ resultId: "missing", factor: 1 }] })
@@ -78,7 +78,7 @@ describe("load combinations", () => {
     });
   });
 
-  it("FR-RES-006: stores deterministic combination evaluation order", () => {
+  it("stores deterministic combination evaluation order", () => {
     const model = base()
       .addLoadCase({ id: "L", loads: [] })
       .addCombination({ id: "B", factors: [{ resultId: "L", factor: 2 }] })

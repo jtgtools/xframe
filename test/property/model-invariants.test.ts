@@ -22,7 +22,7 @@ function randomGenerator(seed: number): () => number {
 }
 
 describe("seeded structural model invariants", () => {
-  it("NFR-COR-001/NFR-DET-001: twenty-five spring chains match exact series compliance", () => {
+  it("twenty-five spring chains match exact series compliance", () => {
     for (let seed = 1; seed <= 25; seed += 1) {
       const random = randomGenerator(seed);
       const count = 10;

@@ -42,7 +42,7 @@ function segment(axial: FrameForceCoefficients, start = 0, end = 1): FrameIntern
   };
 }
 
-it("FR-SAFE-004/FR-SAFE-007: lays out distributed boundaries and both limits of point actions", () => {
+it("lays out distributed boundaries and both limits of point actions", () => {
   const layout = frameStationLayout(4, [
     {
       kind: "distributed",
@@ -67,7 +67,7 @@ it("FR-SAFE-004/FR-SAFE-007: lays out distributed boundaries and both limits of 
   expect(Object.isFrozen(layout)).toBe(true);
 });
 
-it("FR-SAFE-004: uses every model load-case boundary even when the current case has none there", () => {
+it("uses every model load-case boundary even when the current case has none there", () => {
   const currentLoads = [
     {
       kind: "distributed",
@@ -101,7 +101,7 @@ it("FR-SAFE-004: uses every model load-case boundary even when the current case 
   ]);
 });
 
-it("FR-SAFE-004: represents all six actions for a constant distributed load and agrees with direct equilibrium", () => {
+it("represents all six actions for a constant distributed load and agrees with direct equilibrium", () => {
   const startForces = [10, 20, 30, 40, 50, 60] as const;
   const loads = [
     {
@@ -135,7 +135,7 @@ it("FR-SAFE-004: represents all six actions for a constant distributed load and 
   );
 });
 
-it("FR-SAFE-004: represents a linearly varying distributed load in local segment xi and agrees with direct equilibrium", () => {
+it("represents a linearly varying distributed load in local segment xi and agrees with direct equilibrium", () => {
   const startForces = [10, 20, 30, 40, 50, 60] as const;
   const loads = [
     {
@@ -168,7 +168,7 @@ it("FR-SAFE-004: represents a linearly varying distributed load in local segment
   );
 });
 
-it("FR-SAFE-004: offsets varying intensity after a model-only boundary splits the current load", () => {
+it("offsets varying intensity after a model-only boundary splits the current load", () => {
   const startForces = [10, 20, 30, 40, 50, 60] as const;
   const loads = [
     {
@@ -206,7 +206,7 @@ it("FR-SAFE-004: offsets varying intensity after a model-only boundary splits th
   );
 });
 
-it("FR-SAFE-004: keeps point-force and point-moment jumps at boundaries rather than in segment polynomials", () => {
+it("keeps point-force and point-moment jumps at boundaries rather than in segment polynomials", () => {
   const startForces = [1, 2, 3, 4, 5, 6] as const;
   const loads = [
     { kind: "point-force", distance: 2, vector: [7, -11, 13] },
@@ -240,7 +240,7 @@ it("FR-SAFE-004: keeps point-force and point-moment jumps at boundaries rather t
   );
 });
 
-it("FR-SAFE-004: derives both exterior endpoint limits from point actions", () => {
+it("derives both exterior endpoint limits from point actions", () => {
   const startForces = [10, 0, 0, 0, 0, 0] as const;
   const loads = [
     { kind: "point-force", distance: 0, vector: [1, 0, 0] },
@@ -264,7 +264,7 @@ it("FR-SAFE-004: derives both exterior endpoint limits from point actions", () =
   expectComponents(components(stations[3]!), [14, 0, 0, 0, 0, -7]);
 });
 
-it("FR-SAFE-004: finds strict interior linear and cancellation-resistant quadratic derivative roots", () => {
+it("finds strict interior linear and cancellation-resistant quadratic derivative roots", () => {
   expect(frameForceDerivativeRoots([0, 6, -4.5, 1], 3)).toEqual([1, 2]);
   expect(frameForceDerivativeRoots([0, 1, -50_000_000, 1 / 3], 1)).toEqual([1e-8]);
 });
@@ -279,7 +279,7 @@ it.each([
   },
 );
 
-it("FR-SAFE-004: rejects non-finite derivative-root coefficients and segment lengths", () => {
+it("rejects non-finite derivative-root coefficients and segment lengths", () => {
   for (const coefficients of [
     [Number.POSITIVE_INFINITY, 1, 0, 0],
     [0, Number.NaN, 0, 0],
@@ -293,7 +293,7 @@ it("FR-SAFE-004: rejects non-finite derivative-root coefficients and segment len
   );
 });
 
-it("FR-SAFE-004: selects the exact represented derivative degree and handles double and endpoint roots", () => {
+it("selects the exact represented derivative degree and handles double and endpoint roots", () => {
   expect(frameForceDerivativeRoots([0, 0, 0, 0], 2)).toEqual([]);
   expect(frameForceDerivativeRoots([0, -4, 2, 0], 2)).toEqual([1]);
   expect(frameForceDerivativeRoots([0, 3, -3, 1], 2)).toEqual([1]);
@@ -301,7 +301,7 @@ it("FR-SAFE-004: selects the exact represented derivative degree and handles dou
   expect(frameForceDerivativeRoots([0, -4, 1, 0], 2)).toEqual([]);
 });
 
-it("FR-SAFE-004: derives a new interior station after adding compatible polynomial segments", () => {
+it("derives a new interior station after adding compatible polynomial segments", () => {
   const first = [segment([0, 1, 1, 0])];
   const second = [segment([0, -1.5, -0.5, 0])];
 
@@ -314,7 +314,7 @@ it("FR-SAFE-004: derives a new interior station after adding compatible polynomi
   ).toEqual([0, 0.5, 1]);
 });
 
-it("FR-SAFE-004: preserves structural continuity when added coefficients cancel at a boundary", () => {
+it("preserves structural continuity when added coefficients cancel at a boundary", () => {
   const first = [segment([1e16, -1e16, 0, 0], 0, 1), segment([0, 0, 0, 0], 1, 2)];
   const second = [segment([1, 0, 0, 0], 0, 1), segment([1, 0, 0, 0], 1, 2)];
 
@@ -325,7 +325,7 @@ it("FR-SAFE-004: preserves structural continuity when added coefficients cancel 
   expect(boundary.map(({ side, axial }) => [side, axial])).toEqual([["single", 0]]);
 });
 
-it("FR-SAFE-004: retains a genuine component jump while adding polynomial segments", () => {
+it("retains a genuine component jump while adding polynomial segments", () => {
   const continuous = [segment([0, 0, 0, 0], 0, 1), segment([0, 0, 0, 0], 1, 2)];
   const jumped = [segment([0, 0, 0, 0], 0, 1), segment([1, 0, 0, 0], 1, 2)];
 

@@ -6,7 +6,7 @@ import { computeTwoNodeSpringStiffness } from "../../src/elements/spring/two-nod
 import { createFrameRigidOffsetTransform } from "../../src/elements/frame/rigid-offset-transform.js";
 
 describe("analytical truss, spring, and offset verification", () => {
-  it("FR-ELE-003/NFR-COR-001: axial bar displacement and force match the closed form", () => {
+  it("axial bar displacement and force match the closed form", () => {
     const length = 4.5;
     const elasticModulus = 210e9;
     const area = 0.0025;
@@ -29,7 +29,7 @@ describe("analytical truss, spring, and offset verification", () => {
     expect(result.axialForce).toBeCloseTo(load, 10);
   });
 
-  it("FR-ELE-004/NFR-COR-001: a one-DOF ground spring matches u=P/k and U=P²/(2k)", () => {
+  it("a one-DOF ground spring matches u=P/k and U=P²/(2k)", () => {
     const springStiffness = 72_500;
     const load = 1_450;
     const matrix = computeGroundSpringStiffness([springStiffness, 0, 0, 0, 0, 0]);
@@ -41,7 +41,7 @@ describe("analytical truss, spring, and offset verification", () => {
     );
   });
 
-  it("FR-ELE-004/NFR-COR-001: a two-node spring preserves rigid motion and relative energy", () => {
+  it("a two-node spring preserves rigid motion and relative energy", () => {
     const stiffness = 900;
     const matrix = computeTwoNodeSpringStiffness([stiffness, 0, 0, 0, 0, 0]);
     const displacement = [2, 0, 0, 0, 0, 0, 2.125, 0, 0, 0, 0, 0];
@@ -55,7 +55,7 @@ describe("analytical truss, spring, and offset verification", () => {
     expect(energy).toBeCloseTo(0.5 * stiffness * 0.125 ** 2, 12);
   });
 
-  it("FR-GEO-005/NFR-COR-001: rigid-offset force and displacement transformations preserve virtual work", () => {
+  it("rigid-offset force and displacement transformations preserve virtual work", () => {
     const transform = createFrameRigidOffsetTransform(
       [1, 0, 0, 0, 1, 0, 0, 0, 1],
       [0.4, -0.2, 0.1],

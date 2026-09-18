@@ -24,14 +24,14 @@ const frameSectionInput = {
 } as const;
 
 describe("frame sections", () => {
-  it("FR-SEC-001: creates a principal-axis frame section without retaining caller data", () => {
+  it("creates a principal-axis frame section without retaining caller data", () => {
     const section = createFrameSection(frameSectionInput);
 
     expect(section).toEqual(frameSectionInput);
     expect(Object.isFrozen(section)).toBe(true);
   });
 
-  it("FR-SEC-002: requires effective shear areas only for Timoshenko theory", () => {
+  it("requires effective shear areas only for Timoshenko theory", () => {
     const euler = createFrameSection(frameSectionInput);
     expect(assertFrameSectionSupportsTheory(euler, { kind: "euler-bernoulli" })).toBeUndefined();
     expect(codeOf(() => assertFrameSectionSupportsTheory(euler, { kind: "timoshenko" }))).toBe(
@@ -46,7 +46,7 @@ describe("frame sections", () => {
     expect(assertFrameSectionSupportsTheory(timoshenko, { kind: "timoshenko" })).toBeUndefined();
   });
 
-  it("FR-SEC-003: rejects nonfinite or nonpositive consumed frame properties", () => {
+  it("rejects nonfinite or nonpositive consumed frame properties", () => {
     for (const [key, value] of [
       ["area", 0],
       ["torsionalConstant", -1],
@@ -62,11 +62,11 @@ describe("frame sections", () => {
 });
 
 describe("truss sections", () => {
-  it("FR-SEC-001: creates an axial-area-only truss section", () => {
+  it("creates an axial-area-only truss section", () => {
     expect(createTrussSection({ id: "bar", area: 0.002 })).toEqual({ id: "bar", area: 0.002 });
   });
 
-  it("FR-SEC-001: rejects frame-only properties and invalid axial area", () => {
+  it("rejects frame-only properties and invalid axial area", () => {
     expect(
       codeOf(() => createTrussSection({ id: "bar", area: 0.002, momentOfInertiaY: 1 } as never)),
     ).toBe("SECTION_INVALID");

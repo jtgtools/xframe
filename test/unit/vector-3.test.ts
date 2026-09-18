@@ -34,7 +34,7 @@ function codeOf(action: () => unknown): string | undefined {
 }
 
 describe("finite numeric boundaries", () => {
-  it("FR-GEO-001: accepts finite subnormals and normalizes negative zero", () => {
+  it("accepts finite subnormals and normalizes negative zero", () => {
     expect(finiteNumber(Number.MIN_VALUE, "value")).toBe(Number.MIN_VALUE);
     expect(Object.is(finiteNumber(-0, "value"), -0)).toBe(false);
     expect(Array.from(finiteFloat64Array([-0, Number.MIN_VALUE], "values"))).toEqual([
@@ -43,7 +43,7 @@ describe("finite numeric boundaries", () => {
     ]);
   });
 
-  it("FR-GEO-001: rejects NaN, infinities, and overflow products", () => {
+  it("rejects NaN, infinities, and overflow products", () => {
     for (const value of [
       Number.NaN,
       Number.POSITIVE_INFINITY,
@@ -57,7 +57,7 @@ describe("finite numeric boundaries", () => {
 });
 
 describe("scale-aware tolerance", () => {
-  it("FR-GEO-002: combines absolute and relative terms against an independent reference scale", () => {
+  it("combines absolute and relative terms against an independent reference scale", () => {
     expect(
       withinTolerance(1_000_000.000001, 1_000_000, 1_000_000, { absolute: 1e-9, relative: 2e-12 }),
     ).toBe(true);
@@ -67,14 +67,14 @@ describe("scale-aware tolerance", () => {
     expect(withinTolerance(5e-13, 0, 1, { absolute: 1e-12, relative: 0 })).toBe(true);
   });
 
-  it("FR-GEO-002: scaled-zero checks preserve small valid quantities at small physical scales", () => {
+  it("scaled-zero checks preserve small valid quantities at small physical scales", () => {
     expect(isScaledZero(1e-15, 1e-15, GEOMETRY_COMPARISON_TOLERANCE)).toBe(false);
     expect(isScaledZero(1e-7, 1e9, GEOMETRY_COMPARISON_TOLERANCE)).toBe(true);
   });
 });
 
 describe("Vector3 and Matrix3", () => {
-  it("FR-GEO-003: implements vector algebra without aliasing caller storage", () => {
+  it("implements vector algebra without aliasing caller storage", () => {
     const input = [1, 2, 3];
     const a = createVector3(input, "a");
     input[0] = 99;
@@ -93,7 +93,7 @@ describe("Vector3 and Matrix3", () => {
     expect(normalized[2]).toBeCloseTo(0.8, 15);
   });
 
-  it("FR-GEO-003: applies row-major 3x3 transforms and transpose round-trips", () => {
+  it("applies row-major 3x3 transforms and transpose round-trips", () => {
     const rotation = matrix3FromRows(
       createVector3([0, 1, 0]),
       createVector3([-1, 0, 0]),
@@ -109,7 +109,7 @@ describe("Vector3 and Matrix3", () => {
     expect(determinantMatrix3(rotation)).toBe(1);
   });
 
-  it("FR-GEO-002: rejects normalization of the zero vector", () => {
+  it("rejects normalization of the zero vector", () => {
     expect(() => normalizeVector3(createVector3([0, 0, 0]))).toThrow(XFrameError);
   });
 });

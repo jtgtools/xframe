@@ -53,7 +53,7 @@ function loadFailure(action: () => unknown): XFrameError {
 }
 
 describe("load records", () => {
-  it("FR-LOD-001: validates explicit nodal force and moment components", () => {
+  it("validates explicit nodal force and moment components", () => {
     const load = createNodalLoad({
       kind: "nodal",
       nodeId: "n",
@@ -67,7 +67,7 @@ describe("load records", () => {
     );
   });
 
-  it("FR-LOD-002/FR-LOD-003: separates physical distance and ratio point-action coordinates", () => {
+  it("separates physical distance and ratio point-action coordinates", () => {
     expect(
       createMemberPointLoad({
         kind: "member-point-force",
@@ -119,7 +119,7 @@ describe("load records", () => {
     ).toThrow(XFrameError);
   });
 
-  it("FR-LOD-004/FR-LOD-005: defines full, distance, and ratio distributed spans", () => {
+  it("defines full, distance, and ratio distributed spans", () => {
     expect(
       createDistributedLoad({
         kind: "member-distributed",
@@ -157,7 +157,7 @@ describe("load records", () => {
     ).toEqual({ kind: "ratio", startPositionRatio: 0.2, endPositionRatio: 0.8 });
   });
 
-  it("FR-LOD-006: validates explicit nonzero gravity and immutable target selections", () => {
+  it("validates explicit nonzero gravity and immutable target selections", () => {
     const load = createSelfWeightLoad({
       kind: "self-weight",
       gravity: [0, 0, -9.81],
@@ -170,7 +170,7 @@ describe("load records", () => {
     );
   });
 
-  it("FR-LOD-002/FR-LOD-003/FR-LOD-004: rejects ambiguous and out-of-bound member coordinates", () => {
+  it("rejects ambiguous and out-of-bound member coordinates", () => {
     const cases = [
       {
         action: () =>
@@ -253,7 +253,7 @@ describe("load records", () => {
     }
   });
 
-  it("FR-LOD-001/FR-LOD-006: rejects malformed load records and explicit empty selections", () => {
+  it("rejects malformed load records and explicit empty selections", () => {
     const cases = [
       {
         action: () =>
@@ -317,7 +317,7 @@ describe("load records", () => {
 });
 
 describe("finalized load coordinates", () => {
-  it("FR-LOD-002/FR-GEO-005: converts ratios against deformable length and preserves discontinuities", () => {
+  it("converts ratios against deformable length and preserves discontinuities", () => {
     const model = frameBuilder()
       .addLoadCase({
         id: "L",
@@ -362,7 +362,7 @@ describe("finalized load coordinates", () => {
     });
   });
 
-  it("FR-SAFE-001/FR-LOD-006: explicit self-weight selections include only listed element categories", () => {
+  it("explicit self-weight selections include only listed element categories", () => {
     const model = frameBuilder()
       .addLoadCase({
         id: "SW",
@@ -379,7 +379,7 @@ describe("finalized load coordinates", () => {
     expect(model.loadCases[0]?.compatibilityKey).toMatch(/^stiffness:sha256:[0-9a-f]{64}$/u);
   });
 
-  it("FR-LOD-002: rejects physical coordinates outside the elastic member", () => {
+  it("rejects physical coordinates outside the elastic member", () => {
     const builder = frameBuilder().addLoadCase({
       id: "L",
       loads: [
@@ -395,7 +395,7 @@ describe("finalized load coordinates", () => {
     expect(() => builder.finalize()).toThrow(XFrameError);
   });
 
-  it("FR-LOD-001/FR-LOD-004: rejects unknown loads and resolves a full distributed span", () => {
+  it("rejects unknown loads and resolves a full distributed span", () => {
     let error: unknown;
     try {
       createLoadCase({ id: "L", loads: [{ kind: "unknown" }] as never });

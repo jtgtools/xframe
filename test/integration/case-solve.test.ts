@@ -15,7 +15,7 @@ const units = {
 } as const;
 
 describe("integrated case solves", () => {
-  it("FR-SOL-004/FR-RES-001: solves an axial truss and recovers its support reaction", () => {
+  it("solves an axial truss and recovers its support reaction", () => {
     const builder = createModelBuilder()
       .setUnitSystem(units)
       .addNode({ id: "a", coordinates: [0, 0, 0] })
@@ -45,7 +45,7 @@ describe("integrated case solves", () => {
     expect(result.diagnostics.normalizedResidual).toBeLessThan(1e-12);
   });
 
-  it("FR-ELE-001/FR-SOL-004: solves a fixed-base Euler cantilever tip load", () => {
+  it("solves a fixed-base Euler cantilever tip load", () => {
     const length = 3;
     const elasticModulus = 200e9;
     const inertia = 8e-6;
@@ -87,7 +87,7 @@ describe("integrated case solves", () => {
     );
   });
 
-  it("FR-ELE-004/FR-SOL-004: solves a one-DOF grounded spring", () => {
+  it("solves a one-DOF grounded spring", () => {
     const builder = createModelBuilder()
       .setUnitSystem(units)
       .addNode({ id: "n", coordinates: [0, 0, 0] })

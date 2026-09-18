@@ -146,7 +146,7 @@ function rotation(result: ReturnType<typeof eccentricTrussResult>, nodeId: "a" |
     .displacements.find(({ dof }) => dof === "rz")!.value;
 }
 
-it("FR-SAFE-002: xframe matches the committed OpenSees eccentric-truss oracle", () => {
+it("xframe matches the committed OpenSees eccentric-truss oracle", () => {
   const reference = readReference();
   const input = readFileSync(inputPath, "utf8");
   expect(reference.oracle).toMatchObject({
@@ -167,7 +167,7 @@ it("FR-SAFE-002: xframe matches the committed OpenSees eccentric-truss oracle", 
   );
 });
 
-it("FR-SAFE-002: Frame3DD comparator rejects a non-finite committed expected value", async () => {
+it("Frame3DD comparator rejects a non-finite committed expected value", async () => {
   const compareReference = await frame3ddComparator();
   expect(() =>
     compareReference(
@@ -178,7 +178,7 @@ it("FR-SAFE-002: Frame3DD comparator rejects a non-finite committed expected val
   ).toThrow("Frame3DD non-finite.elementStiffness[0] expected value is not finite.");
 });
 
-it("FR-SAFE-002: Frame3DD comparator uses zero expected values as the relative-tolerance scale", async () => {
+it("Frame3DD comparator uses zero expected values as the relative-tolerance scale", async () => {
   const compareReference = await frame3ddComparator();
   expect(() =>
     compareReference(
@@ -189,7 +189,7 @@ it("FR-SAFE-002: Frame3DD comparator uses zero expected values as the relative-t
   ).toThrow("Frame3DD zero-scale.elementStiffness[0] differs:");
 });
 
-it("FR-SAFE-002: Frame3DD comparator rejects a near-zero expected sign reversal beyond its reference tolerance", async () => {
+it("Frame3DD comparator rejects a near-zero expected sign reversal beyond its reference tolerance", async () => {
   const compareReference = await frame3ddComparator();
   expect(() =>
     compareReference(
@@ -200,7 +200,7 @@ it("FR-SAFE-002: Frame3DD comparator rejects a near-zero expected sign reversal 
   ).toThrow("Frame3DD sign-reversal.elementStiffness[0] differs:");
 });
 
-it("FR-SAFE-002: Frame3DD comparator rejects an unapproved committed binary hash", async () => {
+it("Frame3DD comparator rejects an unapproved committed binary hash", async () => {
   const compareReference = await frame3ddComparator();
   expect(() =>
     compareReference(

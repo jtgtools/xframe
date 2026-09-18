@@ -3,14 +3,14 @@ import { WorkingScalar } from "../../src/constraints/constraint-numerics.js";
 import { XFrameError } from "../../src/errors/xframe-error.js";
 
 describe("constraint working scalar", () => {
-  it("XF-001: compensated working scalar retains 1e16 + 1 - 1e16 = 1", () => {
+  it("compensated working scalar retains 1e16 + 1 - 1e16 = 1", () => {
     const scalar = new WorkingScalar(1e16);
     scalar.add(1);
     scalar.add(-1e16);
     expect(scalar.total("test")).toBe(1);
   });
 
-  it("XF-001: divideBy preserves compensation: (1e16 + 1 - 1e16) / 2 = 0.5", () => {
+  it("divideBy preserves compensation: (1e16 + 1 - 1e16) / 2 = 0.5", () => {
     const scalar = new WorkingScalar(1e16);
     scalar.add(1);
     scalar.add(-1e16);
@@ -18,18 +18,18 @@ describe("constraint working scalar", () => {
     expect(scalar.total("test")).toBe(0.5);
   });
 
-  it("XF-001: rejects nonfinite initial values and deltas structurally", () => {
+  it("rejects nonfinite initial values and deltas structurally", () => {
     expect(() => new WorkingScalar(Number.POSITIVE_INFINITY)).toThrow(XFrameError);
     const scalar = new WorkingScalar(1);
     expect(() => scalar.add(Number.NaN)).toThrow(XFrameError);
   });
 
-  it("XF-001: rejects zero-divisor division structurally", () => {
+  it("rejects zero-divisor division structurally", () => {
     const scalar = new WorkingScalar(1);
     expect(() => scalar.divideBy(0, "test")).toThrow(XFrameError);
   });
 
-  it("XF-001: underflowing division fails closed instead of silently zeroing", () => {
+  it("underflowing division fails closed instead of silently zeroing", () => {
     let thrown: unknown;
     try {
       const scalar = new WorkingScalar(Number.MIN_VALUE);

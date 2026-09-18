@@ -3,14 +3,14 @@ import { createFrameRigidOffsetTransform } from "../../src/elements/frame/rigid-
 import { buildLocalAxes } from "../../src/geometry/local-axes.js";
 
 describe("frame rigid-offset transform", () => {
-  it("FR-GEO-005: maps nodal rotations into deformable-end translations", () => {
+  it("maps nodal rotations into deformable-end translations", () => {
     const axes = buildLocalAxes([0, 0, 0], [5, 0, 0], [0, 1, 0]);
     const transform = createFrameRigidOffsetTransform(axes.globalToLocal, [0, 2, 0], [0, 0, 0]);
     const local = transform.toLocalDisplacements([0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]);
     expect(Array.from(local.slice(0, 6))).toEqual([-2, 0, 0, 0, 0, 1]);
   });
 
-  it("FR-GEO-005: transforms stiffness and load with virtual-work consistency", () => {
+  it("transforms stiffness and load with virtual-work consistency", () => {
     const axes = buildLocalAxes([0, 0, 0], [3, 4, 0], [0, 0, 1]);
     const transform = createFrameRigidOffsetTransform(
       axes.globalToLocal,

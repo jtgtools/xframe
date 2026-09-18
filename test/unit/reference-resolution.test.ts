@@ -13,7 +13,7 @@ const units = {
   rotation: "rad",
 } as const;
 
-it("FR-MOD-006: aggregates missing references in deterministic entity/path order", () => {
+it("aggregates missing references in deterministic entity/path order", () => {
   const builder = createModelBuilder()
     .setUnitSystem(units)
     .addNode({ id: "n1", coordinates: [0, 0, 0] })
@@ -98,7 +98,7 @@ it("FR-MOD-006: aggregates missing references in deterministic entity/path order
   });
 });
 
-it("FR-SAFE-010: reference diagnostics use ECMAScript identifier order without host collation", () => {
+it("reference diagnostics use ECMAScript identifier order without host collation", () => {
   const builder = createModelBuilder()
     .setUnitSystem(units)
     .addNode({ id: "anchor", coordinates: [0, 0, 0] })

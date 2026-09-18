@@ -47,8 +47,8 @@ function reproducerModel(coupleId: string, fixId: string) {
     .finalize();
 }
 
-describe("XF-001 affine semantic residual evaluation", () => {
-  it("XF-001 semantic residual is zero for an exact equation", () => {
+describe("affine semantic residual evaluation", () => {
+  it("semantic residual is zero for an exact equation", () => {
     const equation: AffineConstraintEquation = {
       sourceId: "s",
       terms: [{ dof: 0, coefficient: 1 }],
@@ -57,7 +57,7 @@ describe("XF-001 affine semantic residual evaluation", () => {
     expect(evaluateAffineSemanticResidual(equation, [2, 0])).toBe(0);
   });
 
-  it("XF-001 semantic residual is one for a fully violated equation", () => {
+  it("semantic residual is one for a fully violated equation", () => {
     // ux = 2 supplied as ux = 0: numerator |0 - 2| = 2, scale |1*0| + 2 = 2.
     const equation: AffineConstraintEquation = {
       sourceId: "s",
@@ -67,7 +67,7 @@ describe("XF-001 affine semantic residual evaluation", () => {
     expect(evaluateAffineSemanticResidual(equation, [0, 0])).toBe(1);
   });
 
-  it("XF-001 semantic residual is invariant to nonzero row scaling", () => {
+  it("semantic residual is invariant to nonzero row scaling", () => {
     const equation: AffineConstraintEquation = {
       sourceId: "s",
       terms: [
@@ -91,7 +91,7 @@ describe("XF-001 affine semantic residual evaluation", () => {
     }
   });
 
-  it("XF-001 semantic residual is invariant to term ordering", () => {
+  it("semantic residual is invariant to term ordering", () => {
     const displacement = [1.5, -0.25, 0.125];
     const ordered: AffineConstraintEquation = {
       sourceId: "s",
@@ -116,7 +116,7 @@ describe("XF-001 affine semantic residual evaluation", () => {
     );
   });
 
-  it("XF-001 semantic residual values are invariant to source ID rename", () => {
+  it("semantic residual values are invariant to source ID rename", () => {
     const equation: AffineConstraintEquation = {
       sourceId: "order-a",
       terms: [
@@ -136,7 +136,7 @@ describe("XF-001 affine semantic residual evaluation", () => {
     );
   });
 
-  it("XF-001 semantic residual aggregates duplicate DOF terms with full contribution", () => {
+  it("semantic residual aggregates duplicate DOF terms with full contribution", () => {
     const split: AffineConstraintEquation = {
       sourceId: "split",
       terms: [
@@ -156,7 +156,7 @@ describe("XF-001 affine semantic residual evaluation", () => {
     expect(evaluateAffineSemanticResidual(split, [1.2])).toBeCloseTo(1 / 11, 14);
   });
 
-  it("XF-001 semantic residual treats an exact zero row as satisfied", () => {
+  it("semantic residual treats an exact zero row as satisfied", () => {
     const equation: AffineConstraintEquation = {
       sourceId: "zero-row",
       terms: [{ dof: 0, coefficient: 0 }],
@@ -166,8 +166,8 @@ describe("XF-001 affine semantic residual evaluation", () => {
   });
 });
 
-describe("XF-001 semantic transform validation", () => {
-  it("XF-001 semantic transform validation accepts an exact transform", () => {
+describe("semantic transform validation", () => {
+  it("semantic transform validation accepts an exact transform", () => {
     // u0 = q, u1 = q + 3 satisfies u1 - u0 = 3 for every q.
     const equations: readonly AffineConstraintEquation[] = [
       {
@@ -186,7 +186,7 @@ describe("XF-001 semantic transform validation", () => {
     expect(findSemanticTransformViolation(equations, rows)).toBeUndefined();
   });
 
-  it("XF-001 semantic transform validation accepts a column with no contribution", () => {
+  it("semantic transform validation accepts a column with no contribution", () => {
     const equations: readonly AffineConstraintEquation[] = [
       {
         sourceId: "fix",
@@ -201,7 +201,7 @@ describe("XF-001 semantic transform validation", () => {
     expect(findSemanticTransformViolation(equations, rows)).toBeUndefined();
   });
 
-  it("XF-001 semantic transform validation rejects a corrupted constant vector", () => {
+  it("semantic transform validation rejects a corrupted constant vector", () => {
     // u1 - u0 = 3 with u1 offset corrupted to 2.9: constant numerator 0.1, scale 5.9.
     const equations: readonly AffineConstraintEquation[] = [
       {
@@ -224,7 +224,7 @@ describe("XF-001 semantic transform validation", () => {
     expect(violation!.normalizedResidual).toBeCloseTo(0.1 / 5.9, 14);
   });
 
-  it("XF-001 semantic transform validation rejects a corrupted transform column", () => {
+  it("semantic transform validation rejects a corrupted transform column", () => {
     // u1 - u0 = 3 with u0 = 1.0000001 q: column residual -1e-7, scale ~2.0000001.
     const equations: readonly AffineConstraintEquation[] = [
       {
@@ -248,15 +248,15 @@ describe("XF-001 semantic transform validation", () => {
   });
 });
 
-describe("XF-001 compile-time containment", () => {
-  it("XF-001 reproducer ID order A solves to the exact answer", () => {
+describe("compile-time containment", () => {
+  it("reproducer ID order A solves to the exact answer", () => {
     const result = prepareAnalysis(reproducerModel("a", "b")).solveCase("LC");
     expect(result.fullDisplacements[0]).toBeCloseTo(2, 14);
     expect(result.fullDisplacements[1]).toBeCloseTo(1 - 4e-14, 14);
     expect(result.diagnostics.status).toBe("pass");
   });
 
-  it("XF-001 reproducer ID order B still solves to the exact answer", () => {
+  it("reproducer ID order B still solves to the exact answer", () => {
     const result = prepareAnalysis(reproducerModel("b", "a")).solveCase("LC");
     expect(result.fullDisplacements[0]).toBeCloseTo(2, 14);
     expect(result.fullDisplacements[1]).toBeCloseTo(1 - 4e-14, 14);
@@ -264,7 +264,7 @@ describe("XF-001 compile-time containment", () => {
   });
 });
 
-describe("XF-002 diagnostic hard gate", () => {
+describe("diagnostic hard gate", () => {
   function diagnosticInputWithDisplacements(displacements: ArrayLike<number>) {
     const analysis = prepareAnalysis(reproducerModel("b", "a"));
     const correct = analysis.solveCase("LC");
@@ -309,7 +309,7 @@ describe("XF-002 diagnostic hard gate", () => {
     };
   }
 
-  it("XF-002 violated original equation prevents diagnostics pass even when old metrics are tiny", () => {
+  it("violated original equation prevents diagnostics pass even when old metrics are tiny", () => {
     // The audited wrong displacement ux = 0 violates ux = 2 while the old
     // self-confirming metrics (reduced residual, force/moment equilibrium,
     // relative energy error) all collapse to zero.
@@ -323,7 +323,7 @@ describe("XF-002 diagnostic hard gate", () => {
     expect(diagnostics.status).toBe("fail");
   });
 
-  it("XF-002 exact original equation permits semantic diagnostic pass", () => {
+  it("exact original equation permits semantic diagnostic pass", () => {
     const diagnostics = createCaseDiagnostics(
       diagnosticInputWithDisplacements([2, 0.99999999999996]),
     );
@@ -356,8 +356,8 @@ function cancellationPermutations(): AffineConstraintEquation[] {
   return equations;
 }
 
-describe("XF-001 compensated duplicate-DOF aggregation (reviewer cancellation canary)", () => {
-  it("XF-001 every permutation of [1e16, 1, -1e16] yields the effective equation ux = 0 (test A)", () => {
+describe("compensated duplicate-DOF aggregation (reviewer cancellation canary)", () => {
+  it("every permutation of [1e16, 1, -1e16] yields the effective equation ux = 0 (test A)", () => {
     const equations = cancellationPermutations();
     expect(equations).toHaveLength(6);
     const combined: AffineConstraintEquation = {
@@ -375,7 +375,7 @@ describe("XF-001 compensated duplicate-DOF aggregation (reviewer cancellation ca
     }
   });
 
-  it("XF-001 split coefficients and combined coefficient agree at every displacement (test B)", () => {
+  it("split coefficients and combined coefficient agree at every displacement (test B)", () => {
     const combined: AffineConstraintEquation = {
       sourceId: "combined",
       terms: [{ dof: 0, coefficient: 1 }],
@@ -390,7 +390,7 @@ describe("XF-001 compensated duplicate-DOF aggregation (reviewer cancellation ca
     }
   });
 
-  it("XF-001 unconstrained transform ux = q is a transform-column violation for every permutation (test C)", () => {
+  it("unconstrained transform ux = q is a transform-column violation for every permutation (test C)", () => {
     const rows = [
       { offset: 0, terms: [{ reducedDof: 0, coefficient: 1 }] },
       { offset: 0, terms: [] },
@@ -402,7 +402,7 @@ describe("XF-001 compensated duplicate-DOF aggregation (reviewer cancellation ca
     }
   });
 
-  it("XF-001 end-to-end canary: every permutation compiles to the effective constraint ux = 0 (test D)", () => {
+  it("end-to-end canary: every permutation compiles to the effective constraint ux = 0 (test D)", () => {
     for (const equation of cancellationPermutations()) {
       const compiled = compileConstraints(1, [equation]);
       expect(compiled.reducedDofCount).toBe(0);
@@ -413,7 +413,7 @@ describe("XF-001 compensated duplicate-DOF aggregation (reviewer cancellation ca
     }
   });
 
-  it("XF-001 cancellation classification is invariant under finite nonzero row scaling (test E)", () => {
+  it("cancellation classification is invariant under finite nonzero row scaling (test E)", () => {
     const combined: AffineConstraintEquation = {
       sourceId: "combined",
       terms: [{ dof: 0, coefficient: 1 }],
@@ -439,8 +439,8 @@ describe("XF-001 compensated duplicate-DOF aggregation (reviewer cancellation ca
   });
 });
 
-describe("XF-001 benign regression", () => {
-  it("XF-001 ordinary prescribed-displacement and MPC models retain their exact results", () => {
+describe("benign regression", () => {
+  it("ordinary prescribed-displacement and MPC models retain their exact results", () => {
     const model = createModelBuilder()
       .setUnitSystem(units)
       .addNode({ id: "n", coordinates: [0, 0, 0] })
@@ -493,8 +493,8 @@ function identityRows(count: number): { offset: 0; terms: [{ reducedDof: 0; coef
   }));
 }
 
-describe("XF-001 compensated long-row accumulation (reviewer Phase 1.2)", () => {
-  it("XF-001 long-row evaluator retains tiny contributions at hand-derived residual (test A)", () => {
+describe("compensated long-row accumulation (reviewer Phase 1.2)", () => {
+  it("long-row evaluator retains tiny contributions at hand-derived residual (test A)", () => {
     const count = 2000;
     const displacement = Float64Array.from({ length: count + 2 }, () => 1);
     const expectedNumerator = count * 1e-16;
@@ -508,7 +508,7 @@ describe("XF-001 compensated long-row accumulation (reviewer Phase 1.2)", () => 
     expect(residual).toBeCloseTo(expectedNormalized, 14);
   });
 
-  it("XF-001 long-row transform column is a violation with reduced DOF 0 (test B)", () => {
+  it("long-row transform column is a violation with reduced DOF 0 (test B)", () => {
     const count = 2000;
     const expectedNumerator = count * 1e-16;
     const expectedNormalized = expectedNumerator / (2 + expectedNumerator);
@@ -525,7 +525,7 @@ describe("XF-001 compensated long-row accumulation (reviewer Phase 1.2)", () => 
     expect(violation!.normalizedResidual).toBeCloseTo(expectedNormalized, 14);
   });
 
-  it("XF-001 3003-DOF compiler canary compiles to full rank and recovers zero (test C)", () => {
+  it("3003-DOF compiler canary compiles to full rank and recovers zero (test C)", () => {
     // u_i = u_master for i = 0..N, u_special = 2 * u_master, then the original
     // semantic equation 2*u0 + sum(1e-16 * u_i, i = 1..N) - u_special = 0 pins
     // u_master to zero. The canonicalizer must retain the tiny terms so the
@@ -578,7 +578,7 @@ describe("XF-001 compensated long-row accumulation (reviewer Phase 1.2)", () => 
     expect(findSemanticTransformViolation(equations, compiled.rows)).toBeUndefined();
   }, 30_000);
 
-  it("XF-001 compensated accumulation retains tiny scale contributions (test D)", () => {
+  it("compensated accumulation retains tiny scale contributions (test D)", () => {
     const count = 2000;
     // Constant check with every offset at 1: exact numerator N * 1e-16, exact
     // scale 2 + N * 1e-16. Both fields surface in the violation and must carry

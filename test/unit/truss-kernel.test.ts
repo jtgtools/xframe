@@ -3,7 +3,7 @@ import { computeTrussGlobalStiffness } from "../../src/elements/truss/local-stif
 import { recoverTrussResult } from "../../src/elements/truss/result-recovery.js";
 
 describe("3D truss kernel", () => {
-  it("FR-ELE-003: creates the rotated axial stiffness and preserves rigid translation", () => {
+  it("creates the rotated axial stiffness and preserves rigid translation", () => {
     const direction = [1 / 3, 2 / 3, 2 / 3] as const;
     const k = computeTrussGlobalStiffness({
       length: 4,
@@ -21,7 +21,7 @@ describe("3D truss kernel", () => {
     }
   });
 
-  it("FR-RES-003: recovers extension, strain, axial force, and global end forces", () => {
+  it("recovers extension, strain, axial force, and global end forces", () => {
     const result = recoverTrussResult({
       length: 2,
       elasticModulus: 1000,

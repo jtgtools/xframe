@@ -17,7 +17,7 @@ const k = computeFrameLocalStiffness({
 });
 
 describe("frame release condensation", () => {
-  it("FR-ELE-005: exactly condenses stiffness and loads for an end hinge", () => {
+  it("exactly condenses stiffness and loads for an end hinge", () => {
     const p = new Float64Array(12);
     p[7] = -10;
     const condensed = condenseFrameEndReleases(k, p, 1 << 11);
@@ -33,14 +33,14 @@ describe("frame release condensation", () => {
         );
   });
 
-  it("FR-ELE-005: rejects a singular released block instead of adding stiffness", () => {
+  it("rejects a singular released block instead of adding stiffness", () => {
     expect(() => condenseFrameEndReleases(k, new Float64Array(12), (1 << 0) | (1 << 6))).toThrow(
       XFrameError,
     );
   });
 
   it.each([1, 1e-24, 1e-100, 1e100])(
-    "FR-ELE-005: preserves release condensation under stiffness and load scaling by %s",
+    "preserves release condensation under stiffness and load scaling by %s",
     (scale) => {
       const load = new Float64Array(12);
       load[11] = 1;
@@ -73,7 +73,7 @@ describe("frame release condensation", () => {
     },
   );
 
-  it("FR-ELE-006: classifies every one of the 4,096 masks", () => {
+  it("classifies every one of the 4,096 masks", () => {
     const summary = classifyAllFrameReleaseMasks(k);
     expect(summary.validCount + summary.invalidCount).toBe(4096);
     expect(summary.classifications.length).toBe(4096);

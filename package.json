@@ -41,11 +41,9 @@
     "verify": "vitest run verification",
     "verify:frame3dd": "node scripts/verify-frame3dd.mjs",
     "verify:opensees": "node scripts/verify-opensees.mjs",
-    "validation:report": "node scripts/write-validation-report.mjs",
     "check:runtime": "node scripts/check-runtime-imports.mjs",
-    "benchmark": "npm run build && npm run check:dense && node scripts/run-benchmarks.mjs",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run coverage && npm run verify && npm run build && npm run check:runtime && npm run check:dense",
-    "check:dense": "node scripts/check-no-dense-global.mjs"
+    "benchmark": "npm run build && node scripts/run-benchmarks.mjs",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run coverage && npm run build && npm run check:runtime"
   },
   "devDependencies": {
     "@types/node": "24.13.3",

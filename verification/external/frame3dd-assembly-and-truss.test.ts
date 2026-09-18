@@ -294,7 +294,7 @@ function findElement(data: ReferenceData, id: string): ReferenceElement {
 }
 
 describe("Frame3DD multi-member assembly oracle", () => {
-  it("VER-F3D-002: directly matches two element matrices, the assembled 18x18 matrix, and solved response", () => {
+  it("directly matches two element matrices, the assembled 18x18 matrix, and solved response", () => {
     const data = reference("frame-chain-euler");
     const builder = createModelBuilder()
       .setUnitSystem(frameUnits)
@@ -427,13 +427,13 @@ describe("Frame3DD multi-member assembly oracle", () => {
 });
 
 describe("Frame3DD expanded stiffness oracle", () => {
-  it("VER-F3D-004: directly matches all portal element matrices and the assembled 24x24 matrix", () => {
+  it("directly matches all portal element matrices and the assembled 24x24 matrix", () => {
     const data = reference("portal-frame-euler");
     expect(data.elementStiffness).toBeDefined();
     expectModelStiffnessMatchesReference(portalModel(), data);
   });
 
-  it("VER-F3D-005: directly matches all two-story element matrices and the assembled 54x54 matrix", () => {
+  it("directly matches all two-story element matrices and the assembled 54x54 matrix", () => {
     const data = reference("two-story-two-bay-euler");
     expect(data.elementStiffness).toBeDefined();
     expectModelStiffnessMatchesReference(twoStoryModel(), data);
@@ -441,7 +441,7 @@ describe("Frame3DD expanded stiffness oracle", () => {
 });
 
 describe("Frame3DD truss approximation oracle", () => {
-  it("VER-F3D-003: matches a triangular truss with a support settlement", () => {
+  it("matches a triangular truss with a support settlement", () => {
     const data = reference("triangular-truss");
     const builder = createModelBuilder()
       .setUnitSystem(trussUnits)

@@ -12,7 +12,7 @@ const kernel = {
 } as const;
 
 describe("frame equivalent member loads", () => {
-  it("FR-LOD-004/FR-LOD-007: integrates a full uniform transverse load", () => {
+  it("integrates a full uniform transverse load", () => {
     const p = computeFrameEquivalentLoad({
       ...kernel,
       theory: { kind: "euler-bernoulli" },
@@ -30,7 +30,7 @@ describe("frame equivalent member loads", () => {
     expect(p[11]).toBeCloseTo(30, 12);
   });
 
-  it("FR-LOD-002/FR-LOD-007: integrates a point force and preserves resultant and moment", () => {
+  it("integrates a point force and preserves resultant and moment", () => {
     const p = computeFrameEquivalentLoad({
       ...kernel,
       theory: { kind: "timoshenko" },
@@ -43,7 +43,7 @@ describe("frame equivalent member loads", () => {
     expect(p[4]! + p[10]! - p[8]! * 6).toBeCloseTo(-5 * 2, 10);
   });
 
-  it("FR-LOD-003: integrates a verified point moment in all local components", () => {
+  it("integrates a verified point moment in all local components", () => {
     const p = computeFrameEquivalentLoad({
       ...kernel,
       theory: { kind: "timoshenko" },
@@ -54,7 +54,7 @@ describe("frame equivalent member loads", () => {
     expect(p[5]! + p[11]! + p[7]! * 6).toBeCloseTo(-6, 12);
   });
 
-  it("FR-LOD-005: partial linearly varying load has the correct resultant", () => {
+  it("partial linearly varying load has the correct resultant", () => {
     const p = computeFrameEquivalentLoad({
       ...kernel,
       theory: { kind: "euler-bernoulli" },

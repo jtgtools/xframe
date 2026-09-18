@@ -67,7 +67,7 @@ function finalizeUnicodeModel() {
 }
 
 describe("model finalization", () => {
-  it("FR-MOD-002/FR-GEO-005: resolves immutable elastic geometry and local axes", () => {
+  it("resolves immutable elastic geometry and local axes", () => {
     const model = completeFrame().finalize();
     const frame = model.resolvedFrames[0]!;
     expect(frame.geometry.elasticStart).toEqual([1, 0, 0]);
@@ -81,7 +81,7 @@ describe("model finalization", () => {
     expect(Object.isFrozen(frame.geometry.elasticStart)).toBe(true);
   });
 
-  it("FR-SAFE-010: finalization and physical DOF ordering never consult host collation", () => {
+  it("finalization and physical DOF ordering never consult host collation", () => {
     const localeCompare = vi.spyOn(String.prototype, "localeCompare").mockImplementation(() => {
       throw new Error("localeCompare used");
     });
@@ -96,7 +96,7 @@ describe("model finalization", () => {
     }
   });
 
-  it("FR-SAFE-001/NFR-DET-001: canonical ordering and fingerprint ignore insertion order", () => {
+  it("canonical ordering and fingerprint ignore insertion order", () => {
     const first = completeFrame(false).finalize();
     const second = completeFrame(true).finalize();
     expect(first.nodes.map(({ id }) => id)).toEqual(["a", "b"]);
@@ -105,7 +105,7 @@ describe("model finalization", () => {
     expect(first.fingerprint).toMatch(/^sha256:[0-9a-f]{64}$/u);
   });
 
-  it("FR-MOD-006: rejects missing units and structurally empty models", () => {
+  it("rejects missing units and structurally empty models", () => {
     expect(() =>
       createModelBuilder()
         .addNode({ id: "a", coordinates: [0, 0, 0] })
@@ -119,7 +119,7 @@ describe("model finalization", () => {
     ).toThrow(XFrameError);
   });
 
-  it("FR-SEC-002: checks theory-dependent section completeness at finalization", () => {
+  it("checks theory-dependent section completeness at finalization", () => {
     const builder = createModelBuilder()
       .setUnitSystem(units)
       .addNode({ id: "a", coordinates: [0, 0, 0] })

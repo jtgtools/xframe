@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { prepareAnalysis } from "../../src/analysis/prepare-analysis.js";
 import { createModelBuilder } from "../../src/model/model-builder.js";
 
-it("FR-DIA-001: reports raw residual, equilibrium, energy, pivot, storage, and reuse diagnostics", () => {
+it("reports raw residual, equilibrium, energy, pivot, storage, and reuse diagnostics", () => {
   const model = createModelBuilder()
     .setUnitSystem({
       version: "1",
@@ -33,7 +33,7 @@ it("FR-DIA-001: reports raw residual, equilibrium, energy, pivot, storage, and r
   expect(result.diagnostics.skylineBandwidth).toBe(1);
 });
 
-it("FR-DIA-001: includes prescribed-displacement reaction work in energy balance", () => {
+it("includes prescribed-displacement reaction work in energy balance", () => {
   const model = createModelBuilder()
     .setUnitSystem({
       version: "1",

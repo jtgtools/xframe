@@ -4,7 +4,7 @@ import { maximumSemanticConstraintResidual } from "../../src/constraints/semanti
 import { XFrameError } from "../../src/errors/xframe-error.js";
 
 describe("constraint compiler canaries", () => {
-  it("XF-001 recover compensation: 20,000 tiny coefficients do not vanish from the pivot displacement", () => {
+  it("recover compensation: 20,000 tiny coefficients do not vanish from the pivot displacement", () => {
     const count = 20000;
     const fullDofCount = count + 2;
     const equation = {
@@ -25,7 +25,7 @@ describe("constraint compiler canaries", () => {
     expect(residual).toBeLessThanOrEqual(256 * Number.EPSILON);
   });
 
-  it("XF-001 back-substitution compensation: 2,000 tiny coefficients accumulate through pivot-expression composition", () => {
+  it("back-substitution compensation: 2,000 tiny coefficients accumulate through pivot-expression composition", () => {
     const count = 2000;
     const qDof = count + 2;
     const fullDofCount = qDof + 1;
@@ -56,7 +56,7 @@ describe("constraint compiler canaries", () => {
     expect(compiled.recover([-0.5])[0]).toBeCloseTo(1e-13, 15);
   }, 30_000);
 
-  it("FR-SAFE-003: pivot-expression growth stays within maximumTransformNonzeros", () => {
+  it("pivot-expression growth stays within maximumTransformNonzeros", () => {
     const fullDofCount = 201;
     const equations = [
       {

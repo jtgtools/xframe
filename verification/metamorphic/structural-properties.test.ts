@@ -116,7 +116,7 @@ function axialTruss(axis: "x" | "y", reversed = false) {
 }
 
 describe("metamorphic structural properties", () => {
-  it("NFR-COR-001: rigid translation of all coordinates leaves structural response unchanged", () => {
+  it("rigid translation of all coordinates leaves structural response unchanged", () => {
     const base = prepareAnalysis(cantilever()).solveCase("P");
     const moved = prepareAnalysis(cantilever({ origin: [1e6, -2e6, 3e6] })).solveCase("P");
     expect(moved.fullDisplacements).toHaveLength(base.fullDisplacements.length);
@@ -124,7 +124,7 @@ describe("metamorphic structural properties", () => {
     expectScaled(moved.frames[0]!.localEndForces, base.frames[0]!.localEndForces, 1, 7);
   });
 
-  it("NFR-COR-001: rotating an axial truss and load rotates displacement without changing axial force", () => {
+  it("rotating an axial truss and load rotates displacement without changing axial force", () => {
     const x = prepareAnalysis(axialTruss("x")).solveCase("P");
     const y = prepareAnalysis(axialTruss("y")).solveCase("P");
     expect(x.nodes[1]!.displacements.find(({ dof }) => dof === "tx")!.value).toBeCloseTo(
@@ -134,14 +134,14 @@ describe("metamorphic structural properties", () => {
     expect(x.trusses[0]!.axialForce).toBeCloseTo(y.trusses[0]!.axialForce, 10);
   });
 
-  it("NFR-DET-001: reversing truss connectivity preserves the physical solution", () => {
+  it("reversing truss connectivity preserves the physical solution", () => {
     const forward = prepareAnalysis(axialTruss("x")).solveCase("P");
     const reverse = prepareAnalysis(axialTruss("x", true)).solveCase("P");
     expectScaled(reverse.fullDisplacements, forward.fullDisplacements, 1, 14);
     expect(reverse.trusses[0]!.axialForce).toBeCloseTo(forward.trusses[0]!.axialForce, 10);
   });
 
-  it("NFR-COR-001: response scales linearly with load", () => {
+  it("response scales linearly with load", () => {
     const prepared = prepareAnalysis(cantilever());
     const base = prepared.solveCase("P");
     const doubled = prepared.solveCase("2P");
@@ -150,7 +150,7 @@ describe("metamorphic structural properties", () => {
     expectScaled(doubled.frames[0]!.localEndForces, base.frames[0]!.localEndForces, 2, 7);
   });
 
-  it("NFR-COR-001: doubling all elastic moduli halves displacement and preserves reactions", () => {
+  it("doubling all elastic moduli halves displacement and preserves reactions", () => {
     const base = prepareAnalysis(cantilever()).solveCase("P");
     const stiff = prepareAnalysis(cantilever({ elasticModulus: 400e9 })).solveCase("P");
     expect(stiff.fullDisplacements).toHaveLength(base.fullDisplacements.length);
@@ -158,7 +158,7 @@ describe("metamorphic structural properties", () => {
     expectScaled(stiff.fullResidual, base.fullResidual, 1, 6);
   });
 
-  it("NFR-COR-001: axial subdivision is equivalent to one unsplit member", () => {
+  it("axial subdivision is equivalent to one unsplit member", () => {
     const single = prepareAnalysis(axialTruss("x")).solveCase("P");
     const builder = createModelBuilder()
       .setUnitSystem(units)
@@ -191,7 +191,7 @@ describe("metamorphic structural properties", () => {
     expect(split.trusses[1]!.axialForce).toBeCloseTo(12000, 10);
   });
 
-  it("NFR-COR-001: Maxwell-Betti reciprocity holds for force and moment load cases", () => {
+  it("Maxwell-Betti reciprocity holds for force and moment load cases", () => {
     const prepared = prepareAnalysis(cantilever());
     const force = prepared.solveCase("Fy");
     const moment = prepared.solveCase("Mz");
@@ -202,7 +202,7 @@ describe("metamorphic structural properties", () => {
     expect(rotationFromForce).toBeCloseTo(displacementFromMoment, 13);
   });
 
-  it("NFR-COR-001: direct superposition equals both a combined load case and result combination", () => {
+  it("direct superposition equals both a combined load case and result combination", () => {
     const prepared = prepareAnalysis(cantilever());
     const force = prepared.solveCase("Fy");
     const moment = prepared.solveCase("Mz");
@@ -216,7 +216,7 @@ describe("metamorphic structural properties", () => {
     expectScaled(direct.frames[0]!.localEndForces, combined.frames[0]!.localEndForces, 1, 9);
   });
 
-  it("NFR-COR-001: solved cases satisfy equilibrium and energy identities", () => {
+  it("solved cases satisfy equilibrium and energy identities", () => {
     const result = prepareAnalysis(cantilever()).solveCase("P");
     expect(result.diagnostics.normalizedResidual).toBeLessThan(1e-12);
     expect(result.diagnostics.normalizedForceEquilibrium).toBeLessThan(1e-12);

@@ -44,7 +44,7 @@ function schemaContext(error: XFrameError): Extract<XFrameError["context"], { ki
   return error.context;
 }
 
-it("FR-JSON-003: parses JSON text and reports malformed text at the root", () => {
+it("parses JSON text and reports malformed text at the root", () => {
   const object = { value: 1 };
 
   expect(parseJsonValue('{"value":1}')).toEqual(object);
@@ -55,7 +55,7 @@ it("FR-JSON-003: parses JSON text and reports malformed text at the root", () =>
   expect(typeof context.actual).toBe("string");
 });
 
-it("FR-JSON-003: accepts only own plain-object fields and reports their paths", () => {
+it("accepts only own plain-object fields and reports their paths", () => {
   const nullPrototype = Object.assign(Object.create(null), { allowed: 1 });
   expect(objectAt(nullPrototype, "$.entry", ["allowed"])).toBe(nullPrototype);
 
@@ -86,7 +86,7 @@ it("FR-JSON-003: accepts only own plain-object fields and reports their paths", 
     expect(schemaContext(failure(action))).toMatchObject({ path, expected });
 });
 
-it("FR-JSON-003: normalizes finite boundary primitives and rejects invalid JSON values", () => {
+it("normalizes finite boundary primitives and rejects invalid JSON values", () => {
   expect(arrayAt([], "$.array")).toEqual([]);
   expect(stringAt("text", "$.text")).toBe("text");
   expect(literalAt("left", "$.side", ["left", "right"])).toBe("left");
@@ -110,7 +110,7 @@ it("FR-JSON-003: normalizes finite boundary primitives and rejects invalid JSON 
     expect(schemaContext(failure(action)).expected).toBe(expected);
 });
 
-it("FR-JSON-003: validates complete units and reports the invalid unit field", () => {
+it("validates complete units and reports the invalid unit field", () => {
   const parsed = unitSystemAt(units, "$.units");
   expect(parsed).toEqual(units);
   expect(Object.isFrozen(parsed)).toBe(true);
@@ -124,7 +124,7 @@ it("FR-JSON-003: validates complete units and reports the invalid unit field", (
     expect(schemaContext(failure(() => unitSystemAt(value, "$.units"))).path).toBe(path);
 });
 
-it("FR-JSON-003: deep-freezes acyclic JSON copies without retaining hostile values", () => {
+it("deep-freezes acyclic JSON copies without retaining hostile values", () => {
   const source = Object.assign(Object.create(null), {
     nested: [-0, { value: 4 }],
   });
@@ -151,7 +151,7 @@ it("FR-JSON-003: deep-freezes acyclic JSON copies without retaining hostile valu
     expect(schemaContext(failure(() => deepFreezeCopy(value))).expected).toBe(expected);
 });
 
-it("FR-JSON-003: preserves schema diagnostic distinctions for actual values and versions", () => {
+it("preserves schema diagnostic distinctions for actual values and versions", () => {
   const actuals = [
     [null, "null"],
     [[1], "array(length=1)"],

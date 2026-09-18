@@ -7,7 +7,7 @@ const COEFFICIENT_SCALES = [
 ] as const;
 
 describe("constraint canonicalization", () => {
-  it("FR-CON-001: combines duplicate terms, removes zeros, and normalizes sign and scale", () => {
+  it("combines duplicate terms, removes zeros, and normalizes sign and scale", () => {
     const result = canonicalizeConstraint({
       sourceId: "c1",
       terms: [
@@ -28,7 +28,7 @@ describe("constraint canonicalization", () => {
     });
   });
 
-  it("FR-CON-001: rejects empty contradictory equations and accepts zero identities", () => {
+  it("rejects empty contradictory equations and accepts zero identities", () => {
     expect(() => canonicalizeConstraint({ sourceId: "bad", terms: [], rightHandSide: 1 })).toThrow(
       XFrameError,
     );
@@ -37,7 +37,7 @@ describe("constraint canonicalization", () => {
     );
   });
 
-  it("FR-CON-001/FR-JSON-004: rejects invalid indices and nonfinite coefficients", () => {
+  it("rejects invalid indices and nonfinite coefficients", () => {
     expect(() =>
       canonicalizeConstraint({
         sourceId: "bad-index",
@@ -80,7 +80,7 @@ describe("constraint canonicalization", () => {
     },
   );
 
-  it("FR-SAFE-003: sums duplicate coefficients before scale-relative pruning", () => {
+  it("sums duplicate coefficients before scale-relative pruning", () => {
     expect(
       canonicalizeConstraint({
         sourceId: "duplicates",
@@ -101,7 +101,7 @@ describe("constraint canonicalization", () => {
     });
   });
 
-  it("FR-SAFE-003: retains a valid coefficient below the absolute unit floor", () => {
+  it("retains a valid coefficient below the absolute unit floor", () => {
     expect(
       canonicalizeConstraint({
         sourceId: "sub-unit",
@@ -115,7 +115,7 @@ describe("constraint canonicalization", () => {
     });
   });
 
-  it("FR-SAFE-003: keeps coefficient pruning independent of RHS magnitude", () => {
+  it("keeps coefficient pruning independent of RHS magnitude", () => {
     const terms = [
       { dof: 0, coefficient: 1e-8 },
       { dof: 1, coefficient: 1e-13 },
@@ -134,7 +134,7 @@ describe("constraint canonicalization", () => {
     expect(largeRhs.rightHandSide).toBe(1e308);
   });
 
-  it("XF-001: retains duplicate cancellation residuals without tolerance pruning", () => {
+  it("retains duplicate cancellation residuals without tolerance pruning", () => {
     const scale = 1e-120;
     const retained = canonicalizeConstraint({
       sourceId: "near-retained",
@@ -161,7 +161,7 @@ describe("constraint canonicalization", () => {
     expect(residual.terms[0]!.coefficient).toBeCloseTo(expectedResidual, 20);
   });
 
-  it("XF-001: retains tiny nonzero coefficients that may control rank", () => {
+  it("retains tiny nonzero coefficients that may control rank", () => {
     const result = canonicalizeConstraint({
       sourceId: "tiny-retained",
       terms: [
@@ -175,7 +175,7 @@ describe("constraint canonicalization", () => {
     expect(result.terms[0]!.coefficient).toBe(1);
   });
 
-  it("XF-001: duplicate cancellation aggregation is independent of term order", () => {
+  it("duplicate cancellation aggregation is independent of term order", () => {
     const coefficientSets = [
       [1e16, 1, -1e16],
       [1e16, -1e16, 1],
@@ -198,7 +198,7 @@ describe("constraint canonicalization", () => {
     expect(reference.rightHandSide).toBe(0);
   });
 
-  it("FR-SAFE-003: treats every exact nonzero zero-term RHS as contradictory", () => {
+  it("treats every exact nonzero zero-term RHS as contradictory", () => {
     let thrown: unknown;
     try {
       canonicalizeConstraint({
@@ -213,7 +213,7 @@ describe("constraint canonicalization", () => {
     expect((thrown as XFrameError).code).toBe("CONSTRAINT_CONTRADICTION");
   });
 
-  it("FR-SAFE-003: retains subnormal cancellation across exact power-of-two scaling", () => {
+  it("retains subnormal cancellation across exact power-of-two scaling", () => {
     const m = 3e-310;
     const p = m - Number.MIN_VALUE;
     const residual = m - p;

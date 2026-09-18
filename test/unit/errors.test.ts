@@ -10,7 +10,7 @@ function unsafeCause(): Error & { secret: object; code: string } {
 }
 
 describe("XFrameError", () => {
-  it("FR-ERR-001: exposes a stable code and immutable structured context", () => {
+  it("exposes a stable code and immutable structured context", () => {
     const context = {
       kind: "input",
       path: "nodes[0].x",
@@ -30,7 +30,7 @@ describe("XFrameError", () => {
     });
   });
 
-  it("FR-ERR-001: summarizes causes without exposing arbitrary cause properties", () => {
+  it("summarizes causes without exposing arbitrary cause properties", () => {
     const error = new XFrameError(
       "INPUT_INVALID",
       "Input failed.",
@@ -47,7 +47,7 @@ describe("XFrameError", () => {
   });
 });
 
-it("FR-ERR-001: copies nested context before freezing it", () => {
+it("copies nested context before freezing it", () => {
   const resultIds = ["case-a"];
   const context = { kind: "result", resultIds, reason: "incompatible models" } as const;
   const error = new XFrameError("RESULT_INCOMPATIBLE", "Results are incompatible.", context);

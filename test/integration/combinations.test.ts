@@ -115,7 +115,7 @@ function incompatibility(action: () => unknown): XFrameError {
   throw new Error("Expected a result incompatibility.");
 }
 
-it("FR-RES-006: combines compatible results without aliasing and preserves factor provenance", () => {
+it("combines compatible results without aliasing and preserves factor provenance", () => {
   const model = createModelBuilder()
     .setUnitSystem({
       version: "1",
@@ -147,7 +147,7 @@ it("FR-RES-006: combines compatible results without aliasing and preserves facto
   expect(result.fullDisplacements).not.toBe(a!.fullDisplacements);
 });
 
-it("FR-SAFE-002: combines twelve-component truss reference actions component-wise", () => {
+it("combines twelve-component truss reference actions component-wise", () => {
   const prepared = prepareAnalysis(
     collisionModel(1)
       .addLoadCase({ id: "M", loads: [{ kind: "nodal", nodeId: "b", force: [3, 0, 0] }] })
@@ -164,7 +164,7 @@ it("FR-SAFE-002: combines twelve-component truss reference actions component-wis
   ]);
 });
 
-it("FR-SAFE-004: combines force polynomials before deriving a new interior extremum", () => {
+it("combines force polynomials before deriving a new interior extremum", () => {
   const prepared = prepareAnalysis(frameCombinationModel());
   const [uniform, triangular] = prepared.solveCases(["U", "T"]);
   const combined = combineResults("C", [
@@ -183,7 +183,7 @@ it("FR-SAFE-004: combines force polynomials before deriving a new interior extre
   expect(sourceLocations).not.toContain(extremum!.x);
 });
 
-it("FR-SAFE-004/NFR-COR-002: directly scales first frame segments for tiny, zero, and negative factors", () => {
+it("directly scales first frame segments for tiny, zero, and negative factors", () => {
   const source = prepareAnalysis(frameCombinationModel()).solveCase("U");
   const sourceFrame = source.frames[0]!;
   const sourceSegment = sourceFrame.internalForceSegments[0]!;
@@ -208,7 +208,7 @@ it("FR-SAFE-004/NFR-COR-002: directly scales first frame segments for tiny, zero
   }
 });
 
-it("FR-SAFE-004/NFR-COR-002: preserves exact continuity and genuine jumps while scaling multiple segments", () => {
+it("preserves exact continuity and genuine jumps while scaling multiple segments", () => {
   const segments = [
     {
       start: 0,
@@ -254,7 +254,7 @@ it("FR-SAFE-004/NFR-COR-002: preserves exact continuity and genuine jumps while 
   ]);
 });
 
-it("FR-SAFE-004/NFR-COR-002: rejects non-finite sided endpoint combinations with structured context", () => {
+it("rejects non-finite sided endpoint combinations with structured context", () => {
   const source = prepareAnalysis(frameCombinationModel()).solveCase("U");
   const frame = source.frames[0]!;
   const segment = frame.internalForceSegments[0]!;
@@ -301,7 +301,7 @@ it("FR-SAFE-004/NFR-COR-002: rejects non-finite sided endpoint combinations with
   });
 });
 
-it("FR-SAFE-004/NFR-COR-002: rejects overflow from adding individually finite sided endpoints", () => {
+it("rejects overflow from adding individually finite sided endpoints", () => {
   const prepared = prepareAnalysis(frameCombinationModel());
   const first = prepared.solveCase("U");
   const second = prepared.solveCase("T");
@@ -356,7 +356,7 @@ it("FR-SAFE-004/NFR-COR-002: rejects overflow from adding individually finite si
   });
 });
 
-it("FR-RES-006: rejects duplicate source IDs and a combination ID collision", () => {
+it("rejects duplicate source IDs and a combination ID collision", () => {
   const model = createModelBuilder()
     .setUnitSystem({
       version: "1",
@@ -393,7 +393,7 @@ it("FR-RES-006: rejects duplicate source IDs and a combination ID collision", ()
   }
 });
 
-it("FR-SAFE-001: rejects results from the reproduced full-model fingerprint collision", () => {
+it("rejects results from the reproduced full-model fingerprint collision", () => {
   const first = prepareAnalysis(collisionModel(0.00015793100000000002).finalize()).solveCase("L");
   const second = prepareAnalysis(collisionModel(0.000164232).finalize()).solveCase("L");
   const secondWithDistinctId = { ...second, id: "L2" as typeof second.id };
@@ -417,7 +417,7 @@ it("FR-SAFE-001: rejects results from the reproduced full-model fingerprint coll
   expect((error as XFrameError).context).toMatchObject({ reason: "model fingerprints differ" });
 });
 
-it("FR-RES-006/NFR-COR-002: rejects entity-order fabrication and non-finite combined output", () => {
+it("rejects entity-order fabrication and non-finite combined output", () => {
   const model = createModelBuilder()
     .setUnitSystem({
       version: "1",
@@ -450,7 +450,7 @@ it("FR-RES-006/NFR-COR-002: rejects entity-order fabrication and non-finite comb
   );
 });
 
-it("FR-RES-006: rejects incompatible result layouts before combining values", () => {
+it("rejects incompatible result layouts before combining values", () => {
   const source = prepareAnalysis(collisionModel(1).finalize()).solveCase("L");
   const other = { ...source, id: "OTHER" as typeof source.id };
   const cases = [
@@ -528,7 +528,7 @@ it("FR-RES-006: rejects incompatible result layouts before combining values", ()
   }
 });
 
-it("FR-RES-006: validates frame segment layouts and canonicalizes negative-zero factors", () => {
+it("validates frame segment layouts and canonicalizes negative-zero factors", () => {
   const source = prepareAnalysis(frameCombinationModel()).solveCase("U");
   const other = { ...source, id: "OTHER" as typeof source.id };
   const frame = other.frames[0]!;
@@ -557,7 +557,7 @@ it("FR-RES-006: validates frame segment layouts and canonicalizes negative-zero 
   expect(Object.is(zero.fullLoad[0], -0)).toBe(false);
 });
 
-it("FR-RES-006: fails closed for every distinct result layout before summing arrays", () => {
+it("fails closed for every distinct result layout before summing arrays", () => {
   const source = prepareAnalysis(collisionModel(1).finalize()).solveCase("L");
   const other = { ...source, id: "OTHER" as typeof source.id };
   const framed = prepareAnalysis(frameCombinationModel()).solveCase("U");

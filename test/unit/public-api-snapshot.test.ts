@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import * as api from "../../src/index.js";
 
-it("NFR-API-001: exposes only the intentional public runtime API", () => {
+it("exposes only the intentional public runtime API", () => {
   expect(Object.keys(api).toSorted()).toEqual([
     "MODEL_SCHEMA_VERSION",
     "PreparedAnalysis",
@@ -24,7 +24,7 @@ it("NFR-API-001: exposes only the intentional public runtime API", () => {
   ]);
 });
 
-it("NFR-API-002/NFR-PKG-001: declares a narrow ESM package boundary", () => {
+it("declares a narrow ESM package boundary", () => {
   const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as Record<string, unknown>;
   expect(packageJson["main"]).toBe("./dist/index.js");
   expect(packageJson["types"]).toBe("./dist/index.d.ts");

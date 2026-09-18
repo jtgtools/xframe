@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { createModelBuilder } from "../../src/model/model-builder.js";
 
-it("NFR-SEC-001: prototype-like case and combination references remain ordinary Map keys", () => {
+it("prototype-like case and combination references remain ordinary Map keys", () => {
   const model = createModelBuilder()
     .setUnitSystem({
       version: "1",

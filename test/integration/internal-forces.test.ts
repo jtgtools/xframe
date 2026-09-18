@@ -55,7 +55,7 @@ function fixedFrame(
   return builder;
 }
 
-it("FR-SAFE-004: publishes frozen contiguous force polynomials with the simply-supported midspan extremum", () => {
+it("publishes frozen contiguous force polynomials with the simply-supported midspan extremum", () => {
   const length = 10;
   const builder = fixedFrame(length, ["tx", "ty", "tz", "rx", "ry"]);
   for (const dof of ["ty", "tz", "rx", "ry"] as const)
@@ -93,7 +93,7 @@ it("FR-SAFE-004: publishes frozen contiguous force polynomials with the simply-s
   expect(Math.abs(midspan!.bendingZ)).toBeCloseTo(12500, 9);
 });
 
-it("FR-RES-002: recovers frame end forces and balanced internal-force stations for a uniform load", () => {
+it("recovers frame end forces and balanced internal-force stations for a uniform load", () => {
   const length = 4;
   const load = -10;
   const builder = createModelBuilder()
@@ -155,7 +155,7 @@ it("FR-RES-002: recovers frame end forces and balanced internal-force stations f
   expect(frame.internalForces.at(-1)!.bendingZ).toBeCloseTo(0, 9);
 });
 
-it("FR-RES-002/FR-RES-005: returns independent global and local frame end displacements", () => {
+it("returns independent global and local frame end displacements", () => {
   const builder = createModelBuilder()
     .setUnitSystem({
       version: "1",
@@ -250,7 +250,7 @@ it.each(["start", "end"] as const)(
   },
 );
 
-it("FR-RES-004: inserts left and right stations at point-force discontinuities", () => {
+it("inserts left and right stations at point-force discontinuities", () => {
   const length = 4;
   const builder = createModelBuilder()
     .setUnitSystem({
@@ -310,7 +310,7 @@ it("FR-RES-004: inserts left and right stations at point-force discontinuities",
   expect(stations[1]!.bendingZ).toBeCloseTo(stations[0]!.bendingZ, 12);
 });
 
-it("FR-SAFE-007: exposes both endpoint sides and full point-force jumps", () => {
+it("exposes both endpoint sides and full point-force jumps", () => {
   const length = 4;
   const stations = prepareAnalysis(
     fixedFrame(length)
@@ -350,7 +350,7 @@ it("FR-SAFE-007: exposes both endpoint sides and full point-force jumps", () => 
   expect(stations[3]!.shearY - stations[2]!.shearY).toBeCloseTo(-10, 12);
 });
 
-it("FR-SAFE-007: exposes both endpoint sides and full point-moment jumps", () => {
+it("exposes both endpoint sides and full point-moment jumps", () => {
   const length = 4;
   const stations = prepareAnalysis(
     fixedFrame(length)

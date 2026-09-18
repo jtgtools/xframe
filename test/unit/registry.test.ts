@@ -13,7 +13,7 @@ function item(id: string, value: number): Item {
 }
 
 describe("Registry", () => {
-  it("FR-MOD-003: preserves deterministic insertion order for prototype-like IDs", () => {
+  it("preserves deterministic insertion order for prototype-like IDs", () => {
     const registry = new Registry<Item>("item");
     registry.add(item("constructor", 1));
     registry.add(item("__proto__", 2));
@@ -26,7 +26,7 @@ describe("Registry", () => {
     ]);
   });
 
-  it("FR-MOD-003: rejects duplicates with a stable code and entity context", () => {
+  it("rejects duplicates with a stable code and entity context", () => {
     const registry = new Registry<Item>("item");
     registry.add(item("alpha", 1));
 
@@ -46,7 +46,7 @@ describe("Registry", () => {
     });
   });
 
-  it("FR-MOD-005: commits registry transactions atomically and rolls back failures", () => {
+  it("commits registry transactions atomically and rolls back failures", () => {
     const registry = new Registry<Item>("item");
     registry.add(item("base", 0));
 

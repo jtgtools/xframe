@@ -7,7 +7,7 @@ import {
 import { XFrameError } from "../../src/errors/xframe-error.js";
 
 describe("constraint failures", () => {
-  it("FR-CON-002: classifies a directed equal-DOF cycle", () => {
+  it("classifies a directed equal-DOF cycle", () => {
     expect(() =>
       compileConstraints(3, [
         {
@@ -38,7 +38,7 @@ describe("constraint failures", () => {
     ).toThrow(XFrameError);
   });
 
-  it("FR-CON-003: rejects out-of-range DOFs and unsafe transform storage", () => {
+  it("rejects out-of-range DOFs and unsafe transform storage", () => {
     expect(() =>
       compileConstraints(2, [
         {
@@ -54,7 +54,7 @@ describe("constraint failures", () => {
   });
 
   it.each([1e-300, -1e-300, 1e300, -1e300])(
-    "FR-SAFE-003: preserves compiled rank and pivots after cancellation at scale %s",
+    "preserves compiled rank and pivots after cancellation at scale %s",
     (scale) => {
       const compiled = compileConstraints(2, [
         {
@@ -80,7 +80,7 @@ describe("constraint failures", () => {
     },
   );
 
-  it("FR-SAFE-003: preserves a small contradictory residual independently of coefficient scale", () => {
+  it("preserves a small contradictory residual independently of coefficient scale", () => {
     let thrown: unknown;
     try {
       compileConstraints(2, [
@@ -109,7 +109,7 @@ describe("constraint failures", () => {
   });
 
   it.each([1, -1, 2 ** 986, -(2 ** 986), 2 ** -986, -(2 ** -986)])(
-    "FR-SAFE-003: keeps a scale-invariant independent public chain at scale %s",
+    "keeps a scale-invariant independent public chain at scale %s",
     (scale) => {
       const q = 3.2515731794557063e-14;
       const f = 3.251573179455313e-14;
@@ -137,7 +137,7 @@ describe("constraint failures", () => {
   );
 
   it.each([1, 2 ** 45])(
-    "FR-SAFE-003 XF-001: backward-tail chains compile at tail scale %s and pass frozen semantic validation",
+    "backward-tail chains compile at tail scale %s and pass frozen semantic validation",
     (tailScale) => {
       // Phase 2 success requirement (was Phase 1 containment): the compiler
       // must build the chain tail rows without catastrophic cancellation, so
@@ -181,34 +181,31 @@ describe("constraint failures", () => {
     },
   );
 
-  it.each([1, -1])(
-    "FR-SAFE-003: rejects a subnormal contradictory RHS residual at sign %s",
-    (sign) => {
-      const m = sign * 6e-311;
-      const p = sign * (6e-311 - Number.MIN_VALUE);
-      let thrown: unknown;
-      try {
-        compileConstraints(1, [
-          {
-            sourceId: "a",
-            terms: [{ dof: 0, coefficient: 1 }],
-            rightHandSide: p,
-          },
-          {
-            sourceId: "b",
-            terms: [{ dof: 0, coefficient: 1 }],
-            rightHandSide: m,
-          },
-        ]);
-      } catch (error) {
-        thrown = error;
-      }
-      expect(thrown).toBeInstanceOf(XFrameError);
-      expect((thrown as XFrameError).code).toBe("CONSTRAINT_CONTRADICTION");
-    },
-  );
+  it.each([1, -1])("rejects a subnormal contradictory RHS residual at sign %s", (sign) => {
+    const m = sign * 6e-311;
+    const p = sign * (6e-311 - Number.MIN_VALUE);
+    let thrown: unknown;
+    try {
+      compileConstraints(1, [
+        {
+          sourceId: "a",
+          terms: [{ dof: 0, coefficient: 1 }],
+          rightHandSide: p,
+        },
+        {
+          sourceId: "b",
+          terms: [{ dof: 0, coefficient: 1 }],
+          rightHandSide: m,
+        },
+      ]);
+    } catch (error) {
+      thrown = error;
+    }
+    expect(thrown).toBeInstanceOf(XFrameError);
+    expect((thrown as XFrameError).code).toBe("CONSTRAINT_CONTRADICTION");
+  });
 
-  it("FR-SAFE-003: reports nonfinite backward elimination arithmetic structurally", () => {
+  it("reports nonfinite backward elimination arithmetic structurally", () => {
     let thrown: unknown;
     try {
       compileConstraints(3, [

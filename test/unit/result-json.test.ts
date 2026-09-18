@@ -64,7 +64,7 @@ function schemaFailure(action: () => unknown): XFrameError {
   throw new Error("expected schema failure");
 }
 
-it("FR-SAFE-002/FR-SAFE-004: round trips the complete result schema v2", () => {
+it("round trips the complete result schema v2", () => {
   const value = resultToJsonValue(result());
 
   expect(value.schemaVersion).toBe("2");
@@ -73,7 +73,7 @@ it("FR-SAFE-002/FR-SAFE-004: round trips the complete result schema v2", () => {
   expect(parseResultJson(JSON.stringify(value))).toEqual(value.result);
 });
 
-it("FR-JSON-003/FR-JSON-005: validates and reconstructs a complete immutable result", () => {
+it("validates and reconstructs a complete immutable result", () => {
   const source = result();
   const parsed = parseResultJson(resultToJsonValue(source));
   expect(parsed).toEqual(source);
@@ -82,13 +82,13 @@ it("FR-JSON-003/FR-JSON-005: validates and reconstructs a complete immutable res
   expect(Object.isFrozen(parsed.nodes)).toBe(true);
 });
 
-it("FR-JSON-006: result canonical output round-trips byte-for-byte", () => {
+it("result canonical output round-trips byte-for-byte", () => {
   const first = canonicalJson(resultToJsonValue(result()));
   const second = canonicalJson(resultToJsonValue(parseResultJson(first)));
   expect(second).toBe(first);
 });
 
-it("FR-JSON-003/FR-JSON-004: rejects incomplete, additional, unsupported, and non-finite results", () => {
+it("rejects incomplete, additional, unsupported, and non-finite results", () => {
   const valid = resultToJsonValue(result()) as unknown as Record<string, unknown>;
   const body = valid["result"] as Record<string, unknown>;
   const malformed = [
@@ -100,7 +100,7 @@ it("FR-JSON-003/FR-JSON-004: rejects incomplete, additional, unsupported, and no
   for (const value of malformed) expect(() => parseResultJson(value)).toThrowError(XFrameError);
 });
 
-it("FR-SAFE-002/FR-SAFE-004: rejects every non-v2 artifact before interpreting its body", () => {
+it("rejects every non-v2 artifact before interpreting its body", () => {
   const error = schemaFailure(() => parseResultJson({ schemaVersion: "1", result: null }));
 
   expect(error.code).toBe("SCHEMA_UNSUPPORTED");
@@ -109,7 +109,7 @@ it("FR-SAFE-002/FR-SAFE-004: rejects every non-v2 artifact before interpreting i
   expect(context.kind === "schema" ? context.path : undefined).toBe("$.schemaVersion");
 });
 
-it("FR-SAFE-002/FR-SAFE-004: rejects malformed, noncontiguous, nonfinite segments and malformed fingerprints", () => {
+it("rejects malformed, noncontiguous, nonfinite segments and malformed fingerprints", () => {
   const valid = resultToJsonValue(result()) as unknown as Record<string, unknown>;
   const body = valid["result"] as Record<string, unknown>;
   const frame = (body["frames"] as readonly Record<string, unknown>[])[0]!;
@@ -177,7 +177,7 @@ it("FR-SAFE-002/FR-SAFE-004: rejects malformed, noncontiguous, nonfinite segment
   for (const value of malformed) expect(() => parseResultJson(value)).toThrowError(XFrameError);
 });
 
-it("FR-JSON-003: rejects a null result with its exact field path", () => {
+it("rejects a null result with its exact field path", () => {
   const error = schemaFailure(() => parseResultJson({ schemaVersion: "2", result: null }));
 
   expect(error.code).toBe("SCHEMA_INVALID");
@@ -186,7 +186,7 @@ it("FR-JSON-003: rejects a null result with its exact field path", () => {
   expect(context.kind === "schema" ? context.path : undefined).toBe("$.result");
 });
 
-it("FR-JSON-003: reports malformed result unit metadata at the JSON field path", () => {
+it("reports malformed result unit metadata at the JSON field path", () => {
   const valid = resultToJsonValue(result()) as unknown as Record<string, unknown>;
   const body = valid["result"] as Record<string, unknown>;
   const unitSystem = body["unitSystem"] as Record<string, unknown>;
@@ -200,7 +200,7 @@ it("FR-JSON-003: reports malformed result unit metadata at the JSON field path",
   expect(context.kind === "schema" ? context.path : undefined).toBe("$.result.unitSystem.extra");
 });
 
-it("FR-JSON-006: canonical JSON sorts keys, preserves arrays, rejects unsupported values, and hashes deterministically", async () => {
+it("canonical JSON sorts keys, preserves arrays, rejects unsupported values, and hashes deterministically", async () => {
   expect(canonicalJson({ z: 1, a: -0, b: [3, 2, 1] })).toBe('{"a":0,"b":[3,2,1],"z":1}');
   expect(() => canonicalJson({ value: Number.NaN })).toThrowError(XFrameError);
   expect(() => canonicalJson({ value: undefined })).toThrowError(XFrameError);
@@ -209,7 +209,7 @@ it("FR-JSON-006: canonical JSON sorts keys, preserves arrays, rejects unsupporte
   );
 });
 
-it("FR-JSON-003/FR-SAFE-004: round trips valid combinations and rejects invalid factor provenance", () => {
+it("round trips valid combinations and rejects invalid factor provenance", () => {
   const source = result();
   const second = { ...source, id: "Q" as typeof source.id };
   const combination = combineResults("U", [
@@ -248,7 +248,7 @@ it("FR-JSON-003/FR-SAFE-004: round trips valid combinations and rejects invalid 
     });
 });
 
-it("FR-JSON-003: rejects invalid result layouts at their structural boundary", () => {
+it("rejects invalid result layouts at their structural boundary", () => {
   const json = resultToJsonValue(result()) as unknown as Record<string, unknown>;
   const body = json["result"] as Record<string, unknown>;
   const node = (body["nodes"] as readonly Record<string, unknown>[])[0]!;
@@ -347,7 +347,7 @@ it("FR-JSON-003: rejects invalid result layouts at their structural boundary", (
     });
 });
 
-it("FR-JSON-003: accepts contiguous segment metadata without optional side limits and both spring layouts", () => {
+it("accepts contiguous segment metadata without optional side limits and both spring layouts", () => {
   const json = resultToJsonValue(result()) as unknown as Record<string, unknown>;
   const body = json["result"] as Record<string, unknown>;
   const frame = (body["frames"] as readonly Record<string, unknown>[])[0]!;

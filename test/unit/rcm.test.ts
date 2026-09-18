@@ -11,7 +11,7 @@ function graphMatrix(size: number, edges: readonly [number, number][]) {
 }
 
 describe("reverse Cuthill-McKee", () => {
-  it("FR-SOL-002: uses deterministic degree/index tie breaking", () => {
+  it("uses deterministic degree/index tie breaking", () => {
     const matrix = graphMatrix(4, [
       [0, 3],
       [3, 1],
@@ -26,7 +26,7 @@ describe("reverse Cuthill-McKee", () => {
     );
   });
 
-  it("FR-SOL-002: handles isolated and disconnected components deterministically", () => {
+  it("handles isolated and disconnected components deterministically", () => {
     const matrix = graphMatrix(6, [
       [0, 1],
       [1, 2],

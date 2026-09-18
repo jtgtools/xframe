@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { XFrameError } from "../../src/errors/xframe-error.js";
 import { createModelBuilder } from "../../src/model/model-builder.js";
 
-it("FR-MAT-002/FR-LOD-006: self-weight aggregates every affected material missing density", () => {
+it("self-weight aggregates every affected material missing density", () => {
   const builder = createModelBuilder()
     .setUnitSystem({
       version: "1",

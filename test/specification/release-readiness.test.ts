@@ -13,7 +13,7 @@ function filesUnder(root: string): string[] {
   return output;
 }
 
-it("AUD-REL-001: the repository has a factual final audit and no focused or skipped tests", () => {
+it("the repository has a factual final audit and no focused or skipped tests", () => {
   expect(existsSync("docs/verification/final-audit.md")).toBe(true);
   const audit = readFileSync("docs/verification/final-audit.md", "utf8");
   for (const phrase of [
@@ -34,7 +34,7 @@ it("AUD-REL-001: the repository has a factual final audit and no focused or skip
   expect(tests).not.toMatch(/\.(?:skip|only|todo)\s*\(/);
 });
 
-it("AUD-REL-002: production runtime remains browser-safe and free of release placeholders", () => {
+it("production runtime remains browser-safe and free of release placeholders", () => {
   const source = filesUnder("src")
     .filter((path) => path.endsWith(".ts"))
     .map((path) => readFileSync(path, "utf8"))
@@ -43,13 +43,13 @@ it("AUD-REL-002: production runtime remains browser-safe and free of release pla
   expect(source).not.toMatch(/\b(?:TODO|FIXME|STUB)\b/);
 });
 
-it("AUD-REL-003: npm is the only declared package manager", () => {
+it("npm is the only declared package manager", () => {
   const packageJson = readFileSync("package.json", "utf8");
   expect(packageJson).toContain('"packageManager": "npm@');
   expect(packageJson).not.toMatch(/\b(?:bun|pnpm|yarn)\b/i);
 });
 
-it("NFR-PKG-001: runtime boundary check resolves the repository root portably", () => {
+it("runtime boundary check resolves the repository root portably", () => {
   expect(() =>
     execFileSync(process.execPath, ["scripts/check-runtime-imports.mjs"], {
       cwd: process.cwd(),
@@ -58,7 +58,7 @@ it("NFR-PKG-001: runtime boundary check resolves the repository root portably", 
   ).not.toThrow();
 });
 
-it("AUD-REL-004: Frame3DD references have a non-destructive executable verification command", () => {
+it("Frame3DD references have a non-destructive executable verification command", () => {
   const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as {
     readonly scripts?: Readonly<Record<string, string>>;
   };
@@ -66,7 +66,7 @@ it("AUD-REL-004: Frame3DD references have a non-destructive executable verificat
   expect(existsSync("scripts/verify-frame3dd.mjs")).toBe(true);
 });
 
-it("FR-SAFE-002/AUD-REL-005: OpenSees eccentric-truss evidence has a non-destructive executable verification command", () => {
+it("OpenSees eccentric-truss evidence has a non-destructive executable verification command", () => {
   const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as {
     readonly scripts?: Readonly<Record<string, string>>;
   };
@@ -74,7 +74,7 @@ it("FR-SAFE-002/AUD-REL-005: OpenSees eccentric-truss evidence has a non-destruc
   expect(existsSync("scripts/verify-opensees.mjs")).toBe(true);
 });
 
-it("FR-SAFE-002/AUD-REL-006: published safety-correctness evidence records the OpenSees oracle", () => {
+it("published safety-correctness evidence records the OpenSees oracle", () => {
   const reportPath = "docs/verification/safety-correctness-report.md";
   expect(existsSync(reportPath)).toBe(true);
   const report = readFileSync(reportPath, "utf8");

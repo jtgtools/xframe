@@ -71,7 +71,7 @@ function rotation(
 }
 
 describe("eccentric truss integration", () => {
-  it("FR-SAFE-002: recovers the corrected two-spring rotations, axial force, and moment equilibrium", () => {
+  it("recovers the corrected two-spring rotations, axial force, and moment equilibrium", () => {
     const result = prepareAnalysis(rotationalSpringModel(true)).solveCase("M");
 
     expect(rotation(result, "a")).toBeCloseTo(2 / 3, 14);
@@ -91,7 +91,7 @@ describe("eccentric truss integration", () => {
     expect(result.diagnostics.momentEquilibrium).toEqual([0, 0, 0]);
   });
 
-  it("FR-SAFE-002: publishes immutable twelve-component reference actions without changing elastic forces", () => {
+  it("publishes immutable twelve-component reference actions without changing elastic forces", () => {
     const truss = prepareAnalysis(rotationalSpringModel(true)).solveCase("M").trusses[0]!;
 
     expectTypeOf(truss.globalReferenceEndForces).toEqualTypeOf<TrussReferenceEndForces>();
@@ -122,7 +122,7 @@ describe("eccentric truss integration", () => {
     expect(Object.isFrozen(truss.globalReferenceEndForces)).toBe(true);
   });
 
-  it("FR-SAFE-002: preserves the compatible free-B response without adding rotational restraint", () => {
+  it("preserves the compatible free-B response without adding rotational restraint", () => {
     const result = prepareAnalysis(rotationalSpringModel(false)).solveCase("M");
 
     expect(rotation(result, "a")).toBeCloseTo(1, 14);
@@ -134,7 +134,7 @@ describe("eccentric truss integration", () => {
     expect(result.diagnostics.momentEquilibrium).toEqual([0, 0, 0]);
   });
 
-  it("FR-SAFE-002: transfers truss self-weight through both rigid arms and balances support moments", () => {
+  it("transfers truss self-weight through both rigid arms and balances support moments", () => {
     const builder = eccentricTrussBuilder(1);
     constrain(builder, ["tx", "ty", "tz", "rx", "ry", "rz"]);
     const model = builder

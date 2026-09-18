@@ -24,13 +24,13 @@ const frameInput = {
 };
 
 describe("frame theory and records", () => {
-  it("FR-ELE-001: accepts only the closed Euler-Bernoulli and Timoshenko theory union", () => {
+  it("accepts only the closed Euler-Bernoulli and Timoshenko theory union", () => {
     expect(parseFrameTheory({ kind: "euler-bernoulli" })).toEqual({ kind: "euler-bernoulli" });
     expect(parseFrameTheory({ kind: "timoshenko" })).toEqual({ kind: "timoshenko" });
     expect(codeOf(() => parseFrameTheory({ kind: "shear-flexible-ish" }))).toBe("INPUT_INVALID");
   });
 
-  it("FR-ELE-001: creates immutable frame records with copied orientation and normalized releases", () => {
+  it("creates immutable frame records with copied orientation and normalized releases", () => {
     const orientation = [0, 0, 1];
     const frame = createFrameElement({
       ...frameInput,
@@ -46,7 +46,7 @@ describe("frame theory and records", () => {
     expect(Object.isFrozen(frame.orientation)).toBe(true);
   });
 
-  it("FR-ELE-001: rejects coincident connectivity, zero orientation, and duplicate release components", () => {
+  it("rejects coincident connectivity, zero orientation, and duplicate release components", () => {
     expect(codeOf(() => createFrameElement({ ...frameInput, endNodeId: "n1" }))).toBe(
       "INPUT_INVALID",
     );
@@ -60,7 +60,7 @@ describe("frame theory and records", () => {
 });
 
 describe("truss and spring records", () => {
-  it("FR-ELE-003: creates a truss record and rejects identical endpoint IDs", () => {
+  it("creates a truss record and rejects identical endpoint IDs", () => {
     const truss = createTrussElement({
       id: "t1",
       startNodeId: "n1",
@@ -83,7 +83,7 @@ describe("truss and spring records", () => {
     ).toBe("INPUT_INVALID");
   });
 
-  it("FR-ELE-004: supports ground and two-node diagonal component springs", () => {
+  it("supports ground and two-node diagonal component springs", () => {
     const ground = createSpringElement({
       id: "sg",
       startNodeId: "n1",
@@ -101,7 +101,7 @@ describe("truss and spring records", () => {
     expect(link.stiffness).toEqual([1, 2, 3, 4, 5, 6]);
   });
 
-  it("FR-ELE-004: rejects negative, all-zero, malformed, and self-connected springs", () => {
+  it("rejects negative, all-zero, malformed, and self-connected springs", () => {
     expect(
       codeOf(() =>
         createSpringElement({ id: "s", startNodeId: "n1", stiffness: [0, 0, 0, 0, 0, 0] }),

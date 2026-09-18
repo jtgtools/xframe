@@ -13,7 +13,7 @@ function codeOf(action: () => unknown): string | undefined {
 }
 
 describe("createIsotropicMaterial", () => {
-  it("FR-MAT-001: derives shear modulus from elastic modulus and Poisson ratio", () => {
+  it("derives shear modulus from elastic modulus and Poisson ratio", () => {
     const material = createIsotropicMaterial({
       id: "steel",
       elasticModulus: 210e9,
@@ -26,7 +26,7 @@ describe("createIsotropicMaterial", () => {
     expect(Object.isFrozen(material)).toBe(true);
   });
 
-  it("FR-MAT-001: derives Poisson ratio from elastic and shear moduli", () => {
+  it("derives Poisson ratio from elastic and shear moduli", () => {
     const material = createIsotropicMaterial({
       id: "alloy",
       elasticModulus: 70e9,
@@ -36,7 +36,7 @@ describe("createIsotropicMaterial", () => {
     expect(material.poissonRatio).toBeCloseTo(70e9 / (2 * 26e9) - 1, 12);
   });
 
-  it("FR-MAT-001: accepts a scale-consistent complete isotropic triple", () => {
+  it("accepts a scale-consistent complete isotropic triple", () => {
     const elasticModulus = 30e9;
     const poissonRatio = 0.2;
     const shearModulus = elasticModulus / (2 * (1 + poissonRatio));
@@ -57,7 +57,7 @@ describe("createIsotropicMaterial", () => {
     });
   });
 
-  it("FR-MAT-001: rejects incomplete, nonphysical, and inconsistent material data", () => {
+  it("rejects incomplete, nonphysical, and inconsistent material data", () => {
     expect(codeOf(() => createIsotropicMaterial({ id: "m", elasticModulus: 1 }))).toBe(
       "MATERIAL_INVALID",
     );
@@ -87,7 +87,7 @@ describe("createIsotropicMaterial", () => {
     ).toBe("MATERIAL_INVALID");
   });
 
-  it("FR-MAT-001: builder material insertion uses the physical material validator", () => {
+  it("builder material insertion uses the physical material validator", () => {
     expect(() =>
       createModelBuilder().addMaterial({ id: "m", elasticModulus: -1, poissonRatio: 0.2 }),
     ).toThrow(XFrameError);
