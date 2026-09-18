@@ -93,7 +93,9 @@ it("xframe matches the committed OpenSees eccentric-truss oracle", () => {
     binarySha256: "5aa4e9c80c410c510ca62ac3b2f1d64a8e50679f0238e140b5bebcd6d5ddbe6d",
     command: ["OPENSEES_BIN", "eccentric-truss.tcl"],
   });
-  expect(reference.oracle.inputSha256).toBe(createHash("sha256").update(input).digest("hex"));
+  expect(reference.oracle.inputSha256).toBe(
+    createHash("sha256").update(input.replace(/\r\n/gu, "\n")).digest("hex"),
+  );
 
   const result = eccentricTrussResult();
   expect(rotation(result, "a")).toBeCloseTo(reference.results.thetaA, 12);

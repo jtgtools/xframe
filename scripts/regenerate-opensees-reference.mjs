@@ -33,7 +33,12 @@ function fixAll(builder, nodeId) {
 
 function inputSha(name) {
   return createHash("sha256")
-    .update(readFileSync(join(root, `verification/reference-data/opensees/${name}.tcl`)))
+    .update(
+      readFileSync(join(root, `verification/reference-data/opensees/${name}.tcl`), "utf8").replace(
+        /\r\n/gu,
+        "\n",
+      ),
+    )
     .digest("hex");
 }
 

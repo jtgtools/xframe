@@ -80,7 +80,9 @@ try {
   for (const { name, kind } of datasets) {
     const inputPath = join(root, `verification/reference-data/opensees/${name}.tcl`);
     const referencePath = join(root, `verification/reference-data/opensees/${name}-reference.json`);
-    const inputHash = createHash("sha256").update(readFileSync(inputPath)).digest("hex");
+    const inputHash = createHash("sha256")
+      .update(readFileSync(inputPath, "utf8").replace(/\r\n/gu, "\n"))
+      .digest("hex");
     const reference = JSON.parse(readFileSync(referencePath, "utf8"));
     checkOracle(name, reference, inputHash);
 

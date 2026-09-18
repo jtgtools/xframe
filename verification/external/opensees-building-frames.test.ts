@@ -58,7 +58,9 @@ function checkOracle(name: string): BuildingReference {
   expect(reference.oracle.commit).toBe(OPENSEES_ORACLE.commit);
   expect(reference.oracle.binarySha256).toBe(OPENSEES_ORACLE.binarySha256);
   expect(reference.oracle.command).toEqual(["OPENSEES_BIN", `${name}.tcl`]);
-  expect(reference.oracle.inputSha256).toBe(createHash("sha256").update(tcl).digest("hex"));
+  // Normalize CRLF so Windows checkouts hash identically to LF blobs.
+  const normalized = tcl.replace(/\r\n/gu, "\n");
+  expect(reference.oracle.inputSha256).toBe(createHash("sha256").update(normalized).digest("hex"));
   return reference;
 }
 
