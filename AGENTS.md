@@ -4,8 +4,7 @@ Rules for every agent working in this repository.
 
 ## Before any code work
 
-1. Read `.agents/skills/ponytail/SKILL.md` in full.
-2. Apply the Ponytail skill at full intensity for the entire task.
+Apply the Ponytail skill (laziest solution that works, shortest diff) at full intensity for the entire task.
 
 ## Toolchain
 
@@ -41,4 +40,4 @@ Rules for every agent working in this repository.
 
 ## Naming
 
-- Lowercase kebab-case filenames everywhere except: `AGENTS.md`, `README.md`, `LICENSE`, `SECURITY.md`, `.agents/skills/ponytail/SKILL.md`.
+- Lowercase kebab-case filenames everywhere except: `AGENTS.md`, `README.md`, `LICENSE`, `SECURITY.md`.

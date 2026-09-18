@@ -1,8 +1,6 @@
 # Numerical Conventions
 
-Status: governing conventions for XFrame version one. This document defines the implemented and tested numerical behavior of xframe version one. Sources: `.agents/references/technical-specification.md` section 4 (authoritative),
-`.agents/references/implementation-prompt.md` sections 11-12, 19, 21, and `.agents/references/plans/execution-handbook.md`
-sections 3-4.
+Status: governing conventions for XFrame version one. This document defines the implemented and tested numerical behavior of xframe version one.
 
 Assumptions:
 
