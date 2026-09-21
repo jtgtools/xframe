@@ -2,7 +2,6 @@ node_modules/
 dist/
 coverage/
 .test-dist/
-.superpowers/
 *.tgz
 
 .validation-dist/
