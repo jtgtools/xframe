@@ -7,7 +7,7 @@
   "required": ["schemaVersion", "result"],
   "properties": {
     "schemaVersion": {
-      "const": "2"
+      "const": "3"
     },
     "result": {
       "$ref": "#/$defs/structuralResult"
@@ -132,7 +132,7 @@
       "maxItems": 4
     },
     "dof": {
-      "enum": ["tx", "ty", "tz", "rx", "ry", "rz"]
+      "enum": ["ux", "uy", "uz", "rx", "ry", "rz"]
     },
     "unitSystem": {
       "type": "object",

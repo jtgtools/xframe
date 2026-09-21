@@ -38,7 +38,7 @@ it("solved results own immutable identity, units, node, and element data", () =>
     .addTruss({ id: "t", startNodeId: "a", endNodeId: "b", materialId: "m", sectionId: "ts" })
     .addSpring({ id: "k", startNodeId: "n", stiffness: [100, 0, 0, 0, 0, 0] })
     .addLoadCase({ id: "P", loads: [{ kind: "nodal", nodeId: "n", force: [10, 0, 0] }] });
-  for (const dof of ["tx", "ty", "tz", "rx", "ry", "rz"] as const)
+  for (const dof of ["ux", "uy", "uz", "rx", "ry", "rz"] as const)
     builder.addConstraint({
       id: `a:${dof}`,
       terms: [{ nodeId: "a", dof, coefficient: 1 }],
@@ -50,7 +50,7 @@ it("solved results own immutable identity, units, node, and element data", () =>
   expect(result.modelFingerprint).toBe(model.fingerprint);
   expect(result.unitSystem).toEqual(model.unitSystem);
   expect(result.nodes.find(({ id }) => id === "n")!.displacements).toEqual([
-    { dof: "tx", value: 0.1 },
+    { dof: "ux", value: 0.1 },
   ]);
   expect(Object.isFrozen(result)).toBe(true);
   expect(Object.isFrozen(result.nodes)).toBe(true);

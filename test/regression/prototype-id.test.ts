@@ -14,7 +14,7 @@ it("prototype-like case and combination references remain ordinary Map keys", ()
       rotation: "rad",
     })
     .addNode({ id: "a", coordinates: [0, 0, 0] })
-    .addSpring({ id: "s", startNodeId: "a", stiffness: { tx: 1 } })
+    .addSpring({ id: "s", startNodeId: "a", stiffness: { ux: 1 } })
     .addLoadCase({ id: "__proto__", loads: [] })
     .addCombination({ id: "constructor", factors: [{ resultId: "__proto__", factor: 1 }] })
     .finalize();

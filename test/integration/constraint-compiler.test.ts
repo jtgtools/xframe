@@ -362,19 +362,19 @@ it("expands a rigid diaphragm atomically into affine equations", () => {
     });
   expect(builder.snapshot().constraints).toEqual([
     {
-      id: "d:s:tx",
+      id: "d:s:ux",
       terms: [
-        { nodeId: "s", dof: "tx", coefficient: 1 },
-        { nodeId: "m", dof: "tx", coefficient: -1 },
+        { nodeId: "s", dof: "ux", coefficient: 1 },
+        { nodeId: "m", dof: "ux", coefficient: -1 },
         { nodeId: "m", dof: "rz", coefficient: 3 },
       ],
       rightHandSide: 0,
     },
     {
-      id: "d:s:ty",
+      id: "d:s:uy",
       terms: [
-        { nodeId: "s", dof: "ty", coefficient: 1 },
-        { nodeId: "m", dof: "ty", coefficient: -1 },
+        { nodeId: "s", dof: "uy", coefficient: 1 },
+        { nodeId: "m", dof: "uy", coefficient: -1 },
         { nodeId: "m", dof: "rz", coefficient: -2 },
       ],
       rightHandSide: 0,
@@ -430,7 +430,7 @@ it("two oblique restraints preserve the exact free-axis stiffness", () => {
       materialId: "m",
       sectionId: "s",
     });
-  for (const dof of ["tx", "ty", "tz"] as const) {
+  for (const dof of ["ux", "uy", "uz"] as const) {
     builder.addConstraint({
       id: `a:${dof}`,
       terms: [{ nodeId: "a", dof, coefficient: 1 }],
@@ -443,7 +443,7 @@ it("two oblique restraints preserve the exact free-axis stiffness", () => {
   ] as const) {
     builder.addConstraint({
       id: `b:${id}`,
-      terms: (["tx", "ty", "tz"] as const).map((dof, index) => ({
+      terms: (["ux", "uy", "uz"] as const).map((dof, index) => ({
         nodeId: "b",
         dof,
         coefficient: normal[index]!,

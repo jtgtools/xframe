@@ -4,7 +4,7 @@ import type { DofName } from "../model/domain-records.js";
 import { createEnvelopeCompatibility } from "./stream-envelope.js";
 import type { EnvelopeComponent, EnvelopeInputRecord, StructuralResult } from "./result-types.js";
 
-const DOF_ORDER: readonly DofName[] = ["tx", "ty", "tz", "rx", "ry", "rz"];
+const DOF_ORDER: readonly DofName[] = ["ux", "uy", "uz", "rx", "ry", "rz"];
 
 function incompatible(resultId: string, reason: string): never {
   throw new XFrameError("RESULT_INCOMPATIBLE", "Cannot resolve an envelope value.", {
@@ -81,9 +81,9 @@ function resolveValue(result: StructuralResult, component: EnvelopeComponent): n
  * Builds a complete streaming-envelope record from a solved result: strict
  * compatibility metadata plus values extracted in component order.
  *
- * Resolved vocabulary: nodal displacements (`tx`…`rz`), nodal reactions
- * (`reaction.tx`…), truss `axialForce`, and grounded-spring end forces
- * (`force.tx`…). Anything else — including located frame-station components
+ * Resolved vocabulary: nodal displacements (`ux`…`rz`), nodal reactions
+ * (`reaction.ux`…), truss `axialForce`, and grounded-spring end forces
+ * (`force.ux`…). Anything else — including located frame-station components
  * and two-node spring forces — fails with `RESULT_INCOMPATIBLE`.
  */
 export function envelopeRecord(

@@ -10,19 +10,19 @@ The representative mixed model contains truss `t` on `n1-n2`, frame `f` on `n2-n
 
 | Physical index | DOF     |
 | -------------: | ------- |
-|              0 | `n1.tx` |
-|              1 | `n1.ty` |
-|              2 | `n1.tz` |
+|              0 | `n1.ux` |
+|              1 | `n1.uy` |
+|              2 | `n1.uz` |
 |              3 | `n1.rz` |
-|              4 | `n2.tx` |
-|              5 | `n2.ty` |
-|              6 | `n2.tz` |
+|              4 | `n2.ux` |
+|              5 | `n2.uy` |
+|              6 | `n2.uz` |
 |              7 | `n2.rx` |
 |              8 | `n2.ry` |
 |              9 | `n2.rz` |
-|             10 | `n3.tx` |
-|             11 | `n3.ty` |
-|             12 | `n3.tz` |
+|             10 | `n3.ux` |
+|             11 | `n3.uy` |
+|             12 | `n3.uz` |
 |             13 | `n3.rx` |
 |             14 | `n3.ry` |
 |             15 | `n3.rz` |

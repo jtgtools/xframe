@@ -470,7 +470,7 @@ const multiSystemCases = [
         ["cd", "c", "d"],
       ] as const)
         builder = builder.addTruss({ id, startNodeId, endNodeId, materialId: "m", sectionId: "s" });
-      for (const id of ["a", "b", "c"]) constrain(builder, id, ["tx", "ty", "tz"]);
+      for (const id of ["a", "b", "c"]) constrain(builder, id, ["ux", "uy", "uz"]);
       const load = -30000;
       const output = solve(
         builder.addLoadCase({
@@ -484,7 +484,7 @@ const multiSystemCases = [
         value(
           "apex vertical displacement",
           expectedDisplacement,
-          displacement(output, "d", "tz"),
+          displacement(output, "d", "uz"),
           "m",
         ),
         ...["ad", "bd", "cd"].map((id) =>
@@ -561,9 +561,9 @@ const multiSystemCases = [
       );
       const expected = (load * length ** 3) / (48 * E * I);
       return [
-        value("center vertical displacement", expected, displacement(output, "c", "tz"), "m"),
+        value("center vertical displacement", expected, displacement(output, "c", "uz"), "m"),
         ...["xp", "xm", "yp", "ym"].map((id) =>
-          value(`${id} vertical reaction`, -load / 4, reaction(output, id, "tz"), "N"),
+          value(`${id} vertical reaction`, -load / 4, reaction(output, id, "uz"), "N"),
         ),
       ];
     },
@@ -697,8 +697,8 @@ const multiSystemCases = [
       return [
         value(
           "symmetric vertical displacement",
-          displacement(symmetric, "b", "ty"),
-          displacement(symmetric, "c", "ty"),
+          displacement(symmetric, "b", "uy"),
+          displacement(symmetric, "c", "uy"),
           "m",
           1,
         ),
@@ -711,8 +711,8 @@ const multiSystemCases = [
         ),
         value(
           "antisymmetric opposite vertical displacement",
-          displacement(antisymmetric, "b", "ty"),
-          -displacement(antisymmetric, "c", "ty"),
+          displacement(antisymmetric, "b", "uy"),
+          -displacement(antisymmetric, "c", "uy"),
           "m",
           1,
         ),
@@ -826,7 +826,7 @@ const selfConsistencyCases = [
         value(
           "cross flexibility",
           displacement(analysis.solveCase("F"), "b", "rz"),
-          displacement(analysis.solveCase("M"), "b", "ty"),
+          displacement(analysis.solveCase("M"), "b", "uy"),
           "m/N or rad/(N*m)",
           1,
         ),
@@ -852,8 +852,8 @@ const selfConsistencyCases = [
         return [
           value(
             `${count}-element tip displacement`,
-            displacement(baseline, "n1", "ty"),
-            displacement(output, `n${count}`, "ty"),
+            displacement(baseline, "n1", "uy"),
+            displacement(output, `n${count}`, "uy"),
             "m",
             1,
           ),
@@ -887,8 +887,8 @@ const selfConsistencyCases = [
         .addMaterial({ id: "m", elasticModulus: E, shearModulus: G })
         .addTrussSection({ id: "s", area: 0.01 })
         .addTruss({ id: "t", startNodeId: "a", endNodeId: "b", materialId: "m", sectionId: "s" });
-      constrain(builder, "a", ["ty", "tz"]);
-      constrain(builder, "b", ["ty", "tz"]);
+      constrain(builder, "a", ["uy", "uz"]);
+      constrain(builder, "b", ["uy", "uz"]);
       builder = builder.addLoadCase({ id: "LC" });
       let detected = 0;
       try {
@@ -957,15 +957,15 @@ const selfConsistencyCases = [
       return [
         value(
           "tip displacement converted to metres",
-          displacement(metric, "b", "ty"),
-          displacement(imperial, "b", "ty") / metreToInch,
+          displacement(metric, "b", "uy"),
+          displacement(imperial, "b", "uy") / metreToInch,
           "m",
           1,
         ),
         value(
           "base reaction converted to newtons",
-          reaction(metric, "a", "ty"),
-          reaction(imperial, "a", "ty") / newtonToPound,
+          reaction(metric, "a", "uy"),
+          reaction(imperial, "a", "uy") / newtonToPound,
           "N",
           1,
         ),
@@ -1004,9 +1004,9 @@ const selfConsistencyCases = [
           .addMaterial({ id: "m", elasticModulus: E, shearModulus: G })
           .addTrussSection({ id: "s", area })
           .addTruss({ id: "t", startNodeId: "a", endNodeId: "b", materialId: "m", sectionId: "s" })
-          .addSpring({ id: "k", startNodeId: "b", stiffness: { tx: memberStiffness * ratio } });
-        constrain(builder, "a", ["tx", "ty", "tz"]);
-        constrain(builder, "b", ["ty", "tz"]);
+          .addSpring({ id: "k", startNodeId: "b", stiffness: { ux: memberStiffness * ratio } });
+        constrain(builder, "a", ["ux", "uy", "uz"]);
+        constrain(builder, "b", ["uy", "uz"]);
         const output = solve(
           builder.addLoadCase({
             id: "LC",
@@ -1017,7 +1017,7 @@ const selfConsistencyCases = [
           value(
             `ratio ${ratio} displacement`,
             load / (memberStiffness * (1 + ratio)),
-            displacement(output, "b", "tx"),
+            displacement(output, "b", "ux"),
             "m",
           ),
           value(`ratio ${ratio} residual`, 0, output.diagnostics.normalizedResidual, "ratio", 1),
@@ -1075,9 +1075,9 @@ const literatureCases = [
           theory: { kind: "euler-bernoulli" },
           orientation: [0, 1, 0],
         });
-      constrain(builder, "a", ["tx", "ty", "tz", "rx"]);
-      constrain(builder, "b", ["ty", "tz"]);
-      constrain(builder, "c", ["ty", "tz"]);
+      constrain(builder, "a", ["ux", "uy", "uz", "rx"]);
+      constrain(builder, "b", ["uy", "uz"]);
+      constrain(builder, "c", ["uy", "uz"]);
       const output = solve(
         builder.addLoadCase({
           id: "LC",
@@ -1162,7 +1162,7 @@ const literatureCases = [
       );
       const expected =
         (load * length ** 3) / (3 * E * inertia) + (load * length) / (G * shearCoefficient * area);
-      return [value("tip deflection", expected, displacement(output, "b", "ty"), "m")];
+      return [value("tip deflection", expected, displacement(output, "b", "uy"), "m")];
     },
   ),
   validationCase(
@@ -1203,7 +1203,7 @@ const literatureCases = [
           orientation: [0, 1, 0],
         })
         .addSpring({ id: "k", startNodeId: "a", stiffness: { rz: stiffness } });
-      constrain(builder, "a", ["tx", "ty", "tz", "rx", "ry"]);
+      constrain(builder, "a", ["ux", "uy", "uz", "rx", "ry"]);
       fixed(builder, "b");
       const output = solve(
         builder.addLoadCase({

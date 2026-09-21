@@ -13,7 +13,7 @@ function nodeDisp(
     nodes: readonly { id: string; displacements: readonly { dof: string; value: number }[] }[];
   },
   id: string,
-  dof: "tx" | "ty",
+  dof: "ux" | "uy",
 ): number {
   return result.nodes.find((n) => n.id === id)!.displacements.find((d) => d.dof === dof)!.value;
 }
@@ -111,22 +111,22 @@ export function runTwoStoryTwoBayExample() {
     { result: lateral, factor: 1.6 },
   ]);
 
-  const roofDrift = nodeDisp(lateral, "n8", "tx");
+  const roofDrift = nodeDisp(lateral, "n8", "ux");
   const baseShear = lateral.nodes
     .filter((n) => ["n1", "n2", "n3"].includes(n.id))
-    .reduce((s, n) => s + n.reactions.find((r) => r.dof === "tx")!.value, 0);
+    .reduce((s, n) => s + n.reactions.find((r) => r.dof === "ux")!.value, 0);
   const baseMoment = lateral.nodes
     .filter((n) => ["n1", "n2", "n3"].includes(n.id))
     .reduce((s, n) => s + n.reactions.find((r) => r.dof === "rz")!.value, 0);
 
   return Object.freeze({
     roofDrift,
-    gravityRoofDrift: nodeDisp(gravity, "n8", "tx"),
+    gravityRoofDrift: nodeDisp(gravity, "n8", "ux"),
     lateralRoofDrift: roofDrift,
     combinedRoofDrift: combined.nodes
       .find((n) => n.id === "n8")!
-      .displacements.find((d) => d.dof === "tx")!.value,
-    gravityRoofSettlement: nodeDisp(gravity, "n8", "ty"),
+      .displacements.find((d) => d.dof === "ux")!.value,
+    gravityRoofSettlement: nodeDisp(gravity, "n8", "uy"),
     baseShear,
     baseMoment,
     diagnosticStatus: lateral.diagnostics.status,

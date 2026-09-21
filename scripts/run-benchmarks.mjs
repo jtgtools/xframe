@@ -54,7 +54,7 @@ function buildMomentFrame(stories, bays, bayWidth = 6, storyHeight = 3) {
         orientation: [0, 1, 0],
       });
   for (let b = 0; b <= bays; b += 1)
-    for (const dof of ["tx", "ty", "tz", "rx", "ry", "rz"])
+    for (const dof of ["ux", "uy", "uz", "rx", "ry", "rz"])
       builder.addConstraint({
         id: `fix:n0-${b}:${dof}`,
         terms: [{ nodeId: `n0-${b}`, dof, coefficient: 1 }],

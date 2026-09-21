@@ -5,10 +5,10 @@ import type { FrameReleaseInput } from "../../src/model/domain-records.js";
 
 function fixedFrame(
   length: number,
-  startDofs: readonly ("tx" | "ty" | "tz" | "rx" | "ry" | "rz")[] = [
-    "tx",
-    "ty",
-    "tz",
+  startDofs: readonly ("ux" | "uy" | "uz" | "rx" | "ry" | "rz")[] = [
+    "ux",
+    "uy",
+    "uz",
     "rx",
     "ry",
     "rz",
@@ -57,8 +57,8 @@ function fixedFrame(
 
 it("publishes frozen contiguous force polynomials with the simply-supported midspan extremum", () => {
   const length = 10;
-  const builder = fixedFrame(length, ["tx", "ty", "tz", "rx", "ry"]);
-  for (const dof of ["ty", "tz", "rx", "ry"] as const)
+  const builder = fixedFrame(length, ["ux", "uy", "uz", "rx", "ry"]);
+  for (const dof of ["uy", "uz", "rx", "ry"] as const)
     builder.addConstraint({
       id: `b:${dof}`,
       terms: [{ nodeId: "b", dof, coefficient: 1 }],
@@ -126,7 +126,7 @@ it("recovers frame end forces and balanced internal-force stations for a uniform
       theory: { kind: "euler-bernoulli" },
       orientation: [0, 1, 0],
     });
-  for (const dof of ["tx", "ty", "tz", "rx", "ry", "rz"] as const)
+  for (const dof of ["ux", "uy", "uz", "rx", "ry", "rz"] as const)
     builder.addConstraint({
       id: `a:${dof}`,
       terms: [{ nodeId: "a", dof, coefficient: 1 }],
@@ -186,7 +186,7 @@ it("returns independent global and local frame end displacements", () => {
       theory: { kind: "euler-bernoulli" },
       orientation: [0, 1, 0],
     });
-  for (const dof of ["tx", "ty", "tz", "rx", "ry", "rz"] as const)
+  for (const dof of ["ux", "uy", "uz", "rx", "ry", "rz"] as const)
     builder.addConstraint({
       id: `a:${dof}`,
       terms: [{ nodeId: "a", dof, coefficient: 1 }],
@@ -212,7 +212,7 @@ it.each(["start", "end"] as const)(
     const length = 4;
     const intensity = 1000;
     const builder = fixedFrame(length, undefined, { [end]: ["rz"] });
-    for (const dof of ["tx", "ty", "tz", "rx", "ry", "rz"] as const) {
+    for (const dof of ["ux", "uy", "uz", "rx", "ry", "rz"] as const) {
       builder.addConstraint({
         id: `b:${dof}`,
         terms: [{ nodeId: "b", dof, coefficient: 1 }],
@@ -282,7 +282,7 @@ it("inserts left and right stations at point-force discontinuities", () => {
       theory: { kind: "euler-bernoulli" },
       orientation: [0, 1, 0],
     });
-  for (const dof of ["tx", "ty", "tz", "rx", "ry", "rz"] as const)
+  for (const dof of ["ux", "uy", "uz", "rx", "ry", "rz"] as const)
     builder.addConstraint({
       id: `a:${dof}`,
       terms: [{ nodeId: "a", dof, coefficient: 1 }],

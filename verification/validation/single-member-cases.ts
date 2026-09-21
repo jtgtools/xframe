@@ -68,13 +68,13 @@ function planarBuilder(
   return builder;
 }
 
-const outOfPlane = ["tz", "rx", "ry"] as const satisfies readonly DofName[];
+const outOfPlane = ["uz", "rx", "ry"] as const satisfies readonly DofName[];
 
 function pin(builder: ModelBuilder, nodeId: string, fixAxial = false): void {
   constrain(
     builder,
     nodeId,
-    fixAxial ? ["tx", "ty", ...outOfPlane] : ["ty", ...outOfPlane],
+    fixAxial ? ["ux", "uy", ...outOfPlane] : ["uy", ...outOfPlane],
     `pin:${nodeId}`,
   );
 }
@@ -136,7 +136,7 @@ const singleMemberCases: ValidationCase[] = [
     description: "Euler cantilever tip point load about the strong bending axis",
     length: 3.6,
     load: { force: [0, 18_000, 0] },
-    dof: "ty",
+    dof: "uy",
     reference: (18_000 * 3.6 ** 3) / (3 * E * IZ),
     units: "m",
     modelDetail: `L=3.6 m, A=${A} m², Izz=${IZ} m⁴, E=${E} Pa, Euler-Bernoulli.`,
@@ -146,7 +146,7 @@ const singleMemberCases: ValidationCase[] = [
     description: "Euler cantilever tip point load about the weak bending axis",
     length: 3.6,
     load: { force: [0, 0, 18_000] },
-    dof: "tz",
+    dof: "uz",
     reference: (18_000 * 3.6 ** 3) / (3 * E * IY),
     units: "m",
     modelDetail: `L=3.6 m, A=${A} m², Iyy=${IY} m⁴, E=${E} Pa, Euler-Bernoulli.`,
@@ -156,7 +156,7 @@ const singleMemberCases: ValidationCase[] = [
     description: "Euler cantilever axial tip load",
     length: 3.6,
     load: { force: [18_000, 0, 0] },
-    dof: "tx",
+    dof: "ux",
     reference: (18_000 * 3.6) / (E * A),
     units: "m",
     modelDetail: `L=3.6 m, A=${A} m², E=${E} Pa, Euler-Bernoulli.`,
@@ -230,8 +230,8 @@ const singleMemberCases: ValidationCase[] = [
         }),
       );
       return [
-        value("tip ty", (w * length ** 4) / (8 * E * IZ), displacement(result, "b", "ty"), "m"),
-        value("base Fy", -w * length, reaction(result, "a", "ty"), "N"),
+        value("tip uy", (w * length ** 4) / (8 * E * IZ), displacement(result, "b", "uy"), "m"),
+        value("base Fy", -w * length, reaction(result, "a", "uy"), "N"),
         value("base Mz", (-w * length ** 2) / 2, reaction(result, "a", "rz"), "N*m"),
       ];
     },
@@ -271,13 +271,13 @@ const singleMemberCases: ValidationCase[] = [
       );
       return [
         value(
-          "midspan ty",
+          "midspan uy",
           (load * length ** 3) / (48 * E * IZ),
-          displacement(result, "b", "ty"),
+          displacement(result, "b", "uy"),
           "m",
         ),
-        value("left reaction", -load / 2, reaction(result, "a", "ty"), "N"),
-        value("right reaction", -load / 2, reaction(result, "c", "ty"), "N"),
+        value("left reaction", -load / 2, reaction(result, "a", "uy"), "N"),
+        value("right reaction", -load / 2, reaction(result, "c", "uy"), "N"),
       ];
     },
   ),
@@ -318,13 +318,13 @@ const singleMemberCases: ValidationCase[] = [
       const result = solve(builder.addLoadCase({ id: "LC", loads }));
       return [
         value(
-          "midspan ty",
+          "midspan uy",
           (5 * w * length ** 4) / (384 * E * IZ),
-          displacement(result, "b", "ty"),
+          displacement(result, "b", "uy"),
           "m",
         ),
-        value("left reaction", (-w * length) / 2, reaction(result, "a", "ty"), "N"),
-        value("right reaction", (-w * length) / 2, reaction(result, "c", "ty"), "N"),
+        value("left reaction", (-w * length) / 2, reaction(result, "a", "uy"), "N"),
+        value("right reaction", (-w * length) / 2, reaction(result, "c", "uy"), "N"),
       ];
     },
   ),
@@ -368,8 +368,8 @@ const singleMemberCases: ValidationCase[] = [
       return [
         value("left rotation rz", leftSlope, displacement(result, "a", "rz"), "rad"),
         value("right rotation rz", rightSlope, displacement(result, "b", "rz"), "rad"),
-        value("left vertical reaction", (ma + mb) / length, reaction(result, "a", "ty"), "N"),
-        value("right vertical reaction", -(ma + mb) / length, reaction(result, "b", "ty"), "N"),
+        value("left vertical reaction", (ma + mb) / length, reaction(result, "a", "uy"), "N"),
+        value("right vertical reaction", -(ma + mb) / length, reaction(result, "b", "uy"), "N"),
       ];
     },
   ),
@@ -408,13 +408,13 @@ const singleMemberCases: ValidationCase[] = [
       );
       return [
         value(
-          "midspan ty",
+          "midspan uy",
           (load * length ** 3) / (192 * E * IZ),
-          displacement(result, "b", "ty"),
+          displacement(result, "b", "uy"),
           "m",
         ),
-        value("left reaction", -load / 2, reaction(result, "a", "ty"), "N"),
-        value("right reaction", -load / 2, reaction(result, "c", "ty"), "N"),
+        value("left reaction", -load / 2, reaction(result, "a", "uy"), "N"),
+        value("right reaction", -load / 2, reaction(result, "c", "uy"), "N"),
         value(
           "left fixed-end moment magnitude",
           Math.abs(load * length) / 8,
@@ -467,13 +467,13 @@ const singleMemberCases: ValidationCase[] = [
       const result = solve(builder.addLoadCase({ id: "LC", loads }));
       return [
         value(
-          "midspan ty",
+          "midspan uy",
           (w * length ** 4) / (384 * E * IZ),
-          displacement(result, "b", "ty"),
+          displacement(result, "b", "uy"),
           "m",
         ),
-        value("left reaction", (-w * length) / 2, reaction(result, "a", "ty"), "N"),
-        value("right reaction", (-w * length) / 2, reaction(result, "c", "ty"), "N"),
+        value("left reaction", (-w * length) / 2, reaction(result, "a", "uy"), "N"),
+        value("right reaction", (-w * length) / 2, reaction(result, "c", "uy"), "N"),
         value(
           "left fixed-end moment magnitude",
           (Math.abs(w) * length ** 2) / 12,
@@ -523,8 +523,8 @@ const singleMemberCases: ValidationCase[] = [
         }),
       );
       return [
-        value("prop reaction", (-5 * load) / 16, reaction(result, "c", "ty"), "N"),
-        value("fixed vertical reaction", (-11 * load) / 16, reaction(result, "a", "ty"), "N"),
+        value("prop reaction", (-5 * load) / 16, reaction(result, "c", "uy"), "N"),
+        value("fixed vertical reaction", (-11 * load) / 16, reaction(result, "a", "uy"), "N"),
         value(
           "fixed moment magnitude",
           Math.abs(3 * load * length) / 16,
@@ -570,8 +570,8 @@ const singleMemberCases: ValidationCase[] = [
       }));
       const result = solve(builder.addLoadCase({ id: "LC", loads }));
       return [
-        value("prop reaction", (-3 * w * length) / 8, reaction(result, "c", "ty"), "N"),
-        value("fixed vertical reaction", (-5 * w * length) / 8, reaction(result, "a", "ty"), "N"),
+        value("prop reaction", (-3 * w * length) / 8, reaction(result, "c", "uy"), "N"),
+        value("fixed vertical reaction", (-5 * w * length) / 8, reaction(result, "a", "uy"), "N"),
         value(
           "fixed moment magnitude",
           (Math.abs(w) * length ** 2) / 8,
@@ -616,11 +616,11 @@ const singleMemberCases: ValidationCase[] = [
         }),
       );
       return [
-        value("left reaction", (load * overhang) / length, reaction(result, "a", "ty"), "N"),
+        value("left reaction", (load * overhang) / length, reaction(result, "a", "uy"), "N"),
         value(
           "right reaction",
           (-load * (length + overhang)) / length,
-          reaction(result, "b", "ty"),
+          reaction(result, "b", "uy"),
           "N",
         ),
         value(
@@ -670,9 +670,9 @@ const singleMemberCases: ValidationCase[] = [
       }));
       const result = solve(builder.addLoadCase({ id: "LC", loads }));
       return [
-        value("left reaction", (-3 * w * length) / 8, reaction(result, "a", "ty"), "N"),
-        value("interior reaction", (-5 * w * length) / 4, reaction(result, "b", "ty"), "N"),
-        value("right reaction", (-3 * w * length) / 8, reaction(result, "c", "ty"), "N"),
+        value("left reaction", (-3 * w * length) / 8, reaction(result, "a", "uy"), "N"),
+        value("interior reaction", (-5 * w * length) / 4, reaction(result, "b", "uy"), "N"),
+        value("right reaction", (-3 * w * length) / 8, reaction(result, "c", "uy"), "N"),
         value(
           "interior support moment magnitude",
           (Math.abs(w) * length ** 2) / 8,
@@ -723,10 +723,10 @@ const singleMemberCases: ValidationCase[] = [
       }));
       const result = solve(builder.addLoadCase({ id: "LC", loads }));
       return [
-        value("end reaction a", -0.4 * w * length, reaction(result, "a", "ty"), "N"),
-        value("interior reaction b", -1.1 * w * length, reaction(result, "b", "ty"), "N"),
-        value("interior reaction c", -1.1 * w * length, reaction(result, "c", "ty"), "N"),
-        value("end reaction d", -0.4 * w * length, reaction(result, "d", "ty"), "N"),
+        value("end reaction a", -0.4 * w * length, reaction(result, "a", "uy"), "N"),
+        value("interior reaction b", -1.1 * w * length, reaction(result, "b", "uy"), "N"),
+        value("interior reaction c", -1.1 * w * length, reaction(result, "c", "uy"), "N"),
+        value("end reaction d", -0.4 * w * length, reaction(result, "d", "uy"), "N"),
         value(
           "support moment b magnitude",
           (Math.abs(w) * length ** 2) / 10,
@@ -785,7 +785,7 @@ const timoshenkoCases: ValidationCase[] = [
       const reference =
         (load * length ** 3) / (3 * elasticModulus * inertia) +
         (load * length) / (shearModulus * shearArea);
-      return [value("tip ty", reference, displacement(result, "b", "ty"), "m")];
+      return [value("tip uy", reference, displacement(result, "b", "uy"), "m")];
     },
   ),
   validationCase(
@@ -884,7 +884,7 @@ const timoshenkoCases: ValidationCase[] = [
             }),
           ),
           "b",
-          "ty",
+          "uy",
         );
         const reference =
           (load * length ** 3) / (3 * E * inertia) + (load * length) / (G * shearArea);
@@ -943,11 +943,11 @@ const timoshenkoCases: ValidationCase[] = [
             }),
           ),
           "b",
-          "ty",
+          "uy",
         );
         const reference =
           (load * length ** 3) / (3 * E * inertia) + (load * length) / (G * (shearArea as number));
-        return value(`${name} tip ty`, reference, actual, "m");
+        return value(`${name} tip uy`, reference, actual, "m");
       });
     },
   ),
@@ -995,11 +995,11 @@ const timoshenkoCases: ValidationCase[] = [
         startIntensity: [0, w, 0] as const,
         endIntensity: [0, w, 0] as const,
       }));
-      const actual = displacement(solve(builder.addLoadCase({ id: "LC", loads })), "b", "ty");
+      const actual = displacement(solve(builder.addLoadCase({ id: "LC", loads })), "b", "uy");
       const reference =
         (5 * w * length ** 4) / (384 * elasticModulus * inertia) +
         (w * length ** 2) / (8 * shearModulus * shearArea);
-      return [value("midspan ty", reference, actual, "m")];
+      return [value("midspan uy", reference, actual, "m")];
     },
   ),
   validationCase(
@@ -1040,19 +1040,19 @@ const timoshenkoCases: ValidationCase[] = [
               }),
             ),
             "b",
-            "ty",
+            "uy",
           ),
         );
       }
-      return [value("tip ty", outputs[0]!, outputs[1]!, "m", outputs[0]!)];
+      return [value("tip uy", outputs[0]!, outputs[1]!, "m", outputs[0]!)];
     },
   ),
 ];
 
 const complianceByDof: Readonly<Record<DofName, (theory: FrameTheoryInput) => number>> = {
-  tx: () => 3.1 / (E * A),
-  ty: (theory) => 3.1 ** 3 / (3 * E * IZ) + (theory.kind === "timoshenko" ? 3.1 / (G * 0.014) : 0),
-  tz: (theory) => 3.1 ** 3 / (3 * E * IY) + (theory.kind === "timoshenko" ? 3.1 / (G * 0.013) : 0),
+  ux: () => 3.1 / (E * A),
+  uy: (theory) => 3.1 ** 3 / (3 * E * IZ) + (theory.kind === "timoshenko" ? 3.1 / (G * 0.014) : 0),
+  uz: (theory) => 3.1 ** 3 / (3 * E * IY) + (theory.kind === "timoshenko" ? 3.1 / (G * 0.013) : 0),
   rx: () => 3.1 / (G * J),
   ry: () => 3.1 / (E * IY),
   rz: () => 3.1 / (E * IZ),

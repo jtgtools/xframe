@@ -13,7 +13,7 @@ import type {
 import type { UnitSystem } from "../../src/units/unit-system.js";
 
 const components = [
-  { component: "tx", entityId: "n1" },
+  { component: "ux", entityId: "n1" },
   { component: "bendingZ", entityId: "f1", location: 2 },
 ] as const;
 
@@ -95,7 +95,7 @@ it("streams 150000 records and retains complete deterministic extrema provenance
   expect(envelope.maximum[0]!.governing[0]).toEqual({
     resultId: "R16",
     resultKind: "case",
-    component: "tx",
+    component: "ux",
     entityId: "n1",
     extremum: "maximum",
   });
@@ -238,7 +238,7 @@ it("rejects result conventions that differ", () => {
 
 it("rejects component layouts that differ between records", () => {
   const otherComponents: readonly EnvelopeComponent[] = [
-    { component: "tx", entityId: "n1" },
+    { component: "ux", entityId: "n1" },
     { component: "bendingY", entityId: "f1", location: 2 },
   ];
   const record = {
@@ -253,7 +253,7 @@ it("rejects component layouts that differ between records", () => {
 
 it("rejects a first component layout that differs from supplied components before reading values", () => {
   const otherComponents: readonly EnvelopeComponent[] = [
-    { component: "tx", entityId: "n1" },
+    { component: "ux", entityId: "n1" },
     { component: "bendingY", entityId: "f1", location: 2 },
   ];
   let valuesRead = false;
@@ -277,7 +277,7 @@ it("creates an immutable compatibility copy with normalized nested metadata", ()
   const sourceUnits = { ...unitSystem };
   const sourceConventions = { ...conventions };
   const sourceComponents: EnvelopeComponent[] = [
-    { component: "tx", entityId: "n1" },
+    { component: "ux", entityId: "n1" },
     { component: "bendingZ", entityId: "f1", location: -0 },
   ];
   const result = {
@@ -290,7 +290,7 @@ it("creates an immutable compatibility copy with normalized nested metadata", ()
   expect(created).toEqual({
     ...compatibility,
     components: [
-      { component: "tx", entityId: "n1" },
+      { component: "ux", entityId: "n1" },
       { component: "bendingZ", entityId: "f1", location: 0 },
     ],
   });
@@ -304,7 +304,7 @@ it("creates an immutable compatibility copy with normalized nested metadata", ()
   (sourceComponents[0] as { component: string }).component = "changed";
   expect(created.unitSystem.length).toBe("m");
   expect(created.conventions.internalForces).toBe("positive-local-cut-face");
-  expect(created.components[0]!.component).toBe("tx");
+  expect(created.components[0]!.component).toBe("ux");
 });
 
 it("creates compatibility from a solver-produced structural result", () => {
@@ -315,11 +315,11 @@ it("creates compatibility from a solver-produced structural result", () => {
     .addLoadCase({ id: "P", loads: [{ kind: "nodal", nodeId: "n", force: [25, 0, 0] }] })
     .finalize();
   const result = prepareAnalysis(model).solveCase("P");
-  const created = createEnvelopeCompatibility(result, [{ component: "tx", entityId: "n" }]);
+  const created = createEnvelopeCompatibility(result, [{ component: "ux", entityId: "n" }]);
   expect(created.modelFingerprint).toBe(result.modelFingerprint);
   expect(created.unitSystem).toEqual(result.unitSystem);
   expect(created.conventions).toEqual(result.conventions);
-  expect(created.components).toEqual([{ component: "tx", entityId: "n" }]);
+  expect(created.components).toEqual([{ component: "ux", entityId: "n" }]);
 });
 
 it("rejects inherited record compatibility before reading values", () => {
@@ -537,7 +537,7 @@ it("copies component arrays by index without calling overridden map", () => {
 });
 
 it("rejects inherited component fields", () => {
-  const inherited = Object.create({ component: "tx", entityId: "n1" });
+  const inherited = Object.create({ component: "ux", entityId: "n1" });
   const supplied = [inherited, components[1]] as readonly EnvelopeComponent[];
   const error = incompatibleError(() => streamEnvelope([baseRecord], supplied));
   expect(error.code).toBe("RESULT_INCOMPATIBLE");
@@ -546,7 +546,7 @@ it("rejects inherited component fields", () => {
 
 it("rejects an inherited optional component location", () => {
   const inherited = Object.create({ location: 0 });
-  Object.assign(inherited, { component: "tx", entityId: "n1" });
+  Object.assign(inherited, { component: "ux", entityId: "n1" });
   const supplied = [inherited, components[1]] as readonly EnvelopeComponent[];
   const error = incompatibleError(() => streamEnvelope([baseRecord], supplied));
   expect(error.code).toBe("RESULT_INCOMPATIBLE");
@@ -554,7 +554,7 @@ it("rejects an inherited optional component location", () => {
 });
 
 it("maps invalid compatibility identifiers to a stable incompatibility", () => {
-  const invalidComponents = [{ component: "tx", entityId: "" }, components[1]];
+  const invalidComponents = [{ component: "ux", entityId: "" }, components[1]];
   const error = incompatibleError(() =>
     streamEnvelope(
       [{ ...baseRecord, compatibility: compatible({ components: invalidComponents }) }],
@@ -636,7 +636,7 @@ const metadataMismatches = [
     reason: "component layouts differ",
     compatibility: compatible({
       components: [
-        { component: "tx", entityId: "n1" },
+        { component: "ux", entityId: "n1" },
         { component: "bendingY", entityId: "f1", location: 2 },
       ],
     }),
@@ -711,7 +711,7 @@ it("revalidates a frozen component after its prototype gains location", () => {
   const prototype: { location?: number } = {};
   const mutableComponent = Object.freeze(
     Object.create(prototype, {
-      component: { enumerable: true, value: "tx" },
+      component: { enumerable: true, value: "ux" },
       entityId: { enumerable: true, value: "n1" },
     }),
   ) as EnvelopeComponent;

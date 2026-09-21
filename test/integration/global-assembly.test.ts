@@ -23,8 +23,8 @@ function restrainedTruss() {
     .addTrussSection({ id: "s", area: 3 })
     .addTruss({ id: "t", startNodeId: "a", endNodeId: "b", materialId: "m", sectionId: "s" });
   for (const [nodeId, dofs] of [
-    ["a", ["tx", "ty", "tz"]],
-    ["b", ["ty", "tz"]],
+    ["a", ["ux", "uy", "uz"]],
+    ["b", ["uy", "uz"]],
   ] as const) {
     for (const dof of dofs)
       builder.addConstraint({

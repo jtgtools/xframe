@@ -35,13 +35,13 @@ describe("frame theory and records", () => {
     const frame = createFrameElement({
       ...frameInput,
       orientation,
-      releases: { start: ["rz", "tx"], end: ["ry"] },
+      releases: { start: ["rz", "ux"], end: ["ry"] },
       rigidOffsets: { start: [0.1, 0, 0], end: [-0.2, 0, 0] },
     });
     orientation[2] = 99;
 
     expect(frame.orientation).toEqual([0, 0, 1]);
-    expect(frame.releases).toEqual({ start: ["tx", "rz"], end: ["ry"] });
+    expect(frame.releases).toEqual({ start: ["ux", "rz"], end: ["ry"] });
     expect(Object.isFrozen(frame)).toBe(true);
     expect(Object.isFrozen(frame.orientation)).toBe(true);
   });
@@ -54,7 +54,7 @@ describe("frame theory and records", () => {
       "GEOMETRY_INVALID",
     );
     expect(
-      codeOf(() => createFrameElement({ ...frameInput, releases: { start: ["tx", "tx"] } })),
+      codeOf(() => createFrameElement({ ...frameInput, releases: { start: ["ux", "ux"] } })),
     ).toBe("INPUT_INVALID");
   });
 });
@@ -87,7 +87,7 @@ describe("truss and spring records", () => {
     const ground = createSpringElement({
       id: "sg",
       startNodeId: "n1",
-      stiffness: { tx: 1000, rz: 50 },
+      stiffness: { ux: 1000, rz: 50 },
     });
     const link = createSpringElement({
       id: "sl",
@@ -117,7 +117,7 @@ describe("truss and spring records", () => {
     ).toBe("INPUT_INVALID");
     expect(
       codeOf(() =>
-        createSpringElement({ id: "s", startNodeId: "n1", endNodeId: "n1", stiffness: { tx: 1 } }),
+        createSpringElement({ id: "s", startNodeId: "n1", endNodeId: "n1", stiffness: { ux: 1 } }),
       ),
     ).toBe("INPUT_INVALID");
   });

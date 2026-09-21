@@ -14,7 +14,7 @@ import type {
 } from "../model/domain-records.js";
 import type { UnitSystem } from "../units/unit-system.js";
 
-export const MODEL_SCHEMA_VERSION = "1" as const;
+export const MODEL_SCHEMA_VERSION = "2" as const;
 
 export interface ModelJsonV1 {
   readonly schemaVersion: typeof MODEL_SCHEMA_VERSION;

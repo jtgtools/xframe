@@ -97,7 +97,7 @@ it("exposes the complete fluent construction surface", () => {
   expect(
     builder.addConstraint({
       id: "c1",
-      terms: [{ nodeId: "n1", dof: "tx", coefficient: 1 }],
+      terms: [{ nodeId: "n1", dof: "ux", coefficient: 1 }],
       rightHandSide: 0,
     }),
   ).toBe(builder);

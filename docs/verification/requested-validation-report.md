@@ -158,11 +158,11 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Reference value(s):**
 
-- ty: 0.0189658536585 m
+- uy: 0.0189658536585 m
 
 **Library output:**
 
-- ty: 0.0189658536585 m
+- uy: 0.0189658536585 m
 
 **Error (%):** maximum 7.317249229943e-14
 
@@ -188,11 +188,11 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Reference value(s):**
 
-- tz: 0.0568975609756 m
+- uz: 0.0568975609756 m
 
 **Library output:**
 
-- tz: 0.0568975609756 m
+- uz: 0.0568975609756 m
 
 **Error (%):** maximum 1.219541538324e-14
 
@@ -218,11 +218,11 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Reference value(s):**
 
-- tx: 0.0000175609756098 m
+- ux: 0.0000175609756098 m
 
 **Library output:**
 
-- tx: 0.0000175609756098 m
+- ux: 0.0000175609756098 m
 
 **Error (%):** maximum 0
 
@@ -338,13 +338,13 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Reference value(s):**
 
-- tip ty: -0.023717195122 m
+- tip uy: -0.023717195122 m
 - base Fy: 37800 N
 - base Mz: 79380 N*m
 
 **Library output:**
 
-- tip ty: -0.023717195122 m
+- tip uy: -0.023717195122 m
 - base Fy: 37800 N
 - base Mz: 79380 N*m
 
@@ -372,13 +372,13 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Reference value(s):**
 
-- midspan ty: -0.00731707317073 m
+- midspan uy: -0.00731707317073 m
 - left reaction: 12000 N
 - right reaction: 12000 N
 
 **Library output:**
 
-- midspan ty: -0.00731707317073 m
+- midspan uy: -0.00731707317073 m
 - left reaction: 12000 N
 - right reaction: 12000 N
 
@@ -406,13 +406,13 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Reference value(s):**
 
-- midspan ty: -0.00914634146341 m
+- midspan uy: -0.00914634146341 m
 - left reaction: 24000 N
 - right reaction: 24000 N
 
 **Library output:**
 
-- midspan ty: -0.00914634146341 m
+- midspan uy: -0.00914634146341 m
 - left reaction: 24000 N
 - right reaction: 24000 N
 
@@ -476,7 +476,7 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Reference value(s):**
 
-- midspan ty: -0.00182926829268 m
+- midspan uy: -0.00182926829268 m
 - left reaction: 12000 N
 - right reaction: 12000 N
 - left fixed-end moment magnitude: 18000 N*m
@@ -484,7 +484,7 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Library output:**
 
-- midspan ty: -0.00182926829268 m
+- midspan uy: -0.00182926829268 m
 - left reaction: 12000 N
 - right reaction: 12000 N
 - left fixed-end moment magnitude: 18000 N*m
@@ -514,7 +514,7 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Reference value(s):**
 
-- midspan ty: -0.00182926829268 m
+- midspan uy: -0.00182926829268 m
 - left reaction: 24000 N
 - right reaction: 24000 N
 - left fixed-end moment magnitude: 24000 N*m
@@ -522,7 +522,7 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Library output:**
 
-- midspan ty: -0.00182926829268 m
+- midspan uy: -0.00182926829268 m
 - left reaction: 24000 N
 - right reaction: 24000 N
 - left fixed-end moment magnitude: 24000 N*m
@@ -730,11 +730,11 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Reference value(s):**
 
-- tip ty: 0.00047037037037 m
+- tip uy: 0.00047037037037 m
 
 **Library output:**
 
-- tip ty: 0.00047037037037 m
+- tip uy: 0.00047037037037 m
 
 **Error (%):** maximum 1.152498372327e-14
 
@@ -832,15 +832,15 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Reference value(s):**
 
-- rectangular tip ty: 0.0000385396727385 m
-- circular tip ty: 0.0000382865081815 m
-- wide-flange tip ty: 0.0000432593834076 m
+- rectangular tip uy: 0.0000385396727385 m
+- circular tip uy: 0.0000382865081815 m
+- wide-flange tip uy: 0.0000432593834076 m
 
 **Library output:**
 
-- rectangular tip ty: 0.0000385396727385 m
-- circular tip ty: 0.0000382865081815 m
-- wide-flange tip ty: 0.0000432593834076 m
+- rectangular tip uy: 0.0000385396727385 m
+- circular tip uy: 0.0000382865081815 m
+- wide-flange tip uy: 0.0000432593834076 m
 
 **Error (%):** maximum 8.791283236904e-14
 
@@ -868,11 +868,11 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Reference value(s):**
 
-- midspan ty: -0.000212962962963 m
+- midspan uy: -0.000212962962963 m
 
 **Library output:**
 
-- midspan ty: -0.000212962962963 m
+- midspan uy: -0.000212962962963 m
 
 **Error (%):** maximum 1.272759072048e-14
 
@@ -898,11 +898,11 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Reference value(s):**
 
-- tip ty: 0.0121951219512 m
+- tip uy: 0.0121951219512 m
 
 **Library output:**
 
-- tip ty: 0.0121951219512 m
+- tip uy: 0.0121951219512 m
 
 **Error (%):** maximum 9.957312752107e-14
 
@@ -916,23 +916,23 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Test ID:** VAL-03-001
 
-**Description:** euler-bernoulli unit tx compliance at the start end
+**Description:** euler-bernoulli unit ux compliance at the start end
 
 **Model:** Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; euler-bernoulli.
 
 **Supports / releases / springs / offsets:** The end node is fixed in all six DOFs.
 
-**Loads:** Positive unit action in local/global tx at the free start node.
+**Loads:** Positive unit action in local/global ux at the free start node.
 
 **Reference method:** closed-form hand calc
 
 **Reference value(s):**
 
-- a.tx: 8.401084010840e-10 m
+- a.ux: 8.401084010840e-10 m
 
 **Library output:**
 
-- a.tx: 8.401084010840e-10 m
+- a.ux: 8.401084010840e-10 m
 
 **Error (%):** maximum 1.230764701742e-14
 
@@ -946,23 +946,23 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Test ID:** VAL-03-002
 
-**Description:** euler-bernoulli unit ty compliance at the start end
+**Description:** euler-bernoulli unit uy compliance at the start end
 
 **Model:** Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; euler-bernoulli.
 
 **Supports / releases / springs / offsets:** The end node is fixed in all six DOFs.
 
-**Loads:** Positive unit action in local/global ty at the free start node.
+**Loads:** Positive unit action in local/global uy at the free start node.
 
 **Reference method:** closed-form hand calc
 
 **Reference value(s):**
 
-- a.ty: 6.727868112014e-7 m
+- a.uy: 6.727868112014e-7 m
 
 **Library output:**
 
-- a.ty: 6.727868112014e-7 m
+- a.uy: 6.727868112014e-7 m
 
 **Error (%):** maximum 7.868697531222e-14
 
@@ -976,23 +976,23 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Test ID:** VAL-03-003
 
-**Description:** euler-bernoulli unit tz compliance at the start end
+**Description:** euler-bernoulli unit uz compliance at the start end
 
 **Model:** Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; euler-bernoulli.
 
 **Supports / releases / springs / offsets:** The end node is fixed in all six DOFs.
 
-**Loads:** Positive unit action in local/global tz at the free start node.
+**Loads:** Positive unit action in local/global uz at the free start node.
 
 **Reference method:** closed-form hand calc
 
 **Reference value(s):**
 
-- a.tz: 2.018360433604e-6 m
+- a.uz: 2.018360433604e-6 m
 
 **Library output:**
 
-- a.tz: 2.018360433604e-6 m
+- a.uz: 2.018360433604e-6 m
 
 **Error (%):** maximum 2.098319341659e-14
 
@@ -1096,23 +1096,23 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Test ID:** VAL-03-007
 
-**Description:** euler-bernoulli unit tx compliance at the end end
+**Description:** euler-bernoulli unit ux compliance at the end end
 
 **Model:** Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; euler-bernoulli.
 
 **Supports / releases / springs / offsets:** The start node is fixed in all six DOFs.
 
-**Loads:** Positive unit action in local/global tx at the free end node.
+**Loads:** Positive unit action in local/global ux at the free end node.
 
 **Reference method:** closed-form hand calc
 
 **Reference value(s):**
 
-- b.tx: 8.401084010840e-10 m
+- b.ux: 8.401084010840e-10 m
 
 **Library output:**
 
-- b.tx: 8.401084010840e-10 m
+- b.ux: 8.401084010840e-10 m
 
 **Error (%):** maximum 1.230764701742e-14
 
@@ -1126,23 +1126,23 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Test ID:** VAL-03-008
 
-**Description:** euler-bernoulli unit ty compliance at the end end
+**Description:** euler-bernoulli unit uy compliance at the end end
 
 **Model:** Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; euler-bernoulli.
 
 **Supports / releases / springs / offsets:** The start node is fixed in all six DOFs.
 
-**Loads:** Positive unit action in local/global ty at the free end node.
+**Loads:** Positive unit action in local/global uy at the free end node.
 
 **Reference method:** closed-form hand calc
 
 **Reference value(s):**
 
-- b.ty: 6.727868112014e-7 m
+- b.uy: 6.727868112014e-7 m
 
 **Library output:**
 
-- b.ty: 6.727868112014e-7 m
+- b.uy: 6.727868112014e-7 m
 
 **Error (%):** maximum 7.868697531222e-14
 
@@ -1156,23 +1156,23 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Test ID:** VAL-03-009
 
-**Description:** euler-bernoulli unit tz compliance at the end end
+**Description:** euler-bernoulli unit uz compliance at the end end
 
 **Model:** Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; euler-bernoulli.
 
 **Supports / releases / springs / offsets:** The start node is fixed in all six DOFs.
 
-**Loads:** Positive unit action in local/global tz at the free end node.
+**Loads:** Positive unit action in local/global uz at the free end node.
 
 **Reference method:** closed-form hand calc
 
 **Reference value(s):**
 
-- b.tz: 2.018360433604e-6 m
+- b.uz: 2.018360433604e-6 m
 
 **Library output:**
 
-- b.tz: 2.018360433604e-6 m
+- b.uz: 2.018360433604e-6 m
 
 **Error (%):** maximum 2.098319341659e-14
 
@@ -1276,23 +1276,23 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Test ID:** VAL-03-013
 
-**Description:** timoshenko unit tx compliance at the start end
+**Description:** timoshenko unit ux compliance at the start end
 
 **Model:** Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; timoshenko.
 
 **Supports / releases / springs / offsets:** The end node is fixed in all six DOFs.
 
-**Loads:** Positive unit action in local/global tx at the free start node.
+**Loads:** Positive unit action in local/global ux at the free start node.
 
 **Reference method:** closed-form hand calc
 
 **Reference value(s):**
 
-- a.tx: 8.401084010840e-10 m
+- a.ux: 8.401084010840e-10 m
 
 **Library output:**
 
-- a.tx: 8.401084010840e-10 m
+- a.ux: 8.401084010840e-10 m
 
 **Error (%):** maximum 1.230764701742e-14
 
@@ -1306,23 +1306,23 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Test ID:** VAL-03-014
 
-**Description:** timoshenko unit ty compliance at the start end
+**Description:** timoshenko unit uy compliance at the start end
 
 **Model:** Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; timoshenko.
 
 **Supports / releases / springs / offsets:** The end node is fixed in all six DOFs.
 
-**Loads:** Positive unit action in local/global ty at the free start node.
+**Loads:** Positive unit action in local/global uy at the free start node.
 
 **Reference method:** closed-form hand calc
 
 **Reference value(s):**
 
-- a.ty: 6.755897045107e-7 m
+- a.uy: 6.755897045107e-7 m
 
 **Library output:**
 
-- a.ty: 6.755897045107e-7 m
+- a.uy: 6.755897045107e-7 m
 
 **Error (%):** maximum 1.410489324066e-13
 
@@ -1336,23 +1336,23 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Test ID:** VAL-03-015
 
-**Description:** timoshenko unit tz compliance at the start end
+**Description:** timoshenko unit uz compliance at the start end
 
 **Model:** Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; timoshenko.
 
 **Supports / releases / springs / offsets:** The end node is fixed in all six DOFs.
 
-**Loads:** Positive unit action in local/global tz at the free start node.
+**Loads:** Positive unit action in local/global uz at the free start node.
 
 **Reference method:** closed-form hand calc
 
 **Reference value(s):**
 
-- a.tz: 2.021378934091e-6 m
+- a.uz: 2.021378934091e-6 m
 
 **Library output:**
 
-- a.tz: 2.021378934091e-6 m
+- a.uz: 2.021378934091e-6 m
 
 **Error (%):** maximum 8.380743788004e-14
 
@@ -1456,23 +1456,23 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Test ID:** VAL-03-019
 
-**Description:** timoshenko unit tx compliance at the end end
+**Description:** timoshenko unit ux compliance at the end end
 
 **Model:** Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; timoshenko.
 
 **Supports / releases / springs / offsets:** The start node is fixed in all six DOFs.
 
-**Loads:** Positive unit action in local/global tx at the free end node.
+**Loads:** Positive unit action in local/global ux at the free end node.
 
 **Reference method:** closed-form hand calc
 
 **Reference value(s):**
 
-- b.tx: 8.401084010840e-10 m
+- b.ux: 8.401084010840e-10 m
 
 **Library output:**
 
-- b.tx: 8.401084010840e-10 m
+- b.ux: 8.401084010840e-10 m
 
 **Error (%):** maximum 1.230764701742e-14
 
@@ -1486,23 +1486,23 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Test ID:** VAL-03-020
 
-**Description:** timoshenko unit ty compliance at the end end
+**Description:** timoshenko unit uy compliance at the end end
 
 **Model:** Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; timoshenko.
 
 **Supports / releases / springs / offsets:** The start node is fixed in all six DOFs.
 
-**Loads:** Positive unit action in local/global ty at the free end node.
+**Loads:** Positive unit action in local/global uy at the free end node.
 
 **Reference method:** closed-form hand calc
 
 **Reference value(s):**
 
-- b.ty: 6.755897045107e-7 m
+- b.uy: 6.755897045107e-7 m
 
 **Library output:**
 
-- b.ty: 6.755897045107e-7 m
+- b.uy: 6.755897045107e-7 m
 
 **Error (%):** maximum 1.410489324066e-13
 
@@ -1516,23 +1516,23 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Test ID:** VAL-03-021
 
-**Description:** timoshenko unit tz compliance at the end end
+**Description:** timoshenko unit uz compliance at the end end
 
 **Model:** Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; timoshenko.
 
 **Supports / releases / springs / offsets:** The start node is fixed in all six DOFs.
 
-**Loads:** Positive unit action in local/global tz at the free end node.
+**Loads:** Positive unit action in local/global uz at the free end node.
 
 **Reference method:** closed-form hand calc
 
 **Reference value(s):**
 
-- b.tz: 2.021378934091e-6 m
+- b.uz: 2.021378934091e-6 m
 
 **Library output:**
 
-- b.tz: 2.021378934091e-6 m
+- b.uz: 2.021378934091e-6 m
 
 **Error (%):** maximum 8.380743788004e-14
 
@@ -1648,12 +1648,12 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Reference value(s):**
 
-- tip ty: 0.0260162601626 m
+- tip uy: 0.0260162601626 m
 - tip rz: 0.00975609756098 rad
 
 **Library output:**
 
-- tip ty: 0.0260162601626 m
+- tip uy: 0.0260162601626 m
 - tip rz: 0.00975609756098 rad
 
 **Error (%):** maximum 0
@@ -1682,13 +1682,13 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Reference value(s):**
 
-- elastic-end ty: 0.0185785060976 m
+- elastic-end uy: 0.0185785060976 m
 - elastic-end rz: 0.00800304878049 rad
 - base moment: -54000 N*m
 
 **Library output:**
 
-- elastic-end ty: 0.0185785060976 m
+- elastic-end uy: 0.0185785060976 m
 - elastic-end rz: 0.00800304878049 rad
 - base moment: -54000 N*m
 
@@ -1716,11 +1716,11 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Reference value(s):**
 
-- tip ty: 0.000225835591689 m
+- tip uy: 0.000225835591689 m
 
 **Library output:**
 
-- tip ty: 0.000225835591689 m
+- tip uy: 0.000225835591689 m
 
 **Error (%):** maximum 1.200211804941e-14
 
@@ -1746,18 +1746,18 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Reference value(s):**
 
-- b.tx: 2.168021680217e-6 m
-- b.ty: -0.0118879855465 m
-- b.tz: 0.0123577235772 m
+- b.ux: 2.168021680217e-6 m
+- b.uy: -0.0118879855465 m
+- b.uz: 0.0123577235772 m
 - b.rx: 0.00350535540409 rad
 - b.ry: -0.00455284552846 rad
 - b.rz: -0.00449864498645 rad
 
 **Library output:**
 
-- b.tx: 2.168021680217e-6 m
-- b.ty: -0.0118879855465 m
-- b.tz: 0.0123577235772 m
+- b.ux: 2.168021680217e-6 m
+- b.uy: -0.0118879855465 m
+- b.uz: 0.0123577235772 m
 - b.rx: 0.00350535540409 rad
 - b.ry: -0.00455284552846 rad
 - b.rz: -0.00449864498645 rad
@@ -2060,7 +2060,7 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Model:** Two-element 6 m Euler beam with a midspan node.
 
-**Supports / releases / springs / offsets:** Left pin restrains tx and ty; right roller restrains ty; unused planar DOFs restrained.
+**Supports / releases / springs / offsets:** Left pin restrains ux and uy; right roller restrains uy; unused planar DOFs restrained.
 
 **Loads:** Midspan force Fy=-24,000 N.
 
@@ -2092,9 +2092,9 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Description:** Partial end restraint on unrelated DOFs does not alter in-plane cantilever bending
 
-**Model:** 4 m Euler cantilever with additional end restraints tx and tz.
+**Model:** 4 m Euler cantilever with additional end restraints ux and uz.
 
-**Supports / releases / springs / offsets:** Start node fixed; end node restrains tx and tz only.
+**Supports / releases / springs / offsets:** Start node fixed; end node restrains ux and uz only.
 
 **Loads:** Tip force Fy=10,000 N.
 
@@ -2102,15 +2102,15 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Reference value(s):**
 
-- tip ty: 0.0144534778681 m
-- restrained tx: 0 m
-- restrained tz: 0 m
+- tip uy: 0.0144534778681 m
+- restrained ux: 0 m
+- restrained uz: 0 m
 
 **Library output:**
 
-- tip ty: 0.0144534778681 m
-- restrained tx: 0 m
-- restrained tz: 0 m
+- tip uy: 0.0144534778681 m
+- restrained ux: 0 m
+- restrained uz: 0 m
 
 **Error (%):** maximum 1.200211804941e-14
 
@@ -2170,12 +2170,12 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Reference value(s):**
 
-- load-node ty: -0.0395 m
+- load-node uy: -0.0395 m
 - spring force magnitude: 18000 N
 
 **Library output:**
 
-- load-node ty: -0.0395 m
+- load-node uy: -0.0395 m
 - spring force magnitude: 18000 N
 
 **Error (%):** maximum 0
@@ -2294,9 +2294,9 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Description:** A spring remains active when a different DOF at the same node is hard-restrained
 
-**Model:** Single grounded node with tx spring k=900 kN/m.
+**Model:** Single grounded node with ux spring k=900 kN/m.
 
-**Supports / releases / springs / offsets:** Node ty is hard-restrained; tx is spring-supported.
+**Supports / releases / springs / offsets:** Node uy is hard-restrained; ux is spring-supported.
 
 **Loads:** Fx=9,000 N and Fy=3,000 N.
 
@@ -2712,18 +2712,18 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Reference value(s):**
 
-- tip tx: 0.00431693200758 m
-- tip ty: -0.00198382763081 m
-- tip tz: -0.00312701660644 m
+- tip ux: 0.00431693200758 m
+- tip uy: -0.00198382763081 m
+- tip uz: -0.00312701660644 m
 - tip rx: -0.0000348813904504 rad
 - tip ry: 0.00136661916853 rad
 - tip rz: -0.000915159021654 rad
 
 **Library output:**
 
-- tip tx: 0.00431693200758 m
-- tip ty: -0.00198382763081 m
-- tip tz: -0.00312701660644 m
+- tip ux: 0.00431693200758 m
+- tip uy: -0.00198382763081 m
+- tip uz: -0.00312701660644 m
 - tip rx: -0.0000348813904504 rad
 - tip ry: 0.00136661916853 rad
 - tip rz: -0.000915159021654 rad
@@ -2824,13 +2824,13 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Reference value(s):**
 
-- tip ty: -0.0231111111111 m
+- tip uy: -0.0231111111111 m
 - base Mz: 56000 N*m
 - full displacement max difference: 0 m
 
 **Library output:**
 
-- tip ty: -0.0231111111111 m
+- tip uy: -0.0231111111111 m
 - base Mz: 56000 N*m
 - full displacement max difference: 0 m
 
@@ -2858,48 +2858,48 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Reference value(s):**
 
-- node 1 displacement tx: 0 mm
-- node 1 reaction tx: -10000 N
-- node 1 displacement ty: 0 mm
-- node 1 reaction ty: 550.795 N
-- node 1 displacement tz: 0 mm
-- node 1 reaction tz: -2465.753 N
+- node 1 displacement ux: 0 mm
+- node 1 reaction ux: -10000 N
+- node 1 displacement uy: 0 mm
+- node 1 reaction uy: 550.795 N
+- node 1 displacement uz: 0 mm
+- node 1 reaction uz: -2465.753 N
 - node 1 displacement rx: 0 rad
 - node 1 reaction rx: -7.286851755000e+6 N*mm
 - node 1 displacement ry: 0 rad
 - node 1 reaction ry: -85617.828 N*mm
 - node 1 displacement rz: 0 rad
 - node 1 reaction rz: 1.887698772300e+7 N*mm
-- node 2 displacement tx: 12.681411 mm
-- node 2 reaction tx: 0 N
-- node 2 displacement ty: -0.004371 mm
-- node 2 reaction ty: 0 N
-- node 2 displacement tz: 11.478807 mm
-- node 2 reaction tz: 0 N
+- node 2 displacement ux: 12.681411 mm
+- node 2 reaction ux: 0 N
+- node 2 displacement uy: -0.004371 mm
+- node 2 reaction uy: 0 N
+- node 2 displacement uz: 11.478807 mm
+- node 2 reaction uz: 0 N
 - node 2 displacement rx: 0.005696 rad
 - node 2 reaction rx: 0 N*mm
 - node 2 displacement ry: 0.004543 rad
 - node 2 reaction ry: 0 N*mm
 - node 2 displacement rz: -0.003692 rad
 - node 2 reaction rz: 0 N*mm
-- node 3 displacement tx: 12.681411 mm
-- node 3 reaction tx: 0 N
-- node 3 displacement ty: -0.074994 mm
-- node 3 reaction ty: 0 N
-- node 3 displacement tz: -11.478807 mm
-- node 3 reaction tz: 0 N
+- node 3 displacement ux: 12.681411 mm
+- node 3 reaction ux: 0 N
+- node 3 displacement uy: -0.074994 mm
+- node 3 reaction uy: 0 N
+- node 3 displacement uz: -11.478807 mm
+- node 3 reaction uz: 0 N
 - node 3 displacement rx: -0.005696 rad
 - node 3 reaction rx: 0 N*mm
 - node 3 displacement ry: 0.004543 rad
 - node 3 reaction ry: 0 N*mm
 - node 3 displacement rz: -0.003692 rad
 - node 3 reaction rz: 0 N*mm
-- node 4 displacement tx: 0 mm
-- node 4 reaction tx: -10000 N
-- node 4 displacement ty: 0 mm
-- node 4 reaction ty: 9449.205 N
-- node 4 displacement tz: 0 mm
-- node 4 reaction tz: 2465.753 N
+- node 4 displacement ux: 0 mm
+- node 4 reaction ux: -10000 N
+- node 4 displacement uy: 0 mm
+- node 4 reaction uy: 9449.205 N
+- node 4 displacement uz: 0 mm
+- node 4 reaction uz: 2465.753 N
 - node 4 displacement rx: 0 rad
 - node 4 reaction rx: 7.286851755000e+6 N*mm
 - node 4 displacement ry: 0 rad
@@ -2945,48 +2945,48 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Library output:**
 
-- node 1 displacement tx: 0 mm
-- node 1 reaction tx: -10000 N
-- node 1 displacement ty: 0 mm
-- node 1 reaction ty: 550.795089396 N
-- node 1 displacement tz: 0 mm
-- node 1 reaction tz: -2465.75287042 N
+- node 1 displacement ux: 0 mm
+- node 1 reaction ux: -10000 N
+- node 1 displacement uy: 0 mm
+- node 1 reaction uy: 550.795089396 N
+- node 1 displacement uz: 0 mm
+- node 1 reaction uz: -2465.75287042 N
 - node 1 displacement rx: 0 rad
 - node 1 reaction rx: -7.286851766323e+6 N*mm
 - node 1 displacement ry: 0 rad
 - node 1 reaction ry: -85617.8239441 N*mm
 - node 1 displacement rz: 0 rad
 - node 1 reaction rz: 1.887698772349e+7 N*mm
-- node 2 displacement tx: 12.6814110336 mm
-- node 2 reaction tx: -1.164153218269e-10 N
-- node 2 displacement ty: -0.00437138959838 mm
-- node 2 reaction ty: 0 N
-- node 2 displacement tz: 11.478806895 mm
-- node 2 reaction tz: -2.728484105319e-12 N
+- node 2 displacement ux: 12.6814110336 mm
+- node 2 reaction ux: -1.164153218269e-10 N
+- node 2 displacement uy: -0.00437138959838 mm
+- node 2 reaction uy: 0 N
+- node 2 displacement uz: 11.478806895 mm
+- node 2 reaction uz: -2.728484105319e-12 N
 - node 2 displacement rx: 0.00569559120744 rad
 - node 2 reaction rx: 2.502929419279e-9 N*mm
 - node 2 displacement ry: 0.00454298657663 rad
 - node 2 reaction ry: 0 N*mm
 - node 2 displacement rz: -0.00369236926047 rad
 - node 2 reaction rz: 1.396983861923e-9 N*mm
-- node 3 displacement tx: 12.6814110336 mm
-- node 3 reaction tx: -6.730260793120e-11 N
-- node 3 displacement ty: -0.0749936897667 mm
-- node 3 reaction ty: -1.818989403546e-12 N
-- node 3 displacement tz: -11.478806895 mm
-- node 3 reaction tz: -9.094947017729e-13 N
+- node 3 displacement ux: 12.6814110336 mm
+- node 3 reaction ux: -6.730260793120e-11 N
+- node 3 displacement uy: -0.0749936897667 mm
+- node 3 reaction uy: -1.818989403546e-12 N
+- node 3 displacement uz: -11.478806895 mm
+- node 3 reaction uz: -9.094947017729e-13 N
 - node 3 displacement rx: -0.00569559120744 rad
 - node 3 reaction rx: 0 N*mm
 - node 3 displacement ry: 0.00454298657663 rad
 - node 3 reaction ry: -9.313225746155e-10 N*mm
 - node 3 displacement rz: -0.00369236926047 rad
 - node 3 reaction rz: 7.450580596924e-9 N*mm
-- node 4 displacement tx: 0 mm
-- node 4 reaction tx: -10000 N
-- node 4 displacement ty: 0 mm
-- node 4 reaction ty: 9449.2049106 N
-- node 4 displacement tz: 0 mm
-- node 4 reaction tz: 2465.75287042 N
+- node 4 displacement ux: 0 mm
+- node 4 reaction ux: -10000 N
+- node 4 displacement uy: 0 mm
+- node 4 reaction uy: 9449.2049106 N
+- node 4 displacement uz: 0 mm
+- node 4 reaction uz: 2465.75287042 N
 - node 4 displacement rx: 0 rad
 - node 4 reaction rx: 7.286851766323e+6 N*mm
 - node 4 displacement ry: 0 rad
@@ -3222,108 +3222,108 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Reference value(s):**
 
-- node 1 displacement tx: 0 mm
-- node 1 reaction tx: -9027.512 N
-- node 1 displacement ty: 0 mm
-- node 1 reaction ty: 5206.171 N
-- node 1 displacement tz: 0 mm
-- node 1 reaction tz: -980.84 N
+- node 1 displacement ux: 0 mm
+- node 1 reaction ux: -9027.512 N
+- node 1 displacement uy: 0 mm
+- node 1 reaction uy: 5206.171 N
+- node 1 displacement uz: 0 mm
+- node 1 reaction uz: -980.84 N
 - node 1 displacement rx: 0 rad
 - node 1 reaction rx: -5.656620160000e+6 N*mm
 - node 1 displacement ry: 0 rad
 - node 1 reaction ry: -51336.497 N*mm
 - node 1 displacement rz: 0 rad
 - node 1 reaction rz: 1.957309419400e+7 N*mm
-- node 2 displacement tx: 0 mm
-- node 2 reaction tx: -11944.975 N
-- node 2 displacement ty: 0 mm
-- node 2 reaction ty: 20000 N
-- node 2 displacement tz: 0 mm
-- node 2 reaction tz: 0 N
+- node 2 displacement ux: 0 mm
+- node 2 reaction ux: -11944.975 N
+- node 2 displacement uy: 0 mm
+- node 2 reaction uy: 20000 N
+- node 2 displacement uz: 0 mm
+- node 2 reaction uz: 0 N
 - node 2 displacement rx: 0 rad
 - node 2 reaction rx: 0 N*mm
 - node 2 displacement ry: 0 rad
 - node 2 reaction ry: -50605.592 N*mm
 - node 2 displacement rz: 0 rad
 - node 2 reaction rz: 2.250317694300e+7 N*mm
-- node 3 displacement tx: 0 mm
-- node 3 reaction tx: -9027.512 N
-- node 3 displacement ty: 0 mm
-- node 3 reaction ty: 34793.829 N
-- node 3 displacement tz: 0 mm
-- node 3 reaction tz: 980.84 N
+- node 3 displacement ux: 0 mm
+- node 3 reaction ux: -9027.512 N
+- node 3 displacement uy: 0 mm
+- node 3 reaction uy: 34793.829 N
+- node 3 displacement uz: 0 mm
+- node 3 reaction uz: 980.84 N
 - node 3 displacement rx: 0 rad
 - node 3 reaction rx: 5.656620160000e+6 N*mm
 - node 3 displacement ry: 0 rad
 - node 3 reaction ry: -51336.497 N*mm
 - node 3 displacement rz: 0 rad
 - node 3 reaction rz: 1.957309419400e+7 N*mm
-- node 4 displacement tx: 10.271671 mm
-- node 4 reaction tx: 0 N
-- node 4 displacement ty: -0.033806 mm
-- node 4 reaction ty: 0 N
-- node 4 displacement tz: 8.349607 mm
-- node 4 reaction tz: 0 N
+- node 4 displacement ux: 10.271671 mm
+- node 4 reaction ux: 0 N
+- node 4 displacement uy: -0.033806 mm
+- node 4 reaction uy: 0 N
+- node 4 displacement uz: 8.349607 mm
+- node 4 reaction uz: 0 N
 - node 4 displacement rx: 0.004983 rad
 - node 4 reaction rx: 0 N*mm
 - node 4 displacement ry: 0.002119 rad
 - node 4 reaction ry: 0 N*mm
 - node 4 displacement rz: -0.003917 rad
 - node 4 reaction rz: 0 N*mm
-- node 5 displacement tx: 10.283963 mm
-- node 5 reaction tx: 0 N
-- node 5 displacement ty: -0.12987 mm
-- node 5 reaction ty: 0 N
-- node 5 displacement tz: 0 mm
-- node 5 reaction tz: 0 N
+- node 5 displacement ux: 10.283963 mm
+- node 5 reaction ux: 0 N
+- node 5 displacement uy: -0.12987 mm
+- node 5 reaction uy: 0 N
+- node 5 displacement uz: 0 mm
+- node 5 reaction uz: 0 N
 - node 5 displacement rx: 0 rad
 - node 5 reaction rx: 0 N*mm
 - node 5 displacement ry: 0.002088 rad
 - node 5 reaction ry: 0 N*mm
 - node 5 displacement rz: -0.002978 rad
 - node 5 reaction rz: 0 N*mm
-- node 6 displacement tx: 10.271671 mm
-- node 6 reaction tx: 0 N
-- node 6 displacement ty: -0.225934 mm
-- node 6 reaction ty: 0 N
-- node 6 displacement tz: -8.349607 mm
-- node 6 reaction tz: 0 N
+- node 6 displacement ux: 10.271671 mm
+- node 6 reaction ux: 0 N
+- node 6 displacement uy: -0.225934 mm
+- node 6 reaction uy: 0 N
+- node 6 displacement uz: -8.349607 mm
+- node 6 reaction uz: 0 N
 - node 6 displacement rx: -0.004983 rad
 - node 6 reaction rx: 0 N*mm
 - node 6 displacement ry: 0.002119 rad
 - node 6 reaction ry: 0 N*mm
 - node 6 displacement rz: -0.003917 rad
 - node 6 reaction rz: 0 N*mm
-- node 7 displacement tx: 24.556406 mm
-- node 7 reaction tx: 0 N
-- node 7 displacement ty: -0.123629 mm
-- node 7 reaction ty: 0 N
-- node 7 displacement tz: 26.556834 mm
-- node 7 reaction tz: 0 N
+- node 7 displacement ux: 24.556406 mm
+- node 7 reaction ux: 0 N
+- node 7 displacement uy: -0.123629 mm
+- node 7 reaction uy: 0 N
+- node 7 displacement uz: 26.556834 mm
+- node 7 reaction uz: 0 N
 - node 7 displacement rx: 0.006585 rad
 - node 7 reaction rx: 0 N*mm
 - node 7 displacement ry: 0.006579 rad
 - node 7 reaction ry: 0 N*mm
 - node 7 displacement rz: -0.003032 rad
 - node 7 reaction rz: 0 N*mm
-- node 8 displacement tx: 24.533217 mm
-- node 8 reaction tx: 0 N
-- node 8 displacement ty: -0.25974 mm
-- node 8 reaction ty: 0 N
-- node 8 displacement tz: 0 mm
-- node 8 reaction tz: 0 N
+- node 8 displacement ux: 24.533217 mm
+- node 8 reaction ux: 0 N
+- node 8 displacement uy: -0.25974 mm
+- node 8 reaction uy: 0 N
+- node 8 displacement uz: 0 mm
+- node 8 reaction uz: 0 N
 - node 8 displacement rx: 0 rad
 - node 8 reaction rx: 0 N*mm
 - node 8 displacement ry: 0.006638 rad
 - node 8 reaction ry: 0 N*mm
 - node 8 displacement rz: -0.001931 rad
 - node 8 reaction rz: 0 N*mm
-- node 9 displacement tx: 24.556406 mm
-- node 9 reaction tx: 0 N
-- node 9 displacement ty: -0.395851 mm
-- node 9 reaction ty: 0 N
-- node 9 displacement tz: -26.556834 mm
-- node 9 reaction tz: 0 N
+- node 9 displacement ux: 24.556406 mm
+- node 9 reaction ux: 0 N
+- node 9 displacement uy: -0.395851 mm
+- node 9 reaction uy: 0 N
+- node 9 displacement uz: -26.556834 mm
+- node 9 reaction uz: 0 N
 - node 9 displacement rx: -0.006585 rad
 - node 9 reaction rx: 0 N*mm
 - node 9 displacement ry: 0.006579 rad
@@ -3453,108 +3453,108 @@ This report implements the supplied twelve-category validation matrix. Every cas
 
 **Library output:**
 
-- node 1 displacement tx: 0 mm
-- node 1 reaction tx: -9027.51234835 N
-- node 1 displacement ty: 0 mm
-- node 1 reaction ty: 5206.17066643 N
-- node 1 displacement tz: 0 mm
-- node 1 reaction tz: -980.84017731 N
+- node 1 displacement ux: 0 mm
+- node 1 reaction ux: -9027.51234835 N
+- node 1 displacement uy: 0 mm
+- node 1 reaction uy: 5206.17066643 N
+- node 1 displacement uz: 0 mm
+- node 1 reaction uz: -980.84017731 N
 - node 1 displacement rx: 0 rad
 - node 1 reaction rx: -5.656620172262e+6 N*mm
 - node 1 displacement ry: 0 rad
 - node 1 reaction ry: -51336.495346 N*mm
 - node 1 displacement rz: 0 rad
 - node 1 reaction rz: 1.957309419437e+7 N*mm
-- node 2 displacement tx: 0 mm
-- node 2 reaction tx: -11944.9753033 N
-- node 2 displacement ty: 0 mm
-- node 2 reaction ty: 20000 N
-- node 2 displacement tz: 0 mm
-- node 2 reaction tz: 8.100691113925e-13 N
+- node 2 displacement ux: 0 mm
+- node 2 reaction ux: -11944.9753033 N
+- node 2 displacement uy: 0 mm
+- node 2 reaction uy: 20000 N
+- node 2 displacement uz: 0 mm
+- node 2 reaction uz: 8.100691113925e-13 N
 - node 2 displacement rx: 0 rad
 - node 2 reaction rx: 7.325379527478e-9 N*mm
 - node 2 displacement ry: 0 rad
 - node 2 reaction ry: -50605.5908241 N*mm
 - node 2 displacement rz: 0 rad
 - node 2 reaction rz: 2.250317694267e+7 N*mm
-- node 3 displacement tx: 0 mm
-- node 3 reaction tx: -9027.51234835 N
-- node 3 displacement ty: 0 mm
-- node 3 reaction ty: 34793.8293336 N
-- node 3 displacement tz: 0 mm
-- node 3 reaction tz: 980.84017731 N
+- node 3 displacement ux: 0 mm
+- node 3 reaction ux: -9027.51234835 N
+- node 3 displacement uy: 0 mm
+- node 3 reaction uy: 34793.8293336 N
+- node 3 displacement uz: 0 mm
+- node 3 reaction uz: 980.84017731 N
 - node 3 displacement rx: 0 rad
 - node 3 reaction rx: 5.656620172262e+6 N*mm
 - node 3 displacement ry: 0 rad
 - node 3 reaction ry: -51336.495346 N*mm
 - node 3 displacement rz: 0 rad
 - node 3 reaction rz: 1.957309419437e+7 N*mm
-- node 4 displacement tx: 10.2716706292 mm
-- node 4 reaction tx: 1.855369191617e-10 N
-- node 4 displacement ty: -0.0338063030287 mm
-- node 4 reaction ty: 3.637978807092e-12 N
-- node 4 displacement tz: 8.34960713384 mm
-- node 4 reaction tz: 0 N
+- node 4 displacement ux: 10.2716706292 mm
+- node 4 reaction ux: 1.855369191617e-10 N
+- node 4 displacement uy: -0.0338063030287 mm
+- node 4 reaction uy: 3.637978807092e-12 N
+- node 4 displacement uz: 8.34960713384 mm
+- node 4 reaction uz: 0 N
 - node 4 displacement rx: 0.00498257131702 rad
 - node 4 reaction rx: 0 N*mm
 - node 4 displacement ry: 0.00211864901428 rad
 - node 4 reaction ry: -1.135049387813e-9 N*mm
 - node 4 displacement rz: -0.00391676991678 rad
 - node 4 reaction rz: -9.313225746155e-9 N*mm
-- node 5 displacement tx: 10.2839626358 mm
-- node 5 reaction tx: -1.364242052659e-10 N
-- node 5 displacement ty: -0.12987012987 mm
-- node 5 reaction ty: 0 N
-- node 5 displacement tz: -1.163448288587e-14 mm
-- node 5 reaction tz: -8.407117235406e-13 N
+- node 5 displacement ux: 10.2839626358 mm
+- node 5 reaction ux: -1.364242052659e-10 N
+- node 5 displacement uy: -0.12987012987 mm
+- node 5 reaction uy: 0 N
+- node 5 displacement uz: -1.163448288587e-14 mm
+- node 5 reaction uz: -8.407117235406e-13 N
 - node 5 displacement rx: -7.274137929034e-18 rad
 - node 5 reaction rx: -3.430387920765e-10 N*mm
 - node 5 displacement ry: 0.00208848470068 rad
 - node 5 reaction ry: 1.396983861923e-9 N*mm
 - node 5 displacement rz: -0.00297773635567 rad
 - node 5 reaction rz: -2.700835466385e-8 N*mm
-- node 6 displacement tx: 10.2716706292 mm
-- node 6 reaction tx: -4.729372449219e-11 N
-- node 6 displacement ty: -0.225933956712 mm
-- node 6 reaction ty: 2.182787284255e-11 N
-- node 6 displacement tz: -8.34960713384 mm
-- node 6 reaction tz: 7.275957614183e-12 N
+- node 6 displacement ux: 10.2716706292 mm
+- node 6 reaction ux: -4.729372449219e-11 N
+- node 6 displacement uy: -0.225933956712 mm
+- node 6 reaction uy: 2.182787284255e-11 N
+- node 6 displacement uz: -8.34960713384 mm
+- node 6 reaction uz: 7.275957614183e-12 N
 - node 6 displacement rx: -0.00498257131702 rad
 - node 6 reaction rx: -3.725290298462e-9 N*mm
 - node 6 displacement ry: 0.00211864901428 rad
 - node 6 reaction ry: 1.367880031466e-9 N*mm
 - node 6 displacement rz: -0.00391676991678 rad
 - node 6 reaction rz: -9.313225746155e-9 N*mm
-- node 7 displacement tx: 24.5564056637 mm
-- node 7 reaction tx: -4.656612873077e-10 N
-- node 7 displacement ty: -0.12362921445 mm
-- node 7 reaction ty: 0 N
-- node 7 displacement tz: 26.5568339154 mm
-- node 7 reaction tz: -2.728484105319e-12 N
+- node 7 displacement ux: 24.5564056637 mm
+- node 7 reaction ux: -4.656612873077e-10 N
+- node 7 displacement uy: -0.12362921445 mm
+- node 7 reaction uy: 0 N
+- node 7 displacement uz: 26.5568339154 mm
+- node 7 reaction uz: -2.728484105319e-12 N
 - node 7 displacement rx: 0.00658462797514 rad
 - node 7 reaction rx: -1.103258900534e-8 N*mm
 - node 7 displacement ry: 0.00657906481654 rad
 - node 7 reaction ry: 4.656612873077e-9 N*mm
 - node 7 displacement rz: -0.00303156509521 rad
 - node 7 reaction rz: 1.536682248116e-8 N*mm
-- node 8 displacement tx: 24.533217437 mm
-- node 8 reaction tx: 4.656612873077e-10 N
-- node 8 displacement ty: -0.25974025974 mm
-- node 8 reaction ty: 0 N
-- node 8 displacement tz: -3.901926703516e-14 mm
-- node 8 reaction tz: 0 N
+- node 8 displacement ux: 24.533217437 mm
+- node 8 reaction ux: 4.656612873077e-10 N
+- node 8 displacement uy: -0.25974025974 mm
+- node 8 reaction uy: 0 N
+- node 8 displacement uz: -3.901926703516e-14 mm
+- node 8 reaction uz: 0 N
 - node 8 displacement rx: -1.013695004422e-17 rad
 - node 8 reaction rx: -1.455191522837e-10 N*mm
 - node 8 displacement ry: 0.00663839854184 rad
 - node 8 reaction ry: 4.656612873077e-9 N*mm
 - node 8 displacement rz: -0.00193115046013 rad
 - node 8 reaction rz: 1.862645149231e-8 N*mm
-- node 9 displacement tx: 24.5564056637 mm
-- node 9 reaction tx: -5.056790541857e-10 N
-- node 9 displacement ty: -0.395851305031 mm
-- node 9 reaction ty: 0 N
-- node 9 displacement tz: -26.5568339154 mm
-- node 9 reaction tz: 3.637978807092e-12 N
+- node 9 displacement ux: 24.5564056637 mm
+- node 9 reaction ux: -5.056790541857e-10 N
+- node 9 displacement uy: -0.395851305031 mm
+- node 9 reaction uy: 0 N
+- node 9 displacement uz: -26.5568339154 mm
+- node 9 reaction uz: 3.637978807092e-12 N
 - node 9 displacement rx: -0.00658462797514 rad
 - node 9 reaction rx: 0 N*mm
 - node 9 displacement ry: 0.00657906481654 rad

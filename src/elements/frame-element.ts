@@ -10,7 +10,7 @@ import type {
 import { parseIdentifier } from "../model/identifier.js";
 import { parseFrameTheory } from "./frame-theory.js";
 
-const DOF_ORDER: readonly DofName[] = ["tx", "ty", "tz", "rx", "ry", "rz"];
+const DOF_ORDER: readonly DofName[] = ["ux", "uy", "uz", "rx", "ry", "rz"];
 const DOF_INDEX = new Map(DOF_ORDER.map((dof, index) => [dof, index]));
 
 type FrozenVector3 = readonly [number, number, number];
@@ -43,7 +43,7 @@ function normalizedReleaseEnd(value: unknown, path: string): readonly DofName[] 
   const seen = new Set<DofName>();
   for (const entry of value) {
     if (typeof entry !== "string" || !DOF_INDEX.has(entry as DofName)) {
-      inputError(path, "array containing tx, ty, tz, rx, ry, or rz", entry);
+      inputError(path, "array containing ux, uy, uz, rx, ry, or rz", entry);
     }
     const dof = entry as DofName;
     if (seen.has(dof)) inputError(path, "unique release components", dof);

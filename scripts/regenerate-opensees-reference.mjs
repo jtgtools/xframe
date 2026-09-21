@@ -261,13 +261,13 @@ function writeReference(name, payload) {
     .addTruss({ id: "2", startNodeId: "1", endNodeId: "3", materialId: "m", sectionId: "s" })
     .addTruss({ id: "3", startNodeId: "2", endNodeId: "3", materialId: "m", sectionId: "s" });
   for (const [id, nodeId, dof, rhs] of [
-    ["1:tx", "1", "tx", 0],
-    ["1:ty", "1", "ty", 0],
-    ["1:tz", "1", "tz", 0],
-    ["2:tx", "2", "tx", 0.001],
-    ["2:ty", "2", "ty", 0],
-    ["2:tz", "2", "tz", 0],
-    ["3:tz", "3", "tz", 0],
+    ["1:ux", "1", "ux", 0],
+    ["1:uy", "1", "uy", 0],
+    ["1:uz", "1", "uz", 0],
+    ["2:ux", "2", "ux", 0.001],
+    ["2:uy", "2", "uy", 0],
+    ["2:uz", "2", "uz", 0],
+    ["3:uz", "3", "uz", 0],
   ])
     builder.addConstraint({ id, terms: [{ nodeId, dof, coefficient: 1 }], rightHandSide: rhs });
   const result = prepareAnalysis(

@@ -17,7 +17,7 @@ const unitSystem = {
 
 function completeModelJson(): unknown {
   return {
-    schemaVersion: "1",
+    schemaVersion: "2",
     unitSystem,
     nodes: [
       { id: "a", coordinates: [0, 0, 0] },
@@ -53,9 +53,9 @@ function completeModelJson(): unknown {
     trusses: [{ id: "t", startNodeId: "b", endNodeId: "c", materialId: "steel", sectionId: "bar" }],
     springs: [{ id: "k", startNodeId: "c", stiffness: [1000, 2000, 3000, 0, 0, 0] }],
     constraints: [
-      { id: "ax", terms: [{ nodeId: "a", dof: "tx", coefficient: 1 }], rightHandSide: 0 },
-      { id: "ay", terms: [{ nodeId: "a", dof: "ty", coefficient: 1 }], rightHandSide: 0 },
-      { id: "az", terms: [{ nodeId: "a", dof: "tz", coefficient: 1 }], rightHandSide: 0 },
+      { id: "ax", terms: [{ nodeId: "a", dof: "ux", coefficient: 1 }], rightHandSide: 0 },
+      { id: "ay", terms: [{ nodeId: "a", dof: "uy", coefficient: 1 }], rightHandSide: 0 },
+      { id: "az", terms: [{ nodeId: "a", dof: "uz", coefficient: 1 }], rightHandSide: 0 },
       { id: "arx", terms: [{ nodeId: "a", dof: "rx", coefficient: 1 }], rightHandSide: 0 },
       { id: "ary", terms: [{ nodeId: "a", dof: "ry", coefficient: 1 }], rightHandSide: 0 },
       { id: "arz", terms: [{ nodeId: "a", dof: "rz", coefficient: 1 }], rightHandSide: 0 },
@@ -133,7 +133,7 @@ it("model canonical output round-trips byte-for-byte and normalizes negative zer
 it("rejects malformed, ambiguous, hostile, and non-finite model values", () => {
   const valid = completeModelJson() as Record<string, unknown>;
   const malformed: unknown[] = [
-    { ...valid, schemaVersion: "2" },
+    { ...valid, schemaVersion: "1" },
     { ...valid, nodes: undefined },
     { ...valid, csv: "nodes.csv" },
     { ...valid, nodes: [{ id: "a", coordinates: [0, 0] }] },
@@ -156,7 +156,7 @@ it("rejects malformed, ambiguous, hostile, and non-finite model values", () => {
       ],
     },
     JSON.parse(
-      '{"schemaVersion":"1","unitSystem":{},"nodes":[],"materials":[],"frameSections":[],"trussSections":[],"frames":[],"trusses":[],"springs":[],"constraints":[],"loadCases":[],"combinations":[],"__proto__":{}}',
+      '{"schemaVersion":"3","unitSystem":{},"nodes":[],"materials":[],"frameSections":[],"trussSections":[],"frames":[],"trusses":[],"springs":[],"constraints":[],"loadCases":[],"combinations":[],"__proto__":{}}',
     ),
   ];
   for (const value of malformed) expect(() => parseModelJson(value)).toThrowError(XFrameError);

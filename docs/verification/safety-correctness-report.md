@@ -18,7 +18,7 @@ This report records the approved safety-correctness remediation evidence without
 ## Current public contract
 
 - Finalized models and structural results use `sha256:<64 lowercase hexadecimal digits>` fingerprints derived synchronously from canonical UTF-8 structural JSON.
-- Model JSON remains schema version `1`; result JSON is schema version `2`. `parseResultJson` rejects result schema version `1` with `SCHEMA_UNSUPPORTED`.
+- Model JSON is schema version `2`; result JSON is schema version `3` (ux convention revision). `parseResultJson` rejects result schema version `2` with `SCHEMA_UNSUPPORTED`.
 - `streamEnvelope(records, components)` requires compatibility metadata on every record. `createEnvelopeCompatibility(result, components)` creates that metadata from a result and the ordered component layout. Missing, mismatched, or bare legacy metadata fails with `RESULT_INCOMPATIBLE`.
 - A nonzero truss rigid offset makes reference-node rotations physical DOFs. The truss uses `delta = B q` and `K = (EA/L) B^T B`; reference actions include rigid-arm moments and self-weight uses the same work-conjugate transform. Results retain six `globalEndForces` elastic-end components and add twelve `globalReferenceEndForces` reference-node force/moment components.
 - Frame results retain fixed cubic coefficient arrays `[c0, c1, c2, c3]` in local `xi = x - start`, derive stations at analytical derivative roots and endpoint sides, and combine coefficients before deriving combination stations.

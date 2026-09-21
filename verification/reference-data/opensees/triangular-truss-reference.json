@@ -4,10 +4,13 @@
     "version": "3.8.0",
     "commit": "6e55293513192aa05c7e1205e66a5a1a1ed088c4",
     "binarySha256": "5aa4e9c80c410c510ca62ac3b2f1d64a8e50679f0238e140b5bebcd6d5ddbe6d",
-    "inputSha256": "96f2e27b30da1a6c58fa7147e87dcab15feee0f21adb5b50872b76f189311850",
+    "inputSha256": "0e1248f55cd062613fa691bcb293c0f990f71e6e3955a146ccc891e71984e7d6",
     "command": ["OPENSEES_BIN", "triangular-truss.tcl"]
   },
-  "units": { "length": "m", "force": "N" },
+  "units": {
+    "length": "m",
+    "force": "N"
+  },
   "tolerances": {
     "relative": 1e-6,
     "absolute": 1e-9,
@@ -31,8 +34,17 @@
     }
   ],
   "trusses": [
-    { "id": "1", "axialForce": 500000 },
-    { "id": "2", "axialForce": -2103.238244020619 },
-    { "id": "3", "axialForce": -3906.013881752672 }
+    {
+      "id": "1",
+      "axialForce": 500000
+    },
+    {
+      "id": "2",
+      "axialForce": -2103.238244020619
+    },
+    {
+      "id": "3",
+      "axialForce": -3906.013881752672
+    }
   ]
 }

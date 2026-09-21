@@ -82,7 +82,7 @@ export async function runBuildingJsonRoundtripExample() {
   const result = prepareAnalysis(parsed).solveCase("service");
   const roofDrift = result.nodes
     .find((n) => n.id === "p4")!
-    .displacements.find((d) => d.dof === "tx")!.value;
+    .displacements.find((d) => d.dof === "ux")!.value;
 
   return Object.freeze({
     sameCanonicalJson: canonicalJson(modelToJsonValue(parsed)) === canonical,

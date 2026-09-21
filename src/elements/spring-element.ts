@@ -7,7 +7,7 @@ import type {
 } from "../model/domain-records.js";
 import { parseIdentifier } from "../model/identifier.js";
 
-const DOFS: readonly DofName[] = ["tx", "ty", "tz", "rx", "ry", "rz"];
+const DOFS: readonly DofName[] = ["ux", "uy", "uz", "rx", "ry", "rz"];
 type SpringComponents = readonly [number, number, number, number, number, number];
 
 function springError(path: string, expected: string, actual: unknown): never {

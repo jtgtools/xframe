@@ -49,7 +49,7 @@ it("includes prescribed-displacement reaction work in energy balance", () => {
     .addSpring({ id: "k", startNodeId: "n", stiffness: [100, 0, 0, 0, 0, 0] })
     .addConstraint({
       id: "u",
-      terms: [{ nodeId: "n", dof: "tx", coefficient: 1 }],
+      terms: [{ nodeId: "n", dof: "ux", coefficient: 1 }],
       rightHandSide: 0.1,
     })
     .addLoadCase({ id: "settlement", loads: [] })

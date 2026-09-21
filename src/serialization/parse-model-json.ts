@@ -40,7 +40,7 @@ const TOP_KEYS = [
   "loadCases",
   "combinations",
 ] as const;
-const DOFS = ["tx", "ty", "tz", "rx", "ry", "rz"] as const;
+const DOFS = ["ux", "uy", "uz", "rx", "ry", "rz"] as const;
 
 function id(value: unknown, path: string): string {
   return stringAt(value, path);

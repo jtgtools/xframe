@@ -9,7 +9,7 @@ it("seed 25301 round-trips 50 generated spring models deterministically", () => 
   for (let index = 0; index < 50; index += 1) {
     const stiffness = 1 + Math.floor(random() * 1e6);
     const json = {
-      schemaVersion: "1",
+      schemaVersion: "2",
       unitSystem: {
         version: "1",
         length: "m",

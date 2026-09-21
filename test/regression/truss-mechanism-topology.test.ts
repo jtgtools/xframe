@@ -30,7 +30,7 @@ it("exact-zero truss offsets expose translations and never manufacture rotations
 
   expect(model.physicalDofs.size).toBe(6);
   for (const nodeId of ["left", "right"] as const) {
-    for (const dof of ["tx", "ty", "tz"] as const)
+    for (const dof of ["ux", "uy", "uz"] as const)
       expect(model.physicalDofs.has(createDofKey(nodeId, dof))).toBe(true);
     for (const dof of ["rx", "ry", "rz"] as const)
       expect(model.physicalDofs.has(createDofKey(nodeId, dof))).toBe(false);

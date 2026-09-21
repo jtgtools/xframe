@@ -2,7 +2,7 @@
 
 `@jtgtools/xframe` is a linear-static 3D structural analysis engine for frames, trusses, and springs. Models are built in code and solved deterministically in Node or the browser.
 
-The engine is analysis-only. It is not formally certified, performs no design-code checks, and does not replace professional review by a qualified structural engineer.
+The engine does analysis only. It is not formally certified, performs no design-code checks, and does not replace professional review by a qualified structural engineer.
 
 ## Requirements
 
@@ -17,21 +17,10 @@ npm install @jtgtools/xframe
 ## Quick start
 
 ```ts
-import { createModelBuilder, prepareAnalysis } from "@jtgtools/xframe";
-
-const units = {
-  version: "1",
-  length: "m",
-  force: "N",
-  moment: "N*m",
-  modulus: "Pa",
-  distributedForce: "N/m",
-  density: "kg/m^3",
-  rotation: "rad",
-} as const;
+import { createModelBuilder, prepareAnalysis, unitsSI } from "@jtgtools/xframe";
 
 const model = createModelBuilder()
-  .setUnitSystem(units)
+  .setUnitSystem(unitsSI())
   .addNode({ id: "support", coordinates: [0, 0, 0] })
   .addNode({ id: "tip", coordinates: [2, 0, 0] })
   .addMaterial({ id: "steel", elasticModulus: 200e9, poissonRatio: 0.3 })
@@ -43,31 +32,8 @@ const model = createModelBuilder()
     materialId: "steel",
     sectionId: "bar",
   })
-  .addConstraint({
-    id: "fix:support:tx",
-    terms: [{ nodeId: "support", dof: "tx", coefficient: 1 }],
-    rightHandSide: 0,
-  })
-  .addConstraint({
-    id: "fix:support:ty",
-    terms: [{ nodeId: "support", dof: "ty", coefficient: 1 }],
-    rightHandSide: 0,
-  })
-  .addConstraint({
-    id: "fix:support:tz",
-    terms: [{ nodeId: "support", dof: "tz", coefficient: 1 }],
-    rightHandSide: 0,
-  })
-  .addConstraint({
-    id: "fix:tip:ty",
-    terms: [{ nodeId: "tip", dof: "ty", coefficient: 1 }],
-    rightHandSide: 0,
-  })
-  .addConstraint({
-    id: "fix:tip:tz",
-    terms: [{ nodeId: "tip", dof: "tz", coefficient: 1 }],
-    rightHandSide: 0,
-  })
+  .supportNode("support", ["ux", "uy", "uz"])
+  .supportNode("tip", ["uy", "uz"])
   .addLoadCase({ id: "service", loads: [{ kind: "nodal", nodeId: "tip", force: [10_000, 0, 0] }] })
   .finalize();
 
@@ -75,19 +41,19 @@ const result = prepareAnalysis(model).solveCase("service");
 console.log(result.diagnostics.status);
 ```
 
-The runnable building versions are [`examples/two-story-two-bay-frame.ts`](examples/two-story-two-bay-frame.ts), [`examples/industrial-portal-with-truss-roof.ts`](examples/industrial-portal-with-truss-roof.ts), [`examples/tower-grid-floor.ts`](examples/tower-grid-floor.ts), and [`examples/building-json-roundtrip.ts`](examples/building-json-roundtrip.ts).
+Translations are `ux`, `uy`, `uz`; rotations are `rx`, `ry`, `rz` in radians. Larger worked buildings live in [`examples/two-story-two-bay-frame.ts`](examples/two-story-two-bay-frame.ts), [`examples/industrial-portal-with-truss-roof.ts`](examples/industrial-portal-with-truss-roof.ts), [`examples/tower-grid-floor.ts`](examples/tower-grid-floor.ts), and [`examples/building-json-roundtrip.ts`](examples/building-json-roundtrip.ts).
 
 ## Scope
 
-Frames are 3D Euler-Bernoulli or Timoshenko members, trusses are axial-only, and springs are grounded or two-node. Loads are static nodal forces, member loads, and self-weight. Supports are prescribed displacements, sparse affine constraints, and rigid diaphragms. Results are immutable and include displacements, reactions, element forces, load combinations, envelopes, and equilibrium diagnostics.
+Frames are 3D Euler-Bernoulli or Timoshenko members, trusses are axial-only, and springs are grounded or two-node. Loads are static nodal forces, member loads, and self-weight. Supports are prescribed displacements via `fixNode`/`supportNode`, sparse affine constraints, and rigid diaphragms. Results are immutable and include displacements, reactions, element forces, load combinations via `combineResults`, streaming envelopes, and equilibrium diagnostics.
 
-Unit labels are metadata only; version one performs no unit conversion. Rotations are radians. CSV input is not supported.
+Unit labels are metadata only; xframe performs no unit conversion. See [`docs/api/public-api.md`](docs/api/public-api.md).
 
 Failures (mechanisms, contradictory constraints, bad releases, non-finite values, unsupported schemas) raise an `XFrameError` with a stable `error.code`. See [`docs/api/public-api.md`](docs/api/public-api.md).
 
 ## JSON
 
-In JSON, model artifacts use schema version `1` and result artifacts use schema version `2`, marked by their `schemaVersion` field, with a `sha256:<64 lowercase hexadecimal digits>` model fingerprint. See [`docs/api/json-input.md`](docs/api/json-input.md) and the [`schemas/model.schema.json`](schemas/model.schema.json) / [`schemas/result.schema.json`](schemas/result.schema.json) schemas.
+In JSON, model artifacts use schema version `2` and result artifacts use schema version `3`, marked by their `schemaVersion` field, with a `sha256:<64 lowercase hexadecimal digits>` model fingerprint. Version 2/3 adopt the `ux/uy/uz` translational convention; older artifacts fail closed with `SCHEMA_UNSUPPORTED` instead of being reinterpreted. See [`docs/api/json-input.md`](docs/api/json-input.md) and the [`schemas/model.schema.json`](schemas/model.schema.json) / [`schemas/result.schema.json`](schemas/result.schema.json) schemas.
 
 ## Verification
 
@@ -104,4 +70,4 @@ npm ci
 npm run check
 ```
 
-`npm run build` bundles the package into `dist/` with tsdown.
+`npm run build` emits the `dist/` bundle.

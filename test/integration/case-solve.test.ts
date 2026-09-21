@@ -24,8 +24,8 @@ describe("integrated case solves", () => {
       .addTrussSection({ id: "s", area: 3 })
       .addTruss({ id: "t", startNodeId: "a", endNodeId: "b", materialId: "m", sectionId: "s" });
     for (const [nodeId, dofs] of [
-      ["a", ["tx", "ty", "tz"]],
-      ["b", ["ty", "tz"]],
+      ["a", ["ux", "uy", "uz"]],
+      ["b", ["uy", "uz"]],
     ] as const) {
       for (const dof of dofs)
         builder.addConstraint({
@@ -38,8 +38,8 @@ describe("integrated case solves", () => {
       .addLoadCase({ id: "P", loads: [{ kind: "nodal", nodeId: "b", force: [15, 0, 0] }] })
       .finalize();
     const result = prepareAnalysis(model).solveCase("P");
-    const bx = model.physicalDofs.get(createDofKey("b", "tx"))!.physicalIndex;
-    const ax = model.physicalDofs.get(createDofKey("a", "tx"))!.physicalIndex;
+    const bx = model.physicalDofs.get(createDofKey("b", "ux"))!.physicalIndex;
+    const ax = model.physicalDofs.get(createDofKey("a", "ux"))!.physicalIndex;
     expect(result.fullDisplacements[bx]).toBeCloseTo(0.01, 14);
     expect(result.fullResidual[ax]).toBeCloseTo(-15, 12);
     expect(result.diagnostics.normalizedResidual).toBeLessThan(1e-12);
@@ -70,7 +70,7 @@ describe("integrated case solves", () => {
         theory: { kind: "euler-bernoulli" },
         orientation: [0, 1, 0],
       });
-    for (const dof of ["tx", "ty", "tz", "rx", "ry", "rz"] as const)
+    for (const dof of ["ux", "uy", "uz", "rx", "ry", "rz"] as const)
       builder.addConstraint({
         id: `base:${dof}`,
         terms: [{ nodeId: "base", dof, coefficient: 1 }],
@@ -80,7 +80,7 @@ describe("integrated case solves", () => {
       .addLoadCase({ id: "P", loads: [{ kind: "nodal", nodeId: "tip", force: [0, -12_000, 0] }] })
       .finalize();
     const result = prepareAnalysis(model).solveCase("P");
-    const tipY = model.physicalDofs.get(createDofKey("tip", "ty"))!.physicalIndex;
+    const tipY = model.physicalDofs.get(createDofKey("tip", "uy"))!.physicalIndex;
     expect(result.fullDisplacements[tipY]).toBeCloseTo(
       (-12_000 * length ** 3) / (3 * elasticModulus * inertia),
       11,

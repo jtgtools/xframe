@@ -39,7 +39,7 @@ function eccentricTrussBuilder(density?: number) {
 
 function constrain(
   builder: ReturnType<typeof createModelBuilder>,
-  dofs: readonly ("tx" | "ty" | "tz" | "rx" | "ry" | "rz")[],
+  dofs: readonly ("ux" | "uy" | "uz" | "rx" | "ry" | "rz")[],
 ): void {
   for (const nodeId of ["a", "b"] as const) {
     for (const dof of dofs)
@@ -53,7 +53,7 @@ function constrain(
 
 function rotationalSpringModel(withEndSpring: boolean) {
   const builder = eccentricTrussBuilder();
-  constrain(builder, ["tx", "ty", "tz", "rx", "ry"]);
+  constrain(builder, ["ux", "uy", "uz", "rx", "ry"]);
   builder.addSpring({ id: "ka", startNodeId: "a", stiffness: { rz: 1000 } });
   if (withEndSpring) builder.addSpring({ id: "kb", startNodeId: "b", stiffness: { rz: 1000 } });
   return builder
@@ -136,7 +136,7 @@ describe("eccentric truss integration", () => {
 
   it("transfers truss self-weight through both rigid arms and balances support moments", () => {
     const builder = eccentricTrussBuilder(1);
-    constrain(builder, ["tx", "ty", "tz", "rx", "ry", "rz"]);
+    constrain(builder, ["ux", "uy", "uz", "rx", "ry", "rz"]);
     const model = builder
       .addLoadCase({
         id: "SW",
@@ -144,12 +144,12 @@ describe("eccentric truss integration", () => {
       })
       .finalize();
     const result = prepareAnalysis(model).solveCase("SW");
-    const index = (nodeId: "a" | "b", dof: "tz" | "rx") =>
+    const index = (nodeId: "a" | "b", dof: "uz" | "rx") =>
       model.physicalDofs.get(createDofKey(nodeId, dof))!.physicalIndex;
 
-    expect(result.fullLoad[index("a", "tz")]).toBeCloseTo(-10, 14);
+    expect(result.fullLoad[index("a", "uz")]).toBeCloseTo(-10, 14);
     expect(result.fullLoad[index("a", "rx")]).toBeCloseTo(-10, 14);
-    expect(result.fullLoad[index("b", "tz")]).toBeCloseTo(-10, 14);
+    expect(result.fullLoad[index("b", "uz")]).toBeCloseTo(-10, 14);
     expect(result.fullLoad[index("b", "rx")]).toBeCloseTo(-10, 14);
     for (let value = 0; value < result.fullLoad.length; value += 1)
       expect(result.fullResidual[value]).toBeCloseTo(-result.fullLoad[value]!, 14);

@@ -48,10 +48,10 @@ Truss sections contain only axial area `A`. Runtime construction rejects frame-o
 - Frame theory is the closed discriminated union `euler-bernoulli | timoshenko`.
 - Frame and truss endpoint identifiers must differ before geometric reference resolution.
 - Frame orientation is copied, finite, and nonzero. Parallelism is checked after endpoints and rigid offsets are resolved.
-- Frame releases use deterministic component order `tx, ty, tz, rx, ry, rz`; duplicate components fail.
+- Frame releases use deterministic component order `ux, uy, uz, rx, ry, rz`; duplicate components fail.
 - Rigid-offset vectors are copied and frozen.
 - Ground springs omit `endNodeId`; two-node springs require distinct endpoint identifiers.
-- Spring component order is `tx, ty, tz, rx, ry, rz`. Components are finite and nonnegative, and at least one component must be positive. Version-one spring records are diagonal component springs; coupled spring matrices are not implied.
+- Spring component order is `ux, uy, uz, rx, ry, rz`. Components are finite and nonnegative, and at least one component must be positive. Version-one spring records are diagonal component springs; coupled spring matrices are not implied.
 
 ## Numerical specifications staged for later kernels
 

@@ -99,7 +99,7 @@ const springCases: ValidationCase[] = [
           theory: { kind: "euler-bernoulli" },
           orientation: [0, 1, 0],
         })
-        .addSpring({ id: "k", startNodeId: "b", endNodeId: "c", stiffness: { ty: stiffness } });
+        .addSpring({ id: "k", startNodeId: "b", endNodeId: "c", stiffness: { uy: stiffness } });
       fixed(builder);
       const output = solve(
         builder.addLoadCase({
@@ -110,9 +110,9 @@ const springCases: ValidationCase[] = [
       const beamDeflection = (load * length ** 3) / (3 * E * IZ);
       return [
         value(
-          "load-node ty",
+          "load-node uy",
           beamDeflection + load / stiffness,
-          displacement(output, "c", "ty"),
+          displacement(output, "c", "uy"),
           "m",
         ),
         value("spring force magnitude", Math.abs(load), Math.abs(springForce(output, "k", 1)), "N"),
@@ -139,7 +139,7 @@ const springCases: ValidationCase[] = [
         startNodeId: "a",
         stiffness: { rz: rotationalStiffness },
       });
-      constrain(builder, "a", ["tx", "ty", "tz", "rx", "ry"]);
+      constrain(builder, "a", ["ux", "uy", "uz", "rx", "ry"]);
       const output = solve(
         builder.addLoadCase({
           id: "LC",
@@ -150,7 +150,7 @@ const springCases: ValidationCase[] = [
       const tip = (load * length ** 3) / (3 * E * IZ) + length * baseRotation;
       return [
         value("base rotation", baseRotation, displacement(output, "a", "rz"), "rad"),
-        value("tip deflection", tip, displacement(output, "b", "ty"), "m"),
+        value("tip deflection", tip, displacement(output, "b", "uy"), "m"),
       ];
     },
   ),
@@ -172,8 +172,8 @@ const springCases: ValidationCase[] = [
       const k2 = 4.5e6;
       const beamStiffness = (3 * E * IZ) / length ** 3;
       const builder = frameBuilder(length)
-        .addSpring({ id: "k1", startNodeId: "b", stiffness: { ty: k1 } })
-        .addSpring({ id: "k2", startNodeId: "b", stiffness: { ty: k2 } });
+        .addSpring({ id: "k1", startNodeId: "b", stiffness: { uy: k1 } })
+        .addSpring({ id: "k2", startNodeId: "b", stiffness: { uy: k2 } });
       fixed(builder);
       const output = solve(
         builder.addLoadCase({
@@ -183,7 +183,7 @@ const springCases: ValidationCase[] = [
       );
       const deflection = load / (beamStiffness + k1 + k2);
       return [
-        value("tip deflection", deflection, displacement(output, "b", "ty"), "m"),
+        value("tip deflection", deflection, displacement(output, "b", "uy"), "m"),
         value(
           "spring k1 force",
           Math.abs(k1 * deflection),
@@ -236,7 +236,7 @@ const springCases: ValidationCase[] = [
             }),
           ),
           "b",
-          "ty",
+          "uy",
         );
       }
       const nearFree = solveFor(characteristic * 1e-10);
@@ -253,8 +253,8 @@ const springCases: ValidationCase[] = [
       category: 7,
       description:
         "A spring remains active when a different DOF at the same node is hard-restrained",
-      model: "Single grounded node with tx spring k=900 kN/m.",
-      supports: "Node ty is hard-restrained; tx is spring-supported.",
+      model: "Single grounded node with ux spring k=900 kN/m.",
+      supports: "Node uy is hard-restrained; ux is spring-supported.",
       loads: "Fx=9,000 N and Fy=3,000 N.",
       referenceMethod: "closed-form hand calc",
       frame3ddCoverage: "unsupported",
@@ -264,8 +264,8 @@ const springCases: ValidationCase[] = [
       const builder = createModelBuilder()
         .setUnitSystem(siUnits)
         .addNode({ id: "n", coordinates: [0, 0, 0] })
-        .addSpring({ id: "k", startNodeId: "n", stiffness: { tx: stiffness, ty: 1 } });
-      constrain(builder, "n", ["ty"]);
+        .addSpring({ id: "k", startNodeId: "n", stiffness: { ux: stiffness, uy: 1 } });
+      constrain(builder, "n", ["uy"]);
       const output = solve(
         builder.addLoadCase({
           id: "LC",
@@ -273,9 +273,9 @@ const springCases: ValidationCase[] = [
         }),
       );
       return [
-        value("spring displacement", 0.01, displacement(output, "n", "tx"), "m"),
-        value("hard-restrained displacement", 0, displacement(output, "n", "ty"), "m", 1),
-        value("hard-restrained reaction", -3_000, reaction(output, "n", "ty"), "N"),
+        value("spring displacement", 0.01, displacement(output, "n", "ux"), "m"),
+        value("hard-restrained displacement", 0, displacement(output, "n", "uy"), "m", 1),
+        value("hard-restrained reaction", -3_000, reaction(output, "n", "uy"), "N"),
       ];
     },
   ),
@@ -321,7 +321,7 @@ const releaseCases: ValidationCase[] = [
           Math.abs(frameEndForce(output, "f", 5)),
           "N*m",
         ),
-        value("released-end reaction", (-3 * w * length) / 8, reaction(output, "b", "ty"), "N"),
+        value("released-end reaction", (-3 * w * length) / 8, reaction(output, "b", "uy"), "N"),
       ];
     },
   ),
@@ -367,7 +367,7 @@ const releaseCases: ValidationCase[] = [
         value(
           "released-end reaction magnitude",
           (3 * Math.abs(w) * length) / 8,
-          Math.abs(reaction(output, "b", "tz")),
+          Math.abs(reaction(output, "b", "uz")),
           "N",
         ),
       ];
@@ -494,7 +494,7 @@ const releaseCases: ValidationCase[] = [
       const load = 36_000;
       const builder = frameBuilder(length, { start: ["ry", "rz"], end: ["rx", "ry", "rz"] });
       constrain(builder, "a", allDofs);
-      constrain(builder, "b", ["ty", "tz", "rx", "ry", "rz"]);
+      constrain(builder, "b", ["uy", "uz", "rx", "ry", "rz"]);
       const output = solve(
         builder.addLoadCase({
           id: "LC",
@@ -505,7 +505,7 @@ const releaseCases: ValidationCase[] = [
         value(
           "axial displacement",
           (load * length) / (E * A),
-          displacement(output, "b", "tx"),
+          displacement(output, "b", "ux"),
           "m",
         ),
         value("axial force magnitude", load, Math.abs(frameEndForce(output, "f", 0)), "N"),
@@ -560,8 +560,8 @@ const releaseCases: ValidationCase[] = [
           "N*m",
           Math.abs(w) * length ** 2,
         ),
-        value("left reaction", (-5 * w * length) / 8, reaction(output, "a", "ty"), "N"),
-        value("right reaction", (-3 * w * length) / 8, reaction(output, "b", "ty"), "N"),
+        value("left reaction", (-5 * w * length) / 8, reaction(output, "a", "uy"), "N"),
+        value("right reaction", (-3 * w * length) / 8, reaction(output, "b", "uy"), "N"),
       ];
     },
   ),
@@ -613,19 +613,19 @@ const loadCases: ValidationCase[] = [
         {
           id: "Fx",
           load: { kind: "nodal" as const, nodeId: "b", force: [10_000, 0, 0] as const },
-          dof: "tx" as const,
+          dof: "ux" as const,
           expected: (10_000 * length) / (E * A),
         },
         {
           id: "Fy",
           load: { kind: "nodal" as const, nodeId: "b", force: [0, -12_000, 0] as const },
-          dof: "ty" as const,
+          dof: "uy" as const,
           expected: (-12_000 * length ** 3) / (3 * E * IZ),
         },
         {
           id: "Fz",
           load: { kind: "nodal" as const, nodeId: "b", force: [0, 0, 14_000] as const },
-          dof: "tz" as const,
+          dof: "uz" as const,
           expected: (14_000 * length ** 3) / (3 * E * IY),
         },
         {
@@ -700,7 +700,7 @@ const loadCases: ValidationCase[] = [
           value(
             "tip deflection",
             (load * position ** 2 * (3 * length - position)) / (6 * E * IZ),
-            displacement(output, "b", "ty"),
+            displacement(output, "b", "uy"),
             "m",
           ),
           value(
@@ -865,7 +865,7 @@ const loadCases: ValidationCase[] = [
         }),
       );
       return [
-        value("base shear", -resultant, reaction(output, "a", "ty"), "N"),
+        value("base shear", -resultant, reaction(output, "a", "uy"), "N"),
         value("base moment", -resultant * centroid, reaction(output, "a", "rz"), "N*m"),
       ];
     },
@@ -930,9 +930,9 @@ const loadCases: ValidationCase[] = [
         ["a", "horizontal"],
         ["c", "inclined"],
       ] as const) {
-        values.push(value(`${prefix} Rx`, -mass * gravity[0], reaction(output, nodeId, "tx"), "N"));
-        values.push(value(`${prefix} Ry`, -mass * gravity[1], reaction(output, nodeId, "ty"), "N"));
-        values.push(value(`${prefix} Rz`, -mass * gravity[2], reaction(output, nodeId, "tz"), "N"));
+        values.push(value(`${prefix} Rx`, -mass * gravity[0], reaction(output, nodeId, "ux"), "N"));
+        values.push(value(`${prefix} Ry`, -mass * gravity[1], reaction(output, nodeId, "uy"), "N"));
+        values.push(value(`${prefix} Rz`, -mass * gravity[2], reaction(output, nodeId, "uz"), "N"));
       }
       return values;
     },
@@ -973,11 +973,11 @@ const loadCases: ValidationCase[] = [
       ]);
       return [
         value(
-          "tip ty",
-          displacement(ab, "b", "ty"),
+          "tip uy",
+          displacement(ab, "b", "uy"),
           combined.nodes
             .find(({ id }) => id === "b")!
-            .displacements.find(({ dof }) => dof === "ty")!.value,
+            .displacements.find(({ dof }) => dof === "uy")!.value,
           "m",
           1,
         ),

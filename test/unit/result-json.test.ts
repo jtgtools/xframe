@@ -41,7 +41,7 @@ function result() {
       orientation: [0, 1, 0],
     })
     .addTruss({ id: "t", startNodeId: "a", endNodeId: "b", materialId: "m", sectionId: "ts" });
-  for (const dof of ["tx", "ty", "tz", "rx", "ry", "rz"] as const)
+  for (const dof of ["ux", "uy", "uz", "rx", "ry", "rz"] as const)
     builder.addConstraint({
       id: `a:${dof}`,
       terms: [{ nodeId: "a", dof, coefficient: 1 }],
@@ -67,7 +67,7 @@ function schemaFailure(action: () => unknown): XFrameError {
 it("round trips the complete result schema v2", () => {
   const value = resultToJsonValue(result());
 
-  expect(value.schemaVersion).toBe("2");
+  expect(value.schemaVersion).toBe("3");
   expect(value.result.trusses[0]!.globalReferenceEndForces).toHaveLength(12);
   expect(value.result.frames[0]!.internalForceSegments.length).toBeGreaterThan(0);
   expect(parseResultJson(JSON.stringify(value))).toEqual(value.result);
@@ -92,7 +92,7 @@ it("rejects incomplete, additional, unsupported, and non-finite results", () => 
   const valid = resultToJsonValue(result()) as unknown as Record<string, unknown>;
   const body = valid["result"] as Record<string, unknown>;
   const malformed = [
-    { ...valid, schemaVersion: "1" },
+    { ...valid, schemaVersion: "2" },
     { ...valid, result: { ...body, diagnostics: undefined } },
     { ...valid, result: { ...body, extra: true } },
     { ...valid, result: { ...body, fullLoad: [Number.POSITIVE_INFINITY] } },
@@ -100,8 +100,8 @@ it("rejects incomplete, additional, unsupported, and non-finite results", () => 
   for (const value of malformed) expect(() => parseResultJson(value)).toThrowError(XFrameError);
 });
 
-it("rejects every non-v2 artifact before interpreting its body", () => {
-  const error = schemaFailure(() => parseResultJson({ schemaVersion: "1", result: null }));
+it("rejects every non-v3 artifact before interpreting its body", () => {
+  const error = schemaFailure(() => parseResultJson({ schemaVersion: "2", result: null }));
 
   expect(error.code).toBe("SCHEMA_UNSUPPORTED");
   const context = error.context;
@@ -178,7 +178,7 @@ it("rejects malformed, noncontiguous, nonfinite segments and malformed fingerpri
 });
 
 it("rejects a null result with its exact field path", () => {
-  const error = schemaFailure(() => parseResultJson({ schemaVersion: "2", result: null }));
+  const error = schemaFailure(() => parseResultJson({ schemaVersion: "3", result: null }));
 
   expect(error.code).toBe("SCHEMA_INVALID");
   const context = error.context;

@@ -2,8 +2,8 @@ import { XFrameError } from "../errors/xframe-error.js";
 import type { DofName } from "./domain-records.js";
 import type { EntityId } from "./identifier.js";
 
-export const DOF_NAMES = ["tx", "ty", "tz", "rx", "ry", "rz"] as const satisfies readonly DofName[];
-export const TRANSLATIONAL_DOF_NAMES = ["tx", "ty", "tz"] as const satisfies readonly DofName[];
+export const DOF_NAMES = ["ux", "uy", "uz", "rx", "ry", "rz"] as const satisfies readonly DofName[];
+export const TRANSLATIONAL_DOF_NAMES = ["ux", "uy", "uz"] as const satisfies readonly DofName[];
 const DOF_SET = new Set<string>(DOF_NAMES);
 const KEY_SEPARATOR = "\u001f";
 
@@ -18,7 +18,7 @@ export function parseDofName(value: unknown, path: string): DofName {
     throw new XFrameError("INPUT_INVALID", "Degree-of-freedom name is invalid.", {
       kind: "input",
       path,
-      expected: "tx, ty, tz, rx, ry, or rz",
+      expected: "ux, uy, uz, rx, ry, or rz",
       actual: String(value),
     });
   }

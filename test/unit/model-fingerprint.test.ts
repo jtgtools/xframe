@@ -24,11 +24,11 @@ function collisionModel(area: number) {
     .addTrussSection({ id: "s", area })
     .addTruss({ id: "t", startNodeId: "a", endNodeId: "b", materialId: "m", sectionId: "s" });
   for (const [id, nodeId, dof] of [
-    ["c1", "a", "tx"],
-    ["c2", "a", "ty"],
-    ["c3", "a", "tz"],
-    ["c4", "b", "ty"],
-    ["c5", "b", "tz"],
+    ["c1", "a", "ux"],
+    ["c2", "a", "uy"],
+    ["c3", "a", "uz"],
+    ["c4", "b", "uy"],
+    ["c5", "b", "uz"],
   ] as const) {
     builder.addConstraint({ id, terms: [{ nodeId, dof, coefficient: 1 }], rightHandSide: 0 });
   }
@@ -87,7 +87,7 @@ it("emits an exact lowercase SHA-256 model identity", () => {
 });
 
 it("separates the reproduced full-model FNV collision", () => {
-  const collisionAreas = [0.00015793100000000002, 0.000164232] as const;
+  const collisionAreas = [0.00018774158742744477, 0.00017468842144589873] as const;
   const builders = collisionAreas.map(collisionModel);
   const snapshots = builders.map((builder) => builder.snapshot());
   const firstSnapshot = snapshots[0]!;
@@ -99,8 +99,8 @@ it("separates the reproduced full-model FNV collision", () => {
       area: secondSnapshot.trussSections[index]!.area,
     })),
   }).toEqual(secondSnapshot);
-  expect(legacyFnv(firstSnapshot)).toBe("fnv1a32:e557d0d4");
-  expect(legacyFnv(secondSnapshot)).toBe("fnv1a32:e557d0d4");
+  expect(legacyFnv(firstSnapshot)).toBe("fnv1a32:f39ba120");
+  expect(legacyFnv(secondSnapshot)).toBe("fnv1a32:f39ba120");
   const models = builders.map((builder) => builder.finalize());
   expect(models[0]!.fingerprint).toMatch(/^sha256:[0-9a-f]{64}$/u);
   expect(models[1]!.fingerprint).toMatch(/^sha256:[0-9a-f]{64}$/u);

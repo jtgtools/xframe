@@ -9,7 +9,7 @@ import type {
   ResolvedTrussRecord,
 } from "../model/finalized-model.js";
 
-const ALL_DOFS = ["tx", "ty", "tz", "rx", "ry", "rz"] as const satisfies readonly DofName[];
+const ALL_DOFS = ["ux", "uy", "uz", "rx", "ry", "rz"] as const satisfies readonly DofName[];
 
 function physicalIndex(
   model: FinalizedModel,

@@ -90,7 +90,7 @@ describe("model finalization", () => {
       expect(model.nodes.map(({ id }) => id)).toEqual(["a", "z", "ä"]);
       expect(
         Array.from(model.physicalDofs.values(), ({ nodeId, dof }) => `${nodeId}.${dof}`),
-      ).toEqual(["a.tx", "a.ty", "a.tz", "z.tx", "z.ty", "z.tz", "ä.tx", "ä.ty", "ä.tz"]);
+      ).toEqual(["a.ux", "a.uy", "a.uz", "z.ux", "z.uy", "z.uz", "ä.ux", "ä.uy", "ä.uz"]);
     } finally {
       localeCompare.mockRestore();
     }

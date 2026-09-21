@@ -14,7 +14,7 @@ import { parseDofName } from "./dof-key.js";
 import { parseIdentifier, type EntityId } from "./identifier.js";
 
 export type Vector3Input = readonly [number, number, number] | readonly number[];
-export type DofName = "tx" | "ty" | "tz" | "rx" | "ry" | "rz";
+export type DofName = "ux" | "uy" | "uz" | "rx" | "ry" | "rz";
 
 export interface NodeInput {
   readonly id: unknown;

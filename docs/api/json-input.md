@@ -22,9 +22,9 @@ Self-weight requires material density for every selected frame or truss. Omittin
 
 ## Result artifact
 
-A result artifact has `schemaVersion: "2"` and a complete immutable case or combination representation. Use [`../../schemas/result.schema.json`](../../schemas/result.schema.json). `parseResultJson` verifies closed shape, finite values, unit metadata, result conventions, and internal vector lengths; it does not rerun the structural analysis. A result schema version `1` fails with `SCHEMA_UNSUPPORTED` rather than being reinterpreted.
+A result artifact has `schemaVersion: "3"` and a complete immutable case or combination representation. Use [`../../schemas/result.schema.json`](../../schemas/result.schema.json). `parseResultJson` verifies closed shape, finite values, unit metadata, result conventions, and internal vector lengths; it does not rerun the structural analysis. A result schema version `2` fails with `SCHEMA_UNSUPPORTED` rather than being reinterpreted.
 
-Result schema version two adds exact frame `internalForceSegments`, including six fixed cubic coefficient arrays per segment, and `globalReferenceEndForces` for every truss. The retained `globalEndForces` array contains the six elastic-end forces; `globalReferenceEndForces` contains twelve start-then-end reference-node force and moment components.
+Result schema version three adopts the `ux/uy/uz` translational DOF convention. Version two added exact frame `internalForceSegments`, including six fixed cubic coefficient arrays per segment, and `globalReferenceEndForces` for every truss. The retained `globalEndForces` array contains the six elastic-end forces; `globalReferenceEndForces` contains twelve start-then-end reference-node force and moment components.
 
 ## Canonical form and hashes
 

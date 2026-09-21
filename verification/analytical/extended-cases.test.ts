@@ -13,7 +13,7 @@ const units = {
   density: "kg/m^3",
   rotation: "rad",
 } as const;
-const allDofs = ["tx", "ty", "tz", "rx", "ry", "rz"] as const;
+const allDofs = ["ux", "uy", "uz", "rx", "ry", "rz"] as const;
 
 function constrain(
   builder: ModelBuilder,
@@ -96,21 +96,21 @@ describe("extended analytical verification", () => {
         theory: { kind: "euler-bernoulli" },
         orientation: [0, 1, 0],
       });
-    constrain(builder, "a", ["tx", "ty", "tz", "rx"]);
-    constrain(builder, "b", ["ty", "tz"]);
+    constrain(builder, "a", ["ux", "uy", "uz", "rx"]);
+    constrain(builder, "b", ["uy", "uz"]);
     const result = prepareAnalysis(
       builder
         .addLoadCase({ id: "P", loads: [{ kind: "nodal", nodeId: "m", force: [0, load, 0] }] })
         .finalize(),
     ).solveCase("P");
     const mid = result.nodes.find(({ id }) => id === "m")!;
-    expect(mid.displacements.find(({ dof }) => dof === "ty")!.value).toBeCloseTo(
+    expect(mid.displacements.find(({ dof }) => dof === "uy")!.value).toBeCloseTo(
       (load * length ** 3) / (48 * elasticModulus * inertia),
       12,
     );
     const reactions = result.nodes
       .filter(({ id }) => id !== "m")
-      .map((node) => node.reactions.find(({ dof }) => dof === "ty")?.value ?? 0);
+      .map((node) => node.reactions.find(({ dof }) => dof === "uy")?.value ?? 0);
     expect(reactions[0]).toBeCloseTo(-load / 2, 8);
     expect(reactions[1]).toBeCloseTo(-load / 2, 8);
   });
@@ -127,16 +127,16 @@ describe("extended analytical verification", () => {
       .addMaterial({ id: "m", elasticModulus, poissonRatio: 0.3 })
       .addTrussSection({ id: "s", area })
       .addTruss({ id: "t", startNodeId: "a", endNodeId: "b", materialId: "m", sectionId: "s" });
-    constrain(builder, "a", ["tx", "ty", "tz"]);
-    constrain(builder, "b", ["ty", "tz", "tx"], [0, 0, delta]);
+    constrain(builder, "a", ["ux", "uy", "uz"]);
+    constrain(builder, "b", ["uy", "uz", "ux"], [0, 0, delta]);
     const result = prepareAnalysis(builder.addLoadCase({ id: "D" }).finalize()).solveCase("D");
     const force = (elasticModulus * area * delta) / length;
     expect(result.trusses[0]!.axialForce).toBeCloseTo(force, 8);
     expect(
-      result.nodes.find(({ id }) => id === "a")!.reactions.find(({ dof }) => dof === "tx")!.value,
+      result.nodes.find(({ id }) => id === "a")!.reactions.find(({ dof }) => dof === "ux")!.value,
     ).toBeCloseTo(-force, 8);
     expect(
-      result.nodes.find(({ id }) => id === "b")!.reactions.find(({ dof }) => dof === "tx")!.value,
+      result.nodes.find(({ id }) => id === "b")!.reactions.find(({ dof }) => dof === "ux")!.value,
     ).toBeCloseTo(force, 8);
   });
 
@@ -165,7 +165,7 @@ describe("extended analytical verification", () => {
         .finalize(),
     ).solveCase("M");
     const tip = result.nodes.find(({ id }) => id === "b")!;
-    expect(tip.displacements.find(({ dof }) => dof === "ty")!.value).toBeCloseTo(
+    expect(tip.displacements.find(({ dof }) => dof === "uy")!.value).toBeCloseTo(
       (moment * position * (2 * length - position)) / (2 * elasticModulus * inertia),
       12,
     );
@@ -204,7 +204,7 @@ describe("extended analytical verification", () => {
     const resultant = 0.5 * (end - start) * peak;
     const centroid = start + (2 * (end - start)) / 3;
     const base = result.nodes.find(({ id }) => id === "a")!;
-    expect(base.reactions.find(({ dof }) => dof === "ty")!.value).toBeCloseTo(-resultant, 9);
+    expect(base.reactions.find(({ dof }) => dof === "uy")!.value).toBeCloseTo(-resultant, 9);
     expect(base.reactions.find(({ dof }) => dof === "rz")!.value).toBeCloseTo(
       -resultant * centroid,
       8,

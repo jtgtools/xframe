@@ -69,13 +69,13 @@ it("current documentation states the remediated safety contracts", () => {
       "README.md",
       [
         "sha256:<64 lowercase hexadecimal digits>",
-        "model artifacts use schema version `1` and result artifacts use schema version `2`",
+        "model artifacts use schema version `2` and result artifacts use schema version `3`",
       ],
     ],
     [
       "docs/api/json-input.md",
       [
-        "A result schema version `1` fails with `SCHEMA_UNSUPPORTED`",
+        "A result schema version `2` fails with `SCHEMA_UNSUPPORTED`",
         "six fixed cubic coefficient arrays per segment",
       ],
     ],

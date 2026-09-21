@@ -31,7 +31,7 @@ function cantilever() {
       orientation: [0, 1, 0],
     })
     .addTruss({ id: "t", startNodeId: "a", endNodeId: "b", materialId: "m", sectionId: "t" })
-    .addSpring({ id: "k", startNodeId: "b", stiffness: { ty: 10e6 } })
+    .addSpring({ id: "k", startNodeId: "b", stiffness: { uy: 10e6 } })
     .fixNode("a")
     .addLoadCase({ id: "P", loads: [{ kind: "nodal", nodeId: "b", force: [0, -8000, 0] }] })
     .addLoadCase({ id: "2P", loads: [{ kind: "nodal", nodeId: "b", force: [0, -16000, 0] }] });
@@ -39,18 +39,18 @@ function cantilever() {
 }
 
 const components = Object.freeze([
-  { component: "ty", entityId: "b" },
-  { component: "reaction.ty", entityId: "a" },
+  { component: "uy", entityId: "b" },
+  { component: "reaction.uy", entityId: "a" },
   { component: "axialForce", entityId: "t" },
-  { component: "force.ty", entityId: "k" },
+  { component: "force.uy", entityId: "k" },
 ] satisfies readonly EnvelopeComponent[]);
 
 function handValues(result: ReturnType<ReturnType<typeof prepareAnalysis>["solveCase"]>) {
   const tip = result.nodes.find(({ id }) => id === "b")!;
   const base = result.nodes.find(({ id }) => id === "a")!;
   return [
-    tip.displacements.find(({ dof }) => dof === "ty")!.value,
-    base.reactions.find(({ dof }) => dof === "ty")!.value,
+    tip.displacements.find(({ dof }) => dof === "uy")!.value,
+    base.reactions.find(({ dof }) => dof === "uy")!.value,
     result.trusses.find(({ id }) => id === "t")!.axialForce,
     result.springs.find(({ id }) => id === "k")!.globalEndForces[1]!,
   ];
@@ -107,7 +107,7 @@ it("rejects an unknown component name", () => {
 it("rejects a component location without frame station support", () => {
   const result = cantilever().solveCase("P");
   const error = incompatible(() =>
-    envelopeRecord(result, [{ component: "ty", entityId: "b", location: 2 }]),
+    envelopeRecord(result, [{ component: "uy", entityId: "b", location: 2 }]),
   );
   expect(error.context).toMatchObject({ reason: "component location is not supported" });
 });
@@ -115,7 +115,7 @@ it("rejects a component location without frame station support", () => {
 it("rejects an entity missing from the result", () => {
   const result = cantilever().solveCase("P");
   const error = incompatible(() =>
-    envelopeRecord(result, [{ component: "ty", entityId: "ghost" }]),
+    envelopeRecord(result, [{ component: "uy", entityId: "ghost" }]),
   );
   expect(error.context).toMatchObject({ reason: "missing entity" });
 });
@@ -142,12 +142,12 @@ it("rejects a two-node spring force without an explicit end", () => {
       theory: { kind: "euler-bernoulli" },
       orientation: [0, 1, 0],
     })
-    .addSpring({ id: "k", startNodeId: "a", endNodeId: "b", stiffness: { ty: 10e6 } })
+    .addSpring({ id: "k", startNodeId: "a", endNodeId: "b", stiffness: { uy: 10e6 } })
     .fixNode("a")
     .addLoadCase({ id: "P", loads: [{ kind: "nodal", nodeId: "b", force: [0, -8000, 0] }] });
   const result = prepareAnalysis(builder.finalize()).solveCase("P");
   const error = incompatible(() =>
-    envelopeRecord(result, [{ component: "force.ty", entityId: "k" }]),
+    envelopeRecord(result, [{ component: "force.uy", entityId: "k" }]),
   );
   expect(error.context).toMatchObject({ reason: "two-node spring forces need an explicit end" });
 });
@@ -161,14 +161,14 @@ it("rejects a non-finite extracted value", () => {
         ? {
             ...node,
             displacements: node.displacements.map((entry) =>
-              entry.dof === "ty" ? { ...entry, value: Number.NaN } : entry,
+              entry.dof === "uy" ? { ...entry, value: Number.NaN } : entry,
             ),
           }
         : node,
     ),
   };
-  const error = incompatible(() => envelopeRecord(forged, [{ component: "ty", entityId: "b" }]));
-  expect(error.context).toMatchObject({ reason: "non-finite value for b.ty" });
+  const error = incompatible(() => envelopeRecord(forged, [{ component: "uy", entityId: "b" }]));
+  expect(error.context).toMatchObject({ reason: "non-finite value for b.uy" });
 });
 
 it("rejects a degree of freedom absent from the node result", () => {
@@ -179,8 +179,8 @@ it("rejects a degree of freedom absent from the node result", () => {
     .addMaterial({ id: "m", elasticModulus: 210e9, poissonRatio: 0.3 })
     .addTrussSection({ id: "s", area: 0.003 })
     .addTruss({ id: "t", startNodeId: "a", endNodeId: "b", materialId: "m", sectionId: "s" })
-    .supportNode("a", ["tx", "ty", "tz"])
-    .supportNode("b", ["ty", "tz"])
+    .supportNode("a", ["ux", "uy", "uz"])
+    .supportNode("b", ["uy", "uz"])
     .addLoadCase({ id: "P", loads: [{ kind: "nodal", nodeId: "b", force: [12000, 0, 0] }] });
   const result = prepareAnalysis(builder.finalize()).solveCase("P");
   const error = incompatible(() =>

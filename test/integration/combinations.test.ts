@@ -25,11 +25,11 @@ function collisionModel(area: number) {
     .addTrussSection({ id: "s", area })
     .addTruss({ id: "t", startNodeId: "a", endNodeId: "b", materialId: "m", sectionId: "s" });
   for (const [id, nodeId, dof] of [
-    ["c1", "a", "tx"],
-    ["c2", "a", "ty"],
-    ["c3", "a", "tz"],
-    ["c4", "b", "ty"],
-    ["c5", "b", "tz"],
+    ["c1", "a", "ux"],
+    ["c2", "a", "uy"],
+    ["c3", "a", "uz"],
+    ["c4", "b", "uy"],
+    ["c5", "b", "uz"],
   ] as const) {
     builder.addConstraint({ id, terms: [{ nodeId, dof, coefficient: 1 }], rightHandSide: 0 });
   }
@@ -61,13 +61,13 @@ function frameCombinationModel() {
       theory: { kind: "euler-bernoulli" },
       orientation: [0, 1, 0],
     });
-  for (const dof of ["tx", "ty", "tz", "rx", "ry"] as const)
+  for (const dof of ["ux", "uy", "uz", "rx", "ry"] as const)
     builder.addConstraint({
       id: `a:${dof}`,
       terms: [{ nodeId: "a", dof, coefficient: 1 }],
       rightHandSide: 0,
     });
-  for (const dof of ["ty", "tz", "rx", "ry"] as const)
+  for (const dof of ["uy", "uz", "rx", "ry"] as const)
     builder.addConstraint({
       id: `b:${dof}`,
       terms: [{ nodeId: "b", dof, coefficient: 1 }],

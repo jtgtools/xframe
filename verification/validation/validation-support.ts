@@ -30,7 +30,7 @@ export const imperialUnits = Object.freeze({
   rotation: "rad",
 }) satisfies UnitSystem;
 
-export const allDofs = ["tx", "ty", "tz", "rx", "ry", "rz"] as const satisfies readonly DofName[];
+export const allDofs = ["ux", "uy", "uz", "rx", "ry", "rz"] as const satisfies readonly DofName[];
 
 export interface NamedValue {
   readonly name: string;

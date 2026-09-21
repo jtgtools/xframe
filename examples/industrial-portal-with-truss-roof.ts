@@ -82,7 +82,7 @@ export function runIndustrialPortalExample() {
 
   for (const n of ["base-l", "base-r"]) builder.fixNode(n);
   // Out-of-plane restraint so the 2D slice stays stable in 3D.
-  for (const n of ["eave-l", "ridge", "eave-r"]) builder.supportNode(n, ["tz"]);
+  for (const n of ["eave-l", "ridge", "eave-r"]) builder.supportNode(n, ["uz"]);
 
   const result = prepareAnalysis(
     builder
@@ -118,14 +118,14 @@ export function runIndustrialPortalExample() {
 
   const node = (id: string) => result.nodes.find((n) => n.id === id)!;
   const pinnedBaseMoment = node("base-l").reactions.find((r) => r.dof === "rz")?.value ?? 0;
-  const eaveDisplacement = node("eave-l").displacements.find((d) => d.dof === "tx")!.value;
+  const eaveDisplacement = node("eave-l").displacements.find((d) => d.dof === "ux")!.value;
   const trussAxial = result.trusses[0]!.axialForce;
 
   return Object.freeze({
     eaveDisplacement,
     pinnedBaseMoment,
     trussAxial,
-    ridgeSettlement: node("ridge").displacements.find((d) => d.dof === "ty")!.value,
+    ridgeSettlement: node("ridge").displacements.find((d) => d.dof === "uy")!.value,
     diagnosticStatus: result.diagnostics.status,
   });
 }

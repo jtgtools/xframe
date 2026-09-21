@@ -8,7 +8,7 @@ This report records Part 10 evidence for the 3D truss kernel, six-component grou
 
 For the zero-offset Part 10 truss cases, the global truss matrix is formed from `EA/L` and the outer product of the normalized global direction vector. The kernel is tested for arbitrary 3D orientation, symmetry, rigid-translation invariance, and recovery of extension, strain, axial force, and equal/opposite global end forces.
 
-The analytical axial-bar case uses `u = PL/(EA)` and recovers `N = EA u/L = P`. In the zero-offset historical cases, truss-only model finalization creates only `tx`, `ty`, and `tz` at each connected node. It creates no rotational DOFs and no restraints.
+The analytical axial-bar case uses `u = PL/(EA)` and recovers `N = EA u/L = P`. In the zero-offset historical cases, truss-only model finalization creates only `ux`, `uy`, and `uz` at each connected node. It creates no rotational DOFs and no restraints.
 
 ## Spring evidence
 

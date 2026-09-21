@@ -4,7 +4,7 @@ import { XFrameError } from "../../src/errors/xframe-error.js";
 import { createModelBuilder } from "../../src/model/model-builder.js";
 import { unitsSI } from "../../src/units/unit-presets.js";
 
-const allDofs = ["tx", "ty", "tz", "rx", "ry", "rz"] as const;
+const allDofs = ["ux", "uy", "uz", "rx", "ry", "rz"] as const;
 
 function frameBuilder() {
   return createModelBuilder()
@@ -59,35 +59,35 @@ describe("builder support presets", () => {
     const result = prepareAnalysis(
       frameBuilder()
         .fixNode("a")
-        .supportNode("b", ["ty", "tz", "rx", "ry", "rz"])
+        .supportNode("b", ["uy", "uz", "rx", "ry", "rz"])
         .addLoadCase({ id: "P", loads: [{ kind: "nodal", nodeId: "b", force: [12000, 0, 0] }] })
         .finalize(),
     ).solveCase("P");
     expect(Math.abs(result.frames[0]!.localEndForces[0]!)).toBeCloseTo(12000, 8);
     expect(
-      result.nodes.find(({ id }) => id === "a")!.reactions.find(({ dof }) => dof === "tx")!.value,
+      result.nodes.find(({ id }) => id === "a")!.reactions.find(({ dof }) => dof === "ux")!.value,
     ).toBeCloseTo(-12000, 8);
     expect(result.diagnostics.status).toBe("pass");
   });
 
   it("a prescribed support displacement produces the exact EAΔ/L response", () => {
     const result = prepareAnalysis(
-      frameBuilder().fixNode("a").fixNode("b", { tx: 0.001 }).addLoadCase({ id: "P" }).finalize(),
+      frameBuilder().fixNode("a").fixNode("b", { ux: 0.001 }).addLoadCase({ id: "P" }).finalize(),
     ).solveCase("P");
     expect(result.frames[0]!.localEndForces[6]!).toBeCloseTo((210e9 * 0.003 * 0.001) / 3, 6);
   });
 
   it("a partial support only constrains the selected degrees of freedom", () => {
-    const builder = trussBuilder().supportNode("a", ["tx", "ty"]);
+    const builder = trussBuilder().supportNode("a", ["ux", "uy"]);
     const constraints = builder.snapshot().constraints;
-    expect(constraints.map(({ id }) => id).toSorted()).toEqual(["support:a:tx", "support:a:ty"]);
+    expect(constraints.map(({ id }) => id).toSorted()).toEqual(["support:a:ux", "support:a:uy"]);
   });
 
   it("a translational support solves a truss end to end", () => {
     const result = prepareAnalysis(
       trussBuilder()
-        .supportNode("a", ["tx", "ty", "tz"])
-        .supportNode("b", ["ty", "tz"])
+        .supportNode("a", ["ux", "uy", "uz"])
+        .supportNode("b", ["uy", "uz"])
         .addLoadCase({ id: "P", loads: [{ kind: "nodal", nodeId: "b", force: [12000, 0, 0] }] })
         .finalize(),
     ).solveCase("P");
@@ -109,7 +109,7 @@ describe("builder support presets", () => {
   it("an unknown support degree of freedom fails with a structured error", () => {
     let thrown: unknown;
     try {
-      trussBuilder().supportNode("a", ["tw"] as unknown as ["tx"]);
+      trussBuilder().supportNode("a", ["tw"] as unknown as ["ux"]);
     } catch (error) {
       thrown = error;
     }
@@ -120,7 +120,7 @@ describe("builder support presets", () => {
   it("a non-finite prescribed support value fails with a structured error", () => {
     let thrown: unknown;
     try {
-      trussBuilder().fixNode("a", { tx: Number.NaN });
+      trussBuilder().fixNode("a", { ux: Number.NaN });
     } catch (error) {
       thrown = error;
     }
@@ -130,8 +130,8 @@ describe("builder support presets", () => {
 
   it("a generated support id that collides with manual input fails closed", () => {
     const builder = trussBuilder().addConstraint({
-      id: "fix:a:tx",
-      terms: [{ nodeId: "a", dof: "tx", coefficient: 1 }],
+      id: "fix:a:ux",
+      terms: [{ nodeId: "a", dof: "ux", coefficient: 1 }],
       rightHandSide: 0,
     });
     let thrown: unknown;

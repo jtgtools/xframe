@@ -28,14 +28,14 @@ it("publishes a strict complete model JSON Schema", () => {
   expect(definitions["pointLocation"]!["oneOf"]).toBeDefined();
 });
 
-it("publishes a strict complete result JSON Schema v2", () => {
+it("publishes a strict complete result JSON Schema v3", () => {
   const value = schema("result");
   expect(value["$schema"]).toBe("https://json-schema.org/draft/2020-12/schema");
   expect(value["additionalProperties"]).toBe(false);
   expect(value["required"]).toEqual(["schemaVersion", "result"]);
   expect((value["properties"] as Record<string, Record<string, unknown>>)["schemaVersion"]).toEqual(
     {
-      const: "2",
+      const: "3",
     },
   );
   const definitions = value["$defs"] as Record<string, Record<string, unknown>>;

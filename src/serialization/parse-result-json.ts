@@ -33,7 +33,7 @@ import {
   unitSystemAt,
 } from "./schema-validation.js";
 
-const DOFS = ["tx", "ty", "tz", "rx", "ry", "rz"] as const;
+const DOFS = ["ux", "uy", "uz", "rx", "ry", "rz"] as const;
 const MODEL_FINGERPRINT = /^sha256:[0-9a-f]{64}$/u;
 
 function id(value: unknown, path: string): EntityId {

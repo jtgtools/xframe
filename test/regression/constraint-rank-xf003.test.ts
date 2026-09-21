@@ -174,7 +174,7 @@ describe("rank regression", () => {
     for (const [id, coefficients] of constraints) {
       builder.addConstraint({
         id,
-        terms: (["tx", "ty", "tz"] as const).map((dof, index) => ({
+        terms: (["ux", "uy", "uz"] as const).map((dof, index) => ({
           nodeId: "n1",
           dof,
           coefficient: coefficients[index]!,
@@ -445,7 +445,7 @@ describe("adversarial review remediation", () => {
     )) {
       builder.addConstraint({
         id,
-        terms: (["tx", "ty", "tz"] as const).map((dof, index) => ({
+        terms: (["ux", "uy", "uz"] as const).map((dof, index) => ({
           nodeId: "n1",
           dof,
           coefficient: coefficients[index]!,

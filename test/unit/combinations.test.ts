@@ -17,7 +17,7 @@ function base() {
   return createModelBuilder()
     .setUnitSystem(units)
     .addNode({ id: "a", coordinates: [0, 0, 0] })
-    .addSpring({ id: "s", startNodeId: "a", stiffness: { tx: 1 } });
+    .addSpring({ id: "s", startNodeId: "a", stiffness: { ux: 1 } });
 }
 
 describe("load combinations", () => {

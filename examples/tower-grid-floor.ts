@@ -119,8 +119,8 @@ export function runTowerGridExample() {
   const windX = prepared.solveCase("wind-x");
   const windZ = prepared.solveCase("wind-z");
   const components = Object.freeze([
-    Object.freeze({ component: "tx", entityId: "f22" }),
-    Object.freeze({ component: "tz", entityId: "f22" }),
+    Object.freeze({ component: "ux", entityId: "f22" }),
+    Object.freeze({ component: "uz", entityId: "f22" }),
   ]);
   const envelope = streamEnvelope(
     [envelopeRecord(windX, components), envelopeRecord(windZ, components)],
@@ -129,7 +129,7 @@ export function runTowerGridExample() {
 
   const drift = windX.nodes
     .find((n) => n.id === "f22")!
-    .displacements.find((d) => d.dof === "tx")!.value;
+    .displacements.find((d) => d.dof === "ux")!.value;
   const springShear = windX.springs.reduce((sum, s) => sum + s.globalEndForces[0]!, 0);
   const envelopeMax = Math.max(...envelope.maximum.map((m) => m.value));
   const envelopeMin = Math.min(...envelope.minimum.map((m) => m.value));

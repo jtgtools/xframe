@@ -150,7 +150,7 @@ class DefaultModelBuilder implements ModelBuilder {
       throw new XFrameError("INPUT_INVALID", "Support presets require at least one DOF.", {
         kind: "input",
         path: "support.dofs",
-        expected: "non-empty array of tx, ty, tz, rx, ry, or rz",
+        expected: "non-empty array of ux, uy, uz, rx, ry, or rz",
         actual: Array.isArray(dofs) ? `array(length=${dofs.length})` : typeof dofs,
       });
     }
@@ -332,17 +332,17 @@ function diaphragmConstraints(
   const definitions =
     plane === "xy"
       ? ([
-          ["tx", "rz", dy],
-          ["ty", "rz", -dx],
+          ["ux", "rz", dy],
+          ["uy", "rz", -dx],
         ] as const)
       : plane === "yz"
         ? ([
-            ["ty", "rx", dz],
-            ["tz", "rx", -dy],
+            ["uy", "rx", dz],
+            ["uz", "rx", -dy],
           ] as const)
         : ([
-            ["tx", "ry", -dz],
-            ["tz", "ry", dx],
+            ["ux", "ry", -dz],
+            ["uz", "ry", dx],
           ] as const);
   return Object.freeze(
     definitions.map(([translation, rotation, arm]) =>

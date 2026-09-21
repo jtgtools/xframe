@@ -14,7 +14,7 @@
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "ty",
+          "name": "uy",
           "reference": 0.018965853658536588,
           "actual": 0.0189658536585366,
           "units": "m",
@@ -38,7 +38,7 @@
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "tz",
+          "name": "uz",
           "reference": 0.056897560975609766,
           "actual": 0.05689756097560976,
           "units": "m",
@@ -62,7 +62,7 @@
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "tx",
+          "name": "ux",
           "reference": 0.0000175609756097561,
           "actual": 0.0000175609756097561,
           "units": "m",
@@ -158,7 +158,7 @@
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "tip ty",
+          "name": "tip uy",
           "reference": -0.023717195121951223,
           "actual": -0.02371719512195124,
           "units": "m",
@@ -198,7 +198,7 @@
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "midspan ty",
+          "name": "midspan uy",
           "reference": -0.007317073170731708,
           "actual": -0.007317073170731709,
           "units": "m",
@@ -238,7 +238,7 @@
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "midspan ty",
+          "name": "midspan uy",
           "reference": -0.009146341463414634,
           "actual": -0.009146341463414637,
           "units": "m",
@@ -326,7 +326,7 @@
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "midspan ty",
+          "name": "midspan uy",
           "reference": -0.001829268292682927,
           "actual": -0.0018292682926829265,
           "units": "m",
@@ -382,7 +382,7 @@
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "midspan ty",
+          "name": "midspan uy",
           "reference": -0.001829268292682927,
           "actual": -0.001829268292682927,
           "units": "m",
@@ -670,7 +670,7 @@
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "tip ty",
+          "name": "tip uy",
           "reference": 0.00047037037037037034,
           "actual": 0.0004703703703703703,
           "units": "m",
@@ -791,7 +791,7 @@
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "rectangular tip ty",
+          "name": "rectangular tip uy",
           "reference": 0.000038539672738499536,
           "actual": 0.0000385396727384995,
           "units": "m",
@@ -799,7 +799,7 @@
           "errorPercent": 8.791283236903562e-14
         },
         {
-          "name": "circular tip ty",
+          "name": "circular tip uy",
           "reference": 0.000038286508181537506,
           "actual": 0.000038286508181537506,
           "units": "m",
@@ -807,7 +807,7 @@
           "errorPercent": 0
         },
         {
-          "name": "wide-flange tip ty",
+          "name": "wide-flange tip uy",
           "reference": 0.000043259383407577294,
           "actual": 0.000043259383407577294,
           "units": "m",
@@ -831,7 +831,7 @@
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "midspan ty",
+          "name": "midspan uy",
           "reference": -0.00021296296296296295,
           "actual": -0.00021296296296296298,
           "units": "m",
@@ -855,7 +855,7 @@
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "tip ty",
+          "name": "tip uy",
           "reference": 0.012195121951219513,
           "actual": 0.012195121951219525,
           "units": "m",
@@ -869,17 +869,17 @@
     {
       "id": "VAL-03-001",
       "category": 3,
-      "description": "euler-bernoulli unit tx compliance at the start end",
+      "description": "euler-bernoulli unit ux compliance at the start end",
       "model": "Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; euler-bernoulli.",
       "supports": "The end node is fixed in all six DOFs.",
-      "loads": "Positive unit action in local/global tx at the free start node.",
+      "loads": "Positive unit action in local/global ux at the free start node.",
       "referenceMethod": "closed-form hand calc",
       "frame3ddCoverage": "matrix-direct",
       "tolerancePercent": 0.1,
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "a.tx",
+          "name": "a.ux",
           "reference": 8.40108401084011e-10,
           "actual": 8.401084010840111e-10,
           "units": "m",
@@ -893,17 +893,17 @@
     {
       "id": "VAL-03-002",
       "category": 3,
-      "description": "euler-bernoulli unit ty compliance at the start end",
+      "description": "euler-bernoulli unit uy compliance at the start end",
       "model": "Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; euler-bernoulli.",
       "supports": "The end node is fixed in all six DOFs.",
-      "loads": "Positive unit action in local/global ty at the free start node.",
+      "loads": "Positive unit action in local/global uy at the free start node.",
       "referenceMethod": "closed-form hand calc",
       "frame3ddCoverage": "matrix-direct",
       "tolerancePercent": 0.1,
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "a.ty",
+          "name": "a.uy",
           "reference": 6.727868112014455e-7,
           "actual": 6.72786811201446e-7,
           "units": "m",
@@ -917,17 +917,17 @@
     {
       "id": "VAL-03-003",
       "category": 3,
-      "description": "euler-bernoulli unit tz compliance at the start end",
+      "description": "euler-bernoulli unit uz compliance at the start end",
       "model": "Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; euler-bernoulli.",
       "supports": "The end node is fixed in all six DOFs.",
-      "loads": "Positive unit action in local/global tz at the free start node.",
+      "loads": "Positive unit action in local/global uz at the free start node.",
       "referenceMethod": "closed-form hand calc",
       "frame3ddCoverage": "matrix-direct",
       "tolerancePercent": 0.1,
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "a.tz",
+          "name": "a.uz",
           "reference": 0.0000020183604336043364,
           "actual": 0.000002018360433604336,
           "units": "m",
@@ -1013,17 +1013,17 @@
     {
       "id": "VAL-03-007",
       "category": 3,
-      "description": "euler-bernoulli unit tx compliance at the end end",
+      "description": "euler-bernoulli unit ux compliance at the end end",
       "model": "Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; euler-bernoulli.",
       "supports": "The start node is fixed in all six DOFs.",
-      "loads": "Positive unit action in local/global tx at the free end node.",
+      "loads": "Positive unit action in local/global ux at the free end node.",
       "referenceMethod": "closed-form hand calc",
       "frame3ddCoverage": "matrix-direct",
       "tolerancePercent": 0.1,
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "b.tx",
+          "name": "b.ux",
           "reference": 8.40108401084011e-10,
           "actual": 8.401084010840111e-10,
           "units": "m",
@@ -1037,17 +1037,17 @@
     {
       "id": "VAL-03-008",
       "category": 3,
-      "description": "euler-bernoulli unit ty compliance at the end end",
+      "description": "euler-bernoulli unit uy compliance at the end end",
       "model": "Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; euler-bernoulli.",
       "supports": "The start node is fixed in all six DOFs.",
-      "loads": "Positive unit action in local/global ty at the free end node.",
+      "loads": "Positive unit action in local/global uy at the free end node.",
       "referenceMethod": "closed-form hand calc",
       "frame3ddCoverage": "matrix-direct",
       "tolerancePercent": 0.1,
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "b.ty",
+          "name": "b.uy",
           "reference": 6.727868112014455e-7,
           "actual": 6.72786811201446e-7,
           "units": "m",
@@ -1061,17 +1061,17 @@
     {
       "id": "VAL-03-009",
       "category": 3,
-      "description": "euler-bernoulli unit tz compliance at the end end",
+      "description": "euler-bernoulli unit uz compliance at the end end",
       "model": "Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; euler-bernoulli.",
       "supports": "The start node is fixed in all six DOFs.",
-      "loads": "Positive unit action in local/global tz at the free end node.",
+      "loads": "Positive unit action in local/global uz at the free end node.",
       "referenceMethod": "closed-form hand calc",
       "frame3ddCoverage": "matrix-direct",
       "tolerancePercent": 0.1,
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "b.tz",
+          "name": "b.uz",
           "reference": 0.0000020183604336043364,
           "actual": 0.000002018360433604336,
           "units": "m",
@@ -1157,17 +1157,17 @@
     {
       "id": "VAL-03-013",
       "category": 3,
-      "description": "timoshenko unit tx compliance at the start end",
+      "description": "timoshenko unit ux compliance at the start end",
       "model": "Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; timoshenko.",
       "supports": "The end node is fixed in all six DOFs.",
-      "loads": "Positive unit action in local/global tx at the free start node.",
+      "loads": "Positive unit action in local/global ux at the free start node.",
       "referenceMethod": "closed-form hand calc",
       "frame3ddCoverage": "matrix-direct",
       "tolerancePercent": 0.1,
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "a.tx",
+          "name": "a.ux",
           "reference": 8.40108401084011e-10,
           "actual": 8.401084010840111e-10,
           "units": "m",
@@ -1181,17 +1181,17 @@
     {
       "id": "VAL-03-014",
       "category": 3,
-      "description": "timoshenko unit ty compliance at the start end",
+      "description": "timoshenko unit uy compliance at the start end",
       "model": "Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; timoshenko.",
       "supports": "The end node is fixed in all six DOFs.",
-      "loads": "Positive unit action in local/global ty at the free start node.",
+      "loads": "Positive unit action in local/global uy at the free start node.",
       "referenceMethod": "closed-form hand calc",
       "frame3ddCoverage": "matrix-direct",
       "tolerancePercent": 0.1,
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "a.ty",
+          "name": "a.uy",
           "reference": 6.755897045106679e-7,
           "actual": 6.755897045106688e-7,
           "units": "m",
@@ -1205,17 +1205,17 @@
     {
       "id": "VAL-03-015",
       "category": 3,
-      "description": "timoshenko unit tz compliance at the start end",
+      "description": "timoshenko unit uz compliance at the start end",
       "model": "Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; timoshenko.",
       "supports": "The end node is fixed in all six DOFs.",
-      "loads": "Positive unit action in local/global tz at the free start node.",
+      "loads": "Positive unit action in local/global uz at the free start node.",
       "referenceMethod": "closed-form hand calc",
       "frame3ddCoverage": "matrix-direct",
       "tolerancePercent": 0.1,
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "a.tz",
+          "name": "a.uz",
           "reference": 0.0000020213789340911914,
           "actual": 0.000002021378934091193,
           "units": "m",
@@ -1301,17 +1301,17 @@
     {
       "id": "VAL-03-019",
       "category": 3,
-      "description": "timoshenko unit tx compliance at the end end",
+      "description": "timoshenko unit ux compliance at the end end",
       "model": "Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; timoshenko.",
       "supports": "The start node is fixed in all six DOFs.",
-      "loads": "Positive unit action in local/global tx at the free end node.",
+      "loads": "Positive unit action in local/global ux at the free end node.",
       "referenceMethod": "closed-form hand calc",
       "frame3ddCoverage": "matrix-direct",
       "tolerancePercent": 0.1,
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "b.tx",
+          "name": "b.ux",
           "reference": 8.40108401084011e-10,
           "actual": 8.401084010840111e-10,
           "units": "m",
@@ -1325,17 +1325,17 @@
     {
       "id": "VAL-03-020",
       "category": 3,
-      "description": "timoshenko unit ty compliance at the end end",
+      "description": "timoshenko unit uy compliance at the end end",
       "model": "Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; timoshenko.",
       "supports": "The start node is fixed in all six DOFs.",
-      "loads": "Positive unit action in local/global ty at the free end node.",
+      "loads": "Positive unit action in local/global uy at the free end node.",
       "referenceMethod": "closed-form hand calc",
       "frame3ddCoverage": "matrix-direct",
       "tolerancePercent": 0.1,
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "b.ty",
+          "name": "b.uy",
           "reference": 6.755897045106679e-7,
           "actual": 6.755897045106688e-7,
           "units": "m",
@@ -1349,17 +1349,17 @@
     {
       "id": "VAL-03-021",
       "category": 3,
-      "description": "timoshenko unit tz compliance at the end end",
+      "description": "timoshenko unit uz compliance at the end end",
       "model": "Single local-x member L=3.1 m, A=0.018, Iyy=0.000024, Izz=0.000072, J=0.000013; timoshenko.",
       "supports": "The start node is fixed in all six DOFs.",
-      "loads": "Positive unit action in local/global tz at the free end node.",
+      "loads": "Positive unit action in local/global uz at the free end node.",
       "referenceMethod": "closed-form hand calc",
       "frame3ddCoverage": "matrix-direct",
       "tolerancePercent": 0.1,
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "b.tz",
+          "name": "b.uz",
           "reference": 0.0000020213789340911914,
           "actual": 0.000002021378934091193,
           "units": "m",
@@ -1456,7 +1456,7 @@
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "tip ty",
+          "name": "tip uy",
           "reference": 0.026016260162601626,
           "actual": 0.026016260162601626,
           "units": "m",
@@ -1488,7 +1488,7 @@
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "elastic-end ty",
+          "name": "elastic-end uy",
           "reference": 0.018578506097560985,
           "actual": 0.018578506097560968,
           "units": "m",
@@ -1528,7 +1528,7 @@
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "tip ty",
+          "name": "tip uy",
           "reference": 0.00022583559168925022,
           "actual": 0.00022583559168925024,
           "units": "m",
@@ -1552,7 +1552,7 @@
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "b.tx",
+          "name": "b.ux",
           "reference": 0.0000021680216802168024,
           "actual": 0.0000021680216802168024,
           "units": "m",
@@ -1560,7 +1560,7 @@
           "errorPercent": 0
         },
         {
-          "name": "b.ty",
+          "name": "b.uy",
           "reference": -0.011887985546522132,
           "actual": -0.011887985546522132,
           "units": "m",
@@ -1568,7 +1568,7 @@
           "errorPercent": 0
         },
         {
-          "name": "b.tz",
+          "name": "b.uz",
           "reference": 0.01235772357723578,
           "actual": 0.01235772357723578,
           "units": "m",
@@ -1872,7 +1872,7 @@
       "category": 6,
       "description": "Fixed, pinned, and roller support components produce the exact simply-supported reactions",
       "model": "Two-element 6 m Euler beam with a midspan node.",
-      "supports": "Left pin restrains tx and ty; right roller restrains ty; unused planar DOFs restrained.",
+      "supports": "Left pin restrains ux and uy; right roller restrains uy; unused planar DOFs restrained.",
       "loads": "Midspan force Fy=-24,000 N.",
       "referenceMethod": "closed-form hand calc",
       "frame3ddCoverage": "direct",
@@ -1911,8 +1911,8 @@
       "id": "VAL-06-002",
       "category": 6,
       "description": "Partial end restraint on unrelated DOFs does not alter in-plane cantilever bending",
-      "model": "4 m Euler cantilever with additional end restraints tx and tz.",
-      "supports": "Start node fixed; end node restrains tx and tz only.",
+      "model": "4 m Euler cantilever with additional end restraints ux and uz.",
+      "supports": "Start node fixed; end node restrains ux and uz only.",
       "loads": "Tip force Fy=10,000 N.",
       "referenceMethod": "closed-form hand calc",
       "frame3ddCoverage": "direct",
@@ -1920,7 +1920,7 @@
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "tip ty",
+          "name": "tip uy",
           "reference": 0.014453477868112014,
           "actual": 0.014453477868112016,
           "units": "m",
@@ -1928,7 +1928,7 @@
           "errorPercent": 1.2002118049414534e-14
         },
         {
-          "name": "restrained tx",
+          "name": "restrained ux",
           "reference": 0,
           "actual": 0,
           "units": "m",
@@ -1936,7 +1936,7 @@
           "errorPercent": 0
         },
         {
-          "name": "restrained tz",
+          "name": "restrained uz",
           "reference": 0,
           "actual": 0,
           "units": "m",
@@ -2001,7 +2001,7 @@
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "load-node ty",
+          "name": "load-node uy",
           "reference": -0.0395,
           "actual": -0.0395,
           "units": "m",
@@ -2136,8 +2136,8 @@
       "id": "VAL-07-005",
       "category": 7,
       "description": "A spring remains active when a different DOF at the same node is hard-restrained",
-      "model": "Single grounded node with tx spring k=900 kN/m.",
-      "supports": "Node ty is hard-restrained; tx is spring-supported.",
+      "model": "Single grounded node with ux spring k=900 kN/m.",
+      "supports": "Node uy is hard-restrained; ux is spring-supported.",
       "loads": "Fx=9,000 N and Fy=3,000 N.",
       "referenceMethod": "closed-form hand calc",
       "frame3ddCoverage": "unsupported",
@@ -2611,7 +2611,7 @@
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "tip tx",
+          "name": "tip ux",
           "reference": 0.004316932007583645,
           "actual": 0.004316932007583646,
           "units": "m",
@@ -2619,7 +2619,7 @@
           "errorPercent": 8.673617379884035e-17
         },
         {
-          "name": "tip ty",
+          "name": "tip uy",
           "reference": -0.0019838276308142885,
           "actual": -0.0019838276308142893,
           "units": "m",
@@ -2627,7 +2627,7 @@
           "errorPercent": 8.673617379884035e-17
         },
         {
-          "name": "tip tz",
+          "name": "tip uz",
           "reference": -0.0031270166064381938,
           "actual": -0.003127016606438194,
           "units": "m",
@@ -2771,7 +2771,7 @@
       "toleranceReason": "Closed-form and exact algebraic references permit a 0.1% acceptance threshold.",
       "values": [
         {
-          "name": "tip ty",
+          "name": "tip uy",
           "reference": -0.02311111111111111,
           "actual": -0.02311111111111111,
           "units": "m",
@@ -2811,7 +2811,7 @@
       "frame3ddCoverage": "direct",
       "values": [
         {
-          "name": "node 1 displacement tx",
+          "name": "node 1 displacement ux",
           "reference": 0,
           "actual": 0,
           "units": "mm",
@@ -2819,7 +2819,7 @@
           "errorPercent": 0
         },
         {
-          "name": "node 1 reaction tx",
+          "name": "node 1 reaction ux",
           "reference": -10000,
           "actual": -9999.999999999967,
           "units": "N",
@@ -2827,7 +2827,7 @@
           "errorPercent": 3.2741809263825415e-13
         },
         {
-          "name": "node 1 displacement ty",
+          "name": "node 1 displacement uy",
           "reference": 0,
           "actual": 0,
           "units": "mm",
@@ -2835,7 +2835,7 @@
           "errorPercent": 0
         },
         {
-          "name": "node 1 reaction ty",
+          "name": "node 1 reaction uy",
           "reference": 550.795,
           "actual": 550.795089396077,
           "units": "N",
@@ -2843,7 +2843,7 @@
           "errorPercent": 0.000016230371914634983
         },
         {
-          "name": "node 1 displacement tz",
+          "name": "node 1 displacement uz",
           "reference": 0,
           "actual": 0,
           "units": "mm",
@@ -2851,7 +2851,7 @@
           "errorPercent": 0
         },
         {
-          "name": "node 1 reaction tz",
+          "name": "node 1 reaction uz",
           "reference": -2465.753,
           "actual": -2465.752870422354,
           "units": "N",
@@ -2907,7 +2907,7 @@
           "errorPercent": 2.5962391260546167e-9
         },
         {
-          "name": "node 2 displacement tx",
+          "name": "node 2 displacement ux",
           "reference": 12.681411,
           "actual": 12.681411033557321,
           "units": "mm",
@@ -2915,7 +2915,7 @@
           "errorPercent": 2.646181917606752e-7
         },
         {
-          "name": "node 2 reaction tx",
+          "name": "node 2 reaction ux",
           "reference": 0,
           "actual": -1.1641532182693481e-10,
           "units": "N",
@@ -2923,7 +2923,7 @@
           "errorPercent": 1.1641532182693481e-8
         },
         {
-          "name": "node 2 displacement ty",
+          "name": "node 2 displacement uy",
           "reference": -0.004371,
           "actual": -0.004371389598381563,
           "units": "mm",
@@ -2931,7 +2931,7 @@
           "errorPercent": 0.00003895983815629944
         },
         {
-          "name": "node 2 reaction ty",
+          "name": "node 2 reaction uy",
           "reference": 0,
           "actual": 0,
           "units": "N",
@@ -2939,7 +2939,7 @@
           "errorPercent": 0
         },
         {
-          "name": "node 2 displacement tz",
+          "name": "node 2 displacement uz",
           "reference": 11.478807,
           "actual": 11.478806895001014,
           "units": "mm",
@@ -2947,7 +2947,7 @@
           "errorPercent": 9.147203669004929e-7
         },
         {
-          "name": "node 2 reaction tz",
+          "name": "node 2 reaction uz",
           "reference": 0,
           "actual": -2.7284841053187847e-12,
           "units": "N",
@@ -3003,7 +3003,7 @@
           "errorPercent": 1.3969838619232178e-7
         },
         {
-          "name": "node 3 displacement tx",
+          "name": "node 3 displacement ux",
           "reference": 12.681411,
           "actual": 12.681411033557321,
           "units": "mm",
@@ -3011,7 +3011,7 @@
           "errorPercent": 2.646181917606752e-7
         },
         {
-          "name": "node 3 reaction tx",
+          "name": "node 3 reaction ux",
           "reference": 0,
           "actual": -6.730260793119669e-11,
           "units": "N",
@@ -3019,7 +3019,7 @@
           "errorPercent": 6.730260793119669e-9
         },
         {
-          "name": "node 3 displacement ty",
+          "name": "node 3 displacement uy",
           "reference": -0.074994,
           "actual": -0.07499368976669782,
           "units": "mm",
@@ -3027,7 +3027,7 @@
           "errorPercent": 0.000031023330218649114
         },
         {
-          "name": "node 3 reaction ty",
+          "name": "node 3 reaction uy",
           "reference": 0,
           "actual": -1.8189894035458565e-12,
           "units": "N",
@@ -3035,7 +3035,7 @@
           "errorPercent": 1.8189894035458565e-10
         },
         {
-          "name": "node 3 displacement tz",
+          "name": "node 3 displacement uz",
           "reference": -11.478807,
           "actual": -11.478806895001023,
           "units": "mm",
@@ -3043,7 +3043,7 @@
           "errorPercent": 9.147202895249939e-7
         },
         {
-          "name": "node 3 reaction tz",
+          "name": "node 3 reaction uz",
           "reference": 0,
           "actual": -9.094947017729282e-13,
           "units": "N",
@@ -3099,7 +3099,7 @@
           "errorPercent": 7.450580596923828e-7
         },
         {
-          "name": "node 4 displacement tx",
+          "name": "node 4 displacement ux",
           "reference": 0,
           "actual": 0,
           "units": "mm",
@@ -3107,7 +3107,7 @@
           "errorPercent": 0
         },
         {
-          "name": "node 4 reaction tx",
+          "name": "node 4 reaction ux",
           "reference": -10000,
           "actual": -9999.999999999969,
           "units": "N",
@@ -3115,7 +3115,7 @@
           "errorPercent": 3.092281986027956e-13
         },
         {
-          "name": "node 4 displacement ty",
+          "name": "node 4 displacement uy",
           "reference": 0,
           "actual": 0,
           "units": "mm",
@@ -3123,7 +3123,7 @@
           "errorPercent": 0
         },
         {
-          "name": "node 4 reaction ty",
+          "name": "node 4 reaction uy",
           "reference": 9449.205,
           "actual": 9449.204910603925,
           "units": "N",
@@ -3131,7 +3131,7 @@
           "errorPercent": 9.460698022165622e-7
         },
         {
-          "name": "node 4 displacement tz",
+          "name": "node 4 displacement uz",
           "reference": 0,
           "actual": 0,
           "units": "mm",
@@ -3139,7 +3139,7 @@
           "errorPercent": 0
         },
         {
-          "name": "node 4 reaction tz",
+          "name": "node 4 reaction uz",
           "reference": 2465.753,
           "actual": 2465.752870422357,
           "units": "N",
@@ -3883,7 +3883,7 @@
       "frame3ddCoverage": "direct",
       "values": [
         {
-          "name": "node 1 displacement tx",
+          "name": "node 1 displacement ux",
           "reference": 0,
           "actual": 0,
           "units": "mm",
@@ -3891,7 +3891,7 @@
           "errorPercent": 0
         },
         {
-          "name": "node 1 reaction tx",
+          "name": "node 1 reaction ux",
           "reference": -9027.512,
           "actual": -9027.512348352428,
           "units": "N",
@@ -3899,7 +3899,7 @@
           "errorPercent": 0.000003858786639708476
         },
         {
-          "name": "node 1 displacement ty",
+          "name": "node 1 displacement uy",
           "reference": 0,
           "actual": 0,
           "units": "mm",
@@ -3907,7 +3907,7 @@
           "errorPercent": 0
         },
         {
-          "name": "node 1 reaction ty",
+          "name": "node 1 reaction uy",
           "reference": 5206.171,
           "actual": 5206.1706664273925,
           "units": "N",
@@ -3915,7 +3915,7 @@
           "errorPercent": 0.000006407254156939105
         },
         {
-          "name": "node 1 displacement tz",
+          "name": "node 1 displacement uz",
           "reference": 0,
           "actual": 0,
           "units": "mm",
@@ -3923,7 +3923,7 @@
           "errorPercent": 0
         },
         {
-          "name": "node 1 reaction tz",
+          "name": "node 1 reaction uz",
           "reference": -980.84,
           "actual": -980.8401773104706,
           "units": "N",
@@ -3979,7 +3979,7 @@
           "errorPercent": 1.909304390847729e-9
         },
         {
-          "name": "node 2 displacement tx",
+          "name": "node 2 displacement ux",
           "reference": 0,
           "actual": 0,
           "units": "mm",
@@ -3987,7 +3987,7 @@
           "errorPercent": 0
         },
         {
-          "name": "node 2 reaction tx",
+          "name": "node 2 reaction ux",
           "reference": -11944.975,
           "actual": -11944.975303294726,
           "units": "N",
@@ -3995,7 +3995,7 @@
           "errorPercent": 0.000002539098877218376
         },
         {
-          "name": "node 2 displacement ty",
+          "name": "node 2 displacement uy",
           "reference": 0,
           "actual": 0,
           "units": "mm",
@@ -4003,7 +4003,7 @@
           "errorPercent": 0
         },
         {
-          "name": "node 2 reaction ty",
+          "name": "node 2 reaction uy",
           "reference": 20000,
           "actual": 19999.999999999993,
           "units": "N",
@@ -4011,7 +4011,7 @@
           "errorPercent": 3.637978807091713e-14
         },
         {
-          "name": "node 2 displacement tz",
+          "name": "node 2 displacement uz",
           "reference": 0,
           "actual": 0,
           "units": "mm",
@@ -4019,7 +4019,7 @@
           "errorPercent": 0
         },
         {
-          "name": "node 2 reaction tz",
+          "name": "node 2 reaction uz",
           "reference": 0,
           "actual": 8.100691113924931e-13,
           "units": "N",
@@ -4075,7 +4075,7 @@
           "errorPercent": 1.4703548741459529e-9
         },
         {
-          "name": "node 3 displacement tx",
+          "name": "node 3 displacement ux",
           "reference": 0,
           "actual": 0,
           "units": "mm",
@@ -4083,7 +4083,7 @@
           "errorPercent": 0
         },
         {
-          "name": "node 3 reaction tx",
+          "name": "node 3 reaction ux",
           "reference": -9027.512,
           "actual": -9027.512348352424,
           "units": "N",
@@ -4091,7 +4091,7 @@
           "errorPercent": 0.000003858786599409678
         },
         {
-          "name": "node 3 displacement ty",
+          "name": "node 3 displacement uy",
           "reference": 0,
           "actual": 0,
           "units": "mm",
@@ -4099,7 +4099,7 @@
           "errorPercent": 0
         },
         {
-          "name": "node 3 reaction ty",
+          "name": "node 3 reaction uy",
           "reference": 34793.829,
           "actual": 34793.82933357259,
           "units": "N",
@@ -4107,7 +4107,7 @@
           "errorPercent": 9.587119381239941e-7
         },
         {
-          "name": "node 3 displacement tz",
+          "name": "node 3 displacement uz",
           "reference": 0,
           "actual": 0,
           "units": "mm",
@@ -4115,7 +4115,7 @@
           "errorPercent": 0
         },
         {
-          "name": "node 3 reaction tz",
+          "name": "node 3 reaction uz",
           "reference": 980.84,
           "actual": 980.8401773104688,
           "units": "N",
@@ -4171,7 +4171,7 @@
           "errorPercent": 1.9092663254272947e-9
         },
         {
-          "name": "node 4 displacement tx",
+          "name": "node 4 displacement ux",
           "reference": 10.271671,
           "actual": 10.271670629241507,
           "units": "mm",
@@ -4179,7 +4179,7 @@
           "errorPercent": 0.000003609524607552141
         },
         {
-          "name": "node 4 reaction tx",
+          "name": "node 4 reaction ux",
           "reference": 0,
           "actual": 1.8553691916167736e-10,
           "units": "N",
@@ -4187,7 +4187,7 @@
           "errorPercent": 1.8553691916167736e-8
         },
         {
-          "name": "node 4 displacement ty",
+          "name": "node 4 displacement uy",
           "reference": -0.033806,
           "actual": -0.033806303028749304,
           "units": "mm",
@@ -4195,7 +4195,7 @@
           "errorPercent": 0.000030302874930165924
         },
         {
-          "name": "node 4 reaction ty",
+          "name": "node 4 reaction uy",
           "reference": 0,
           "actual": 3.637978807091713e-12,
           "units": "N",
@@ -4203,7 +4203,7 @@
           "errorPercent": 3.637978807091713e-10
         },
         {
-          "name": "node 4 displacement tz",
+          "name": "node 4 displacement uz",
           "reference": 8.349607,
           "actual": 8.349607133841676,
           "units": "mm",
@@ -4211,7 +4211,7 @@
           "errorPercent": 0.0000016029697627724245
         },
         {
-          "name": "node 4 reaction tz",
+          "name": "node 4 reaction uz",
           "reference": 0,
           "actual": 0,
           "units": "N",
@@ -4267,7 +4267,7 @@
           "errorPercent": 9.313225746154785e-7
         },
         {
-          "name": "node 5 displacement tx",
+          "name": "node 5 displacement ux",
           "reference": 10.283963,
           "actual": 10.283962635754282,
           "units": "mm",
@@ -4275,7 +4275,7 @@
           "errorPercent": 0.000003541880868610209
         },
         {
-          "name": "node 5 reaction tx",
+          "name": "node 5 reaction ux",
           "reference": 0,
           "actual": -1.3642420526593924e-10,
           "units": "N",
@@ -4283,7 +4283,7 @@
           "errorPercent": 1.3642420526593924e-8
         },
         {
-          "name": "node 5 displacement ty",
+          "name": "node 5 displacement uy",
           "reference": -0.12987,
           "actual": -0.12987012987012983,
           "units": "mm",
@@ -4291,7 +4291,7 @@
           "errorPercent": 0.000012987012981691137
         },
         {
-          "name": "node 5 reaction ty",
+          "name": "node 5 reaction uy",
           "reference": 0,
           "actual": 0,
           "units": "N",
@@ -4299,7 +4299,7 @@
           "errorPercent": 0
         },
         {
-          "name": "node 5 displacement tz",
+          "name": "node 5 displacement uz",
           "reference": 0,
           "actual": -1.163448288586624e-14,
           "units": "mm",
@@ -4307,7 +4307,7 @@
           "errorPercent": 1.163448288586624e-12
         },
         {
-          "name": "node 5 reaction tz",
+          "name": "node 5 reaction uz",
           "reference": 0,
           "actual": -8.407117235406306e-13,
           "units": "N",
@@ -4363,7 +4363,7 @@
           "errorPercent": 0.0000027008354663848877
         },
         {
-          "name": "node 6 displacement tx",
+          "name": "node 6 displacement ux",
           "reference": 10.271671,
           "actual": 10.271670629241505,
           "units": "mm",
@@ -4371,7 +4371,7 @@
           "errorPercent": 0.000003609524624845888
         },
         {
-          "name": "node 6 reaction tx",
+          "name": "node 6 reaction ux",
           "reference": 0,
           "actual": -4.729372449219227e-11,
           "units": "N",
@@ -4379,7 +4379,7 @@
           "errorPercent": 4.729372449219227e-9
         },
         {
-          "name": "node 6 displacement ty",
+          "name": "node 6 displacement uy",
           "reference": -0.225934,
           "actual": -0.22593395671151031,
           "units": "mm",
@@ -4387,7 +4387,7 @@
           "errorPercent": 0.000004328848968171428
         },
         {
-          "name": "node 6 reaction ty",
+          "name": "node 6 reaction uy",
           "reference": 0,
           "actual": 2.1827872842550278e-11,
           "units": "N",
@@ -4395,7 +4395,7 @@
           "errorPercent": 2.1827872842550278e-9
         },
         {
-          "name": "node 6 displacement tz",
+          "name": "node 6 displacement uz",
           "reference": -8.349607,
           "actual": -8.349607133841698,
           "units": "mm",
@@ -4403,7 +4403,7 @@
           "errorPercent": 0.0000016029700180692556
         },
         {
-          "name": "node 6 reaction tz",
+          "name": "node 6 reaction uz",
           "reference": 0,
           "actual": 7.275957614183426e-12,
           "units": "N",
@@ -4459,7 +4459,7 @@
           "errorPercent": 9.313225746154785e-7
         },
         {
-          "name": "node 7 displacement tx",
+          "name": "node 7 displacement ux",
           "reference": 24.556406,
           "actual": 24.556405663665696,
           "units": "mm",
@@ -4467,7 +4467,7 @@
           "errorPercent": 0.0000013696397698865338
         },
         {
-          "name": "node 7 reaction tx",
+          "name": "node 7 reaction ux",
           "reference": 0,
           "actual": -4.656612873077393e-10,
           "units": "N",
@@ -4475,7 +4475,7 @@
           "errorPercent": 4.6566128730773926e-8
         },
         {
-          "name": "node 7 displacement ty",
+          "name": "node 7 displacement uy",
           "reference": -0.123629,
           "actual": -0.12362921444955186,
           "units": "mm",
@@ -4483,7 +4483,7 @@
           "errorPercent": 0.000021444955185245806
         },
         {
-          "name": "node 7 reaction ty",
+          "name": "node 7 reaction uy",
           "reference": 0,
           "actual": 0,
           "units": "N",
@@ -4491,7 +4491,7 @@
           "errorPercent": 0
         },
         {
-          "name": "node 7 displacement tz",
+          "name": "node 7 displacement uz",
           "reference": 26.556834,
           "actual": 26.55683391535535,
           "units": "mm",
@@ -4499,7 +4499,7 @@
           "errorPercent": 3.187301876692437e-7
         },
         {
-          "name": "node 7 reaction tz",
+          "name": "node 7 reaction uz",
           "reference": 0,
           "actual": -2.7284841053187847e-12,
           "units": "N",
@@ -4555,7 +4555,7 @@
           "errorPercent": 0.0000015366822481155396
         },
         {
-          "name": "node 8 displacement tx",
+          "name": "node 8 displacement ux",
           "reference": 24.533217,
           "actual": 24.533217436966396,
           "units": "mm",
@@ -4563,7 +4563,7 @@
           "errorPercent": 0.0000017811214709906065
         },
         {
-          "name": "node 8 reaction tx",
+          "name": "node 8 reaction ux",
           "reference": 0,
           "actual": 4.656612873077393e-10,
           "units": "N",
@@ -4571,7 +4571,7 @@
           "errorPercent": 4.6566128730773926e-8
         },
         {
-          "name": "node 8 displacement ty",
+          "name": "node 8 displacement uy",
           "reference": -0.25974,
           "actual": -0.2597402597402597,
           "units": "mm",
@@ -4579,7 +4579,7 @@
           "errorPercent": 0.00002597402596893339
         },
         {
-          "name": "node 8 reaction ty",
+          "name": "node 8 reaction uy",
           "reference": 0,
           "actual": 0,
           "units": "N",
@@ -4587,7 +4587,7 @@
           "errorPercent": 0
         },
         {
-          "name": "node 8 displacement tz",
+          "name": "node 8 displacement uz",
           "reference": 0,
           "actual": -3.901926703515888e-14,
           "units": "mm",
@@ -4595,7 +4595,7 @@
           "errorPercent": 3.901926703515888e-12
         },
         {
-          "name": "node 8 reaction tz",
+          "name": "node 8 reaction uz",
           "reference": 0,
           "actual": 0,
           "units": "N",
@@ -4651,7 +4651,7 @@
           "errorPercent": 0.000001862645149230957
         },
         {
-          "name": "node 9 displacement tx",
+          "name": "node 9 displacement ux",
           "reference": 24.556406,
           "actual": 24.556405663665696,
           "units": "mm",
@@ -4659,7 +4659,7 @@
           "errorPercent": 0.0000013696397698865338
         },
         {
-          "name": "node 9 reaction tx",
+          "name": "node 9 reaction ux",
           "reference": 0,
           "actual": -5.056790541857481e-10,
           "units": "N",
@@ -4667,7 +4667,7 @@
           "errorPercent": 5.056790541857481e-8
         },
         {
-          "name": "node 9 displacement ty",
+          "name": "node 9 displacement uy",
           "reference": -0.395851,
           "actual": -0.3958513050309675,
           "units": "mm",
@@ -4675,7 +4675,7 @@
           "errorPercent": 0.000030503096748457637
         },
         {
-          "name": "node 9 reaction ty",
+          "name": "node 9 reaction uy",
           "reference": 0,
           "actual": 0,
           "units": "N",
@@ -4683,7 +4683,7 @@
           "errorPercent": 0
         },
         {
-          "name": "node 9 displacement tz",
+          "name": "node 9 displacement uz",
           "reference": -26.556834,
           "actual": -26.55683391535544,
           "units": "mm",
@@ -4691,7 +4691,7 @@
           "errorPercent": 3.187298532248518e-7
         },
         {
-          "name": "node 9 reaction tz",
+          "name": "node 9 reaction uz",
           "reference": 0,
           "actual": 3.637978807091713e-12,
           "units": "N",

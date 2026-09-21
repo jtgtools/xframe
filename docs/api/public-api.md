@@ -23,7 +23,7 @@ import {
 
 The builder supports `setUnitSystem`, `addNode`, `addMaterial`, `addFrameSection`, `addTrussSection`, `addFrame`, `addTruss`, `addSpring`, `addConstraint`, `fixNode`, `supportNode`, `addRigidDiaphragm`, `addLoadCase`, `addCombination`, and `addBatch`.
 
-`fixNode(nodeId, values?)` constrains all six DOFs (`tx`, `ty`, `tz`, `rx`, `ry`, `rz`), each to `0` unless overridden in `values`, a partial record of finite prescribed displacements. `supportNode(nodeId, dofs, values?)` constrains exactly the listed DOFs and requires at least one. Generated constraint IDs follow `fix:<node>:<dof>` and `support:<node>:<dof>`; a collision with existing input fails closed with `DUPLICATE_IDENTIFIER`, and several presets apply atomically. Deliberately, there are no pin or roller presets: a translations-only restraint leaves rotations free, and the resulting moment behavior depends on element releases, so callers state the restrained DOFs explicitly. On nodes where a requested DOF is not physical (rotations at a zero-offset truss joint), finalization fails with `INPUT_INVALID` instead of inventing restraint — use `supportNode` with the translational subset there.
+`fixNode(nodeId, values?)` constrains all six DOFs (`ux`, `uy`, `uz`, `rx`, `ry`, `rz`), each to `0` unless overridden in `values`, a partial record of finite prescribed displacements. `supportNode(nodeId, dofs, values?)` constrains exactly the listed DOFs and requires at least one. Generated constraint IDs follow `fix:<node>:<dof>` and `support:<node>:<dof>`; a collision with existing input fails closed with `DUPLICATE_IDENTIFIER`, and several presets apply atomically. Deliberately, there are no pin or roller presets: a translations-only restraint leaves rotations free, and the resulting moment behavior depends on element releases, so callers state the restrained DOFs explicitly. On nodes where a requested DOF is not physical (rotations at a zero-offset truss joint), finalization fails with `INPUT_INVALID` instead of inventing restraint — use `supportNode` with the translational subset there.
 
 Identifiers are NFC-normalized strings. Empty values, control characters, spreadsheet-formula prefixes, non-strings, and duplicates are rejected. Registries use `Map`, so names such as `__proto__` do not mutate object prototypes.
 
@@ -78,10 +78,10 @@ For frames it combines segment coefficients before deriving stations, so extrema
 
 | `component`                 | `entityId`         | Resolved value     |
 | --------------------------- | ------------------ | ------------------ |
-| `tx`…`rz`                   | node id            | Nodal displacement |
-| `reaction.tx`…`reaction.rz` | node id            | Nodal reaction     |
+| `ux`…`rz`                   | node id            | Nodal displacement |
+| `reaction.ux`…`reaction.rz` | node id            | Nodal reaction     |
 | `axialForce`                | truss id           | Truss axial force  |
-| `force.tx`…`force.rz`       | grounded spring id | Spring end force   |
+| `force.ux`…`force.rz`       | grounded spring id | Spring end force   |
 
 Unknown components, missing entities or DOFs, located components, and two-node spring forces fail with `RESULT_INCOMPATIBLE`:
 
@@ -100,7 +100,7 @@ Every envelope record carries strict compatibility metadata: the `sha256` model 
 
 - `MODEL_SCHEMA_VERSION` is `"1"`; `RESULT_SCHEMA_VERSION` is `"2"`.
 - `modelToJsonValue(model)` and `resultToJsonValue(result)` create complete plain-data artifacts.
-- `parseModelJson(value)` validates model schema version `1`; `parseResultJson(value)` validates result schema version `2` and rejects result schema version `1` with `SCHEMA_UNSUPPORTED`.
+- `parseModelJson(value)` validates model schema version `2`; `parseResultJson(value)` validates result schema version `3` and rejects result schema version `2` with `SCHEMA_UNSUPPORTED`.
 - `canonicalJson(value)` sorts object keys, preserves array order, rejects unsupported/non-finite data, and normalizes negative zero.
 - `artifactHash(value)` returns a lowercase SHA-256 hex digest through Web Crypto.
 

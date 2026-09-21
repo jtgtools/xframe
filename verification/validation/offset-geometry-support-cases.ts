@@ -98,9 +98,9 @@ const rigidOffsetCases: ValidationCase[] = [
       );
       return [
         value(
-          "tip ty",
+          "tip uy",
           (load * clearLength ** 3) / (3 * E * IZ),
-          displacement(output, "b", "ty"),
+          displacement(output, "b", "uy"),
           "m",
         ),
         value(
@@ -155,11 +155,11 @@ const rigidOffsetCases: ValidationCase[] = [
       const frame = offsetResult.frames[0]!;
       return [
         value(
-          "elastic-end ty",
-          displacement(clearResult, "b", "ty"),
+          "elastic-end uy",
+          displacement(clearResult, "b", "uy"),
           frame.localEndDisplacements[7]!,
           "m",
-          displacement(clearResult, "b", "ty"),
+          displacement(clearResult, "b", "uy"),
         ),
         value(
           "elastic-end rz",
@@ -199,7 +199,7 @@ const rigidOffsetCases: ValidationCase[] = [
           loads: [{ kind: "nodal", nodeId: "b", force: [0, load, 0] }],
         }),
       );
-      return [value("tip ty", load / (3 * E * IZ), displacement(output, "b", "ty"), "m")];
+      return [value("tip uy", load / (3 * E * IZ), displacement(output, "b", "uy"), "m")];
     },
   ),
   validationCase(
@@ -274,7 +274,7 @@ const rigidOffsetCases: ValidationCase[] = [
         releases: { end: ["rz"] },
       });
       constrain(builder, "a", allDofs);
-      constrain(builder, "b", ["ty", "tz", "rx", "ry"]);
+      constrain(builder, "b", ["uy", "uz", "rx", "ry"]);
       const output = solve(
         builder.addLoadCase({
           id: "LC",
@@ -297,8 +297,8 @@ const rigidOffsetCases: ValidationCase[] = [
           "N*m",
           Math.abs(w) * clearLength ** 2,
         ),
-        value("left reaction", -w * clearLength, reaction(output, "a", "ty"), "N"),
-        value("right reaction", 0, reaction(output, "b", "ty"), "N", Math.abs(w) * clearLength),
+        value("left reaction", -w * clearLength, reaction(output, "a", "uy"), "N"),
+        value("right reaction", 0, reaction(output, "b", "uy"), "N", Math.abs(w) * clearLength),
       ];
     },
   ),
@@ -384,7 +384,7 @@ const geometryCases: ValidationCase[] = [
       const output = solve(
         builder.addLoadCase({ id: "LC", loads: [{ kind: "nodal", nodeId: "b", force }] }),
       );
-      const global = nodeVector(output, "b", ["tx", "ty", "tz"]);
+      const global = nodeVector(output, "b", ["ux", "uy", "uz"]);
       const transverse = Math.hypot(
         ...global.map((entry, index) => entry - axes.x[index]! * dot(global, axes.x)),
       );
@@ -426,7 +426,7 @@ const geometryCases: ValidationCase[] = [
         const output = solve(
           builder.addLoadCase({ id: "LC", loads: [{ kind: "nodal", nodeId: "b", force }] }),
         );
-        const global = nodeVector(output, "b", ["tx", "ty", "tz"]);
+        const global = nodeVector(output, "b", ["ux", "uy", "uz"]);
         return [
           value(
             "local-y tip displacement",
@@ -458,7 +458,7 @@ const geometryCases: ValidationCase[] = [
         .addNode({ id: "a", coordinates: [0, 0, 0] })
         .addNode({ id: "b", coordinates: end })
         .addTruss({ id: "t", startNodeId: "a", endNodeId: "b", materialId: "m", sectionId: "ts" });
-      constrain(builder, "a", ["tx", "ty", "tz"]);
+      constrain(builder, "a", ["ux", "uy", "uz"]);
       const axes = buildLocalAxes([0, 0, 0], end, [0, 0, 1]);
       for (const [id, normal] of [
         ["y", axes.y],
@@ -466,7 +466,7 @@ const geometryCases: ValidationCase[] = [
       ] as const) {
         builder = builder.addConstraint({
           id: `end:${id}`,
-          terms: ["tx", "ty", "tz"].map((dof, index) => ({
+          terms: ["ux", "uy", "uz"].map((dof, index) => ({
             nodeId: "b",
             dof: dof as DofName,
             coefficient: normal[index]!,
@@ -479,7 +479,7 @@ const geometryCases: ValidationCase[] = [
       const output = solve(
         builder.addLoadCase({ id: "LC", loads: [{ kind: "nodal", nodeId: "b", force }] }),
       );
-      const global = nodeVector(output, "b", ["tx", "ty", "tz"]);
+      const global = nodeVector(output, "b", ["ux", "uy", "uz"]);
       return [value("axial displacement", (load * length) / (E * A), dot(global, direction), "m")];
     },
   ),
@@ -522,7 +522,7 @@ const geometryCases: ValidationCase[] = [
       const output = solve(
         builder.addLoadCase({ id: "LC", loads: [{ kind: "nodal", nodeId: "b", force }] }),
       );
-      const global = nodeVector(output, "b", ["tx", "ty", "tz"]);
+      const global = nodeVector(output, "b", ["ux", "uy", "uz"]);
       return [
         value(
           "local-y displacement",
@@ -550,7 +550,7 @@ const supportCases: ValidationCase[] = [
         "Fixed, pinned, and roller support components produce the exact simply-supported reactions",
       model: "Two-element 6 m Euler beam with a midspan node.",
       supports:
-        "Left pin restrains tx and ty; right roller restrains ty; unused planar DOFs restrained.",
+        "Left pin restrains ux and uy; right roller restrains uy; unused planar DOFs restrained.",
       loads: "Midspan force Fy=-24,000 N.",
       referenceMethod: "closed-form hand calc",
       frame3ddCoverage: "direct",
@@ -578,9 +578,9 @@ const supportCases: ValidationCase[] = [
           theory: { kind: "euler-bernoulli" },
           orientation: [0, 1, 0],
         });
-      constrain(builder, "a", ["tx", "ty", "tz", "rx", "ry"]);
-      constrain(builder, "b", ["tz", "rx", "ry"]);
-      constrain(builder, "c", ["ty", "tz", "rx", "ry"]);
+      constrain(builder, "a", ["ux", "uy", "uz", "rx", "ry"]);
+      constrain(builder, "b", ["uz", "rx", "ry"]);
+      constrain(builder, "c", ["uy", "uz", "rx", "ry"]);
       const output = solve(
         builder.addLoadCase({
           id: "LC",
@@ -588,8 +588,8 @@ const supportCases: ValidationCase[] = [
         }),
       );
       return [
-        value("left reaction", 12_000, reaction(output, "a", "ty"), "N"),
-        value("right reaction", 12_000, reaction(output, "c", "ty"), "N"),
+        value("left reaction", 12_000, reaction(output, "a", "uy"), "N"),
+        value("right reaction", 12_000, reaction(output, "c", "uy"), "N"),
         value("pin rotation freedom", 0, reaction(output, "a", "rz"), "N*m", 24_000 * 6),
       ];
     },
@@ -600,8 +600,8 @@ const supportCases: ValidationCase[] = [
       category: 6,
       description:
         "Partial end restraint on unrelated DOFs does not alter in-plane cantilever bending",
-      model: "4 m Euler cantilever with additional end restraints tx and tz.",
-      supports: "Start node fixed; end node restrains tx and tz only.",
+      model: "4 m Euler cantilever with additional end restraints ux and uz.",
+      supports: "Start node fixed; end node restrains ux and uz only.",
       loads: "Tip force Fy=10,000 N.",
       referenceMethod: "closed-form hand calc",
       frame3ddCoverage: "direct",
@@ -619,7 +619,7 @@ const supportCases: ValidationCase[] = [
         torsionalConstant: J,
       });
       constrain(builder, "a", allDofs);
-      constrain(builder, "b", ["tx", "tz"]);
+      constrain(builder, "b", ["ux", "uz"]);
       const output = solve(
         builder.addLoadCase({
           id: "LC",
@@ -627,9 +627,9 @@ const supportCases: ValidationCase[] = [
         }),
       );
       return [
-        value("tip ty", (load * length ** 3) / (3 * E * IZ), displacement(output, "b", "ty"), "m"),
-        value("restrained tx", 0, displacement(output, "b", "tx"), "m", 1),
-        value("restrained tz", 0, displacement(output, "b", "tz"), "m", 1),
+        value("tip uy", (load * length ** 3) / (3 * E * IZ), displacement(output, "b", "uy"), "m"),
+        value("restrained ux", 0, displacement(output, "b", "ux"), "m", 1),
+        value("restrained uz", 0, displacement(output, "b", "uz"), "m", 1),
       ];
     },
   ),
@@ -657,7 +657,7 @@ const supportCases: ValidationCase[] = [
         torsionalConstant: J,
       });
       constrain(builder, "a", allDofs);
-      constrain(builder, "b", ["ty", "tz", "rx", "ry"]);
+      constrain(builder, "b", ["uy", "uz", "rx", "ry"]);
       const output = solve(
         builder.addLoadCase({
           id: "LC",
@@ -673,8 +673,8 @@ const supportCases: ValidationCase[] = [
         }),
       );
       return [
-        value("roller reaction", (-3 * w * length) / 8, reaction(output, "b", "ty"), "N"),
-        value("fixed reaction", (-5 * w * length) / 8, reaction(output, "a", "ty"), "N"),
+        value("roller reaction", (-3 * w * length) / 8, reaction(output, "b", "uy"), "N"),
+        value("fixed reaction", (-5 * w * length) / 8, reaction(output, "a", "uy"), "N"),
         value(
           "fixed moment magnitude",
           (Math.abs(w) * length ** 2) / 8,

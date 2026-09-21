@@ -1,5 +1,5 @@
 /** Package version. Schema compatibility is controlled separately by schemaVersion. */
-export const XFRAME_VERSION = "0.0.1";
+export const XFRAME_VERSION = "0.0.2";
 
 export { XFRAME_ERROR_CODES } from "./errors/error-code.js";
 export type { XFrameErrorCode } from "./errors/error-code.js";

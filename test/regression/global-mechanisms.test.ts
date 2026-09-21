@@ -61,7 +61,7 @@ it("rejects genuinely free eccentric truss rotations as a global mechanism", () 
       rigidOffsets: { start: [0, 1, 0], end: [0, 1, 0] },
     });
   for (const nodeId of ["a", "b"] as const) {
-    for (const dof of ["tx", "ty", "tz", "rx", "ry"] as const)
+    for (const dof of ["ux", "uy", "uz", "rx", "ry"] as const)
       builder.addConstraint({
         id: `fix:${nodeId}:${dof}`,
         terms: [{ nodeId, dof, coefficient: 1 }],

@@ -1,7 +1,7 @@
 import type { StructuralResult } from "../results/result-types.js";
 import { canonicalJson } from "./canonical-json.js";
 
-export const RESULT_SCHEMA_VERSION = "2" as const;
+export const RESULT_SCHEMA_VERSION = "3" as const;
 
 export interface ResultJsonV2 {
   readonly schemaVersion: typeof RESULT_SCHEMA_VERSION;

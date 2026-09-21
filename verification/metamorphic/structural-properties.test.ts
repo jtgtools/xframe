@@ -14,7 +14,7 @@ const units = {
   density: "kg/m^3",
   rotation: "rad",
 } as const;
-const dofs = ["tx", "ty", "tz", "rx", "ry", "rz"] as const;
+const dofs = ["ux", "uy", "uz", "rx", "ry", "rz"] as const;
 
 function fix(
   builder: ModelBuilder,
@@ -106,8 +106,8 @@ function axialTruss(axis: "x" | "y", reversed = false) {
       materialId: "m",
       sectionId: "s",
     });
-  fix(builder, "a", ["tx", "ty", "tz"]);
-  fix(builder, "b", axis === "x" ? ["ty", "tz"] : ["tx", "tz"]);
+  fix(builder, "a", ["ux", "uy", "uz"]);
+  fix(builder, "b", axis === "x" ? ["uy", "uz"] : ["ux", "uz"]);
   builder.addLoadCase({
     id: "P",
     loads: [{ kind: "nodal", nodeId: "b", force: axis === "x" ? [12000, 0, 0] : [0, 12000, 0] }],
@@ -127,8 +127,8 @@ describe("metamorphic structural properties", () => {
   it("rotating an axial truss and load rotates displacement without changing axial force", () => {
     const x = prepareAnalysis(axialTruss("x")).solveCase("P");
     const y = prepareAnalysis(axialTruss("y")).solveCase("P");
-    expect(x.nodes[1]!.displacements.find(({ dof }) => dof === "tx")!.value).toBeCloseTo(
-      y.nodes[1]!.displacements.find(({ dof }) => dof === "ty")!.value,
+    expect(x.nodes[1]!.displacements.find(({ dof }) => dof === "ux")!.value).toBeCloseTo(
+      y.nodes[1]!.displacements.find(({ dof }) => dof === "uy")!.value,
       14,
     );
     expect(x.trusses[0]!.axialForce).toBeCloseTo(y.trusses[0]!.axialForce, 10);
@@ -175,9 +175,9 @@ describe("metamorphic structural properties", () => {
         materialId: "mat",
         sectionId: "sec",
       });
-    fix(builder, "a", ["tx", "ty", "tz"]);
-    fix(builder, "m", ["ty", "tz"]);
-    fix(builder, "b", ["ty", "tz"]);
+    fix(builder, "a", ["ux", "uy", "uz"]);
+    fix(builder, "m", ["uy", "uz"]);
+    fix(builder, "b", ["uy", "uz"]);
     const split = prepareAnalysis(
       builder
         .addLoadCase({ id: "P", loads: [{ kind: "nodal", nodeId: "b", force: [12000, 0, 0] }] })
@@ -197,7 +197,7 @@ describe("metamorphic structural properties", () => {
     const moment = prepared.solveCase("Mz");
     const rotationFromForce = force.nodes[1]!.displacements.find(({ dof }) => dof === "rz")!.value;
     const displacementFromMoment = moment.nodes[1]!.displacements.find(
-      ({ dof }) => dof === "ty",
+      ({ dof }) => dof === "uy",
     )!.value;
     expect(rotationFromForce).toBeCloseTo(displacementFromMoment, 13);
   });

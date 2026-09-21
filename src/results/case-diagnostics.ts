@@ -45,8 +45,8 @@ export function createCaseDiagnostics(input: CaseDiagnosticInput): CaseDiagnosti
     const index = metadata.physicalIndex;
     const total = input.fullLoad[index]! + input.fullResidual[index]!;
     const node = input.model.nodes.find(({ id }) => id === metadata.nodeId)!;
-    if (metadata.dof === "tx" || metadata.dof === "ty" || metadata.dof === "tz") {
-      const component = metadata.dof === "tx" ? 0 : metadata.dof === "ty" ? 1 : 2;
+    if (metadata.dof === "ux" || metadata.dof === "uy" || metadata.dof === "uz") {
+      const component = metadata.dof === "ux" ? 0 : metadata.dof === "uy" ? 1 : 2;
       force[component] = force[component]! + total;
       forceScale += Math.abs(input.fullLoad[index]!) + Math.abs(input.fullResidual[index]!);
       const [x, y, z] = node.coordinates;

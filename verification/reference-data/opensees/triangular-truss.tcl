@@ -1,7 +1,7 @@
 wipe
 model BasicBuilder -ndm 3 -ndf 3
 
-# Triangular truss: 4 m base, 3 m apex. Node 2 has 1 mm prescribed tx. SI units (m, N).
+# Triangular truss: 4 m base, 3 m apex. Node 2 has 1 mm prescribed ux. SI units (m, N).
 node 1 0 0 0
 node 2 4 0 0
 node 3 2 3 0

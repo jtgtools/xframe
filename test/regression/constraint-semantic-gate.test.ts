@@ -33,14 +33,14 @@ function reproducerModel(coupleId: string, fixId: string) {
     .addConstraint({
       id: coupleId,
       terms: [
-        { nodeId: "n", dof: "tx", coefficient: 2e-14 },
-        { nodeId: "n", dof: "ty", coefficient: 1 },
+        { nodeId: "n", dof: "ux", coefficient: 2e-14 },
+        { nodeId: "n", dof: "uy", coefficient: 1 },
       ],
       rightHandSide: 1,
     })
     .addConstraint({
       id: fixId,
-      terms: [{ nodeId: "n", dof: "tx", coefficient: 1 }],
+      terms: [{ nodeId: "n", dof: "ux", coefficient: 1 }],
       rightHandSide: 2,
     })
     .addLoadCase({ id: "LC", loads: [] })
@@ -452,14 +452,14 @@ describe("benign regression", () => {
       .addConstraint({
         id: "e1",
         terms: [
-          { nodeId: "n", dof: "tx", coefficient: 1 },
-          { nodeId: "n", dof: "ty", coefficient: -1 },
+          { nodeId: "n", dof: "ux", coefficient: 1 },
+          { nodeId: "n", dof: "uy", coefficient: -1 },
         ],
         rightHandSide: 1,
       })
       .addConstraint({
         id: "e2",
-        terms: [{ nodeId: "n", dof: "tx", coefficient: 1 }],
+        terms: [{ nodeId: "n", dof: "ux", coefficient: 1 }],
         rightHandSide: 2,
       })
       .addLoadCase({ id: "LC", loads: [] })
