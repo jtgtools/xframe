@@ -1,15 +1,6 @@
-import { combineResults, createModelBuilder, prepareAnalysis } from "../src/index.js";
+import { combineResults, createModelBuilder, prepareAnalysis, unitsSI } from "../src/index.js";
 
-const units = {
-  version: "1",
-  length: "m",
-  force: "N",
-  moment: "N*m",
-  modulus: "Pa",
-  distributedForce: "N/m",
-  density: "kg/m^3",
-  rotation: "rad",
-} as const;
+const units = unitsSI();
 
 /**
  * Two-story two-bay steel moment frame: a real office-building slice.
@@ -79,13 +70,7 @@ export function runTwoStoryTwoBayExample() {
       theory: { kind: "euler-bernoulli" },
       orientation: sec === "col" ? [1, 0, 0] : [0, 1, 0],
     });
-  for (const n of ["n1", "n2", "n3"])
-    for (const dof of ["tx", "ty", "tz", "rx", "ry", "rz"] as const)
-      builder.addConstraint({
-        id: `fix:${n}:${dof}`,
-        terms: [{ nodeId: n, dof, coefficient: 1 }],
-        rightHandSide: 0,
-      });
+  for (const n of ["n1", "n2", "n3"]) builder.fixNode(n);
 
   const model = builder
     .addLoadCase({

@@ -1,17 +1,8 @@
 import { writeFileSync } from "node:fs";
 import { performance } from "node:perf_hooks";
-import { createModelBuilder, prepareAnalysis } from "../dist/index.js";
+import { createModelBuilder, prepareAnalysis, unitsSI } from "../dist/index.js";
 
-const units = {
-  version: "1",
-  length: "m",
-  force: "N",
-  moment: "N*m",
-  modulus: "Pa",
-  distributedForce: "N/m",
-  density: "kg/m^3",
-  rotation: "rad",
-};
+const units = unitsSI();
 
 function timed(operation) {
   const start = performance.now();

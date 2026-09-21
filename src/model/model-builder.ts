@@ -14,6 +14,7 @@ import {
   type CombinationRecord,
   type ConstraintInput,
   type ConstraintRecord,
+  type DofName,
   type FrameInput,
   type FrameRecord,
   type FrameSectionInput,
@@ -34,6 +35,7 @@ import {
 } from "./domain-records.js";
 import { XFrameError } from "../errors/xframe-error.js";
 import type { FinalizedModel } from "./finalized-model.js";
+import { DOF_NAMES, parseDofName } from "./dof-key.js";
 import { parseIdentifier, type EntityId } from "./identifier.js";
 import { finalizeModel } from "./model-finalizer.js";
 import { Registry } from "./registry.js";
@@ -44,6 +46,8 @@ export interface RigidDiaphragmInput {
   readonly masterNodeId: unknown;
   readonly slaveNodeIds: readonly unknown[];
 }
+
+export type SupportValues = Readonly<Partial<Record<DofName, number>>>;
 
 export interface ModelBatchInput {
   readonly unitSystem?: unknown;
@@ -69,6 +73,8 @@ export interface ModelBuilder {
   addTruss(input: TrussInput): ModelBuilder;
   addSpring(input: SpringInput): ModelBuilder;
   addConstraint(input: ConstraintInput): ModelBuilder;
+  fixNode(nodeId: unknown, values?: SupportValues): ModelBuilder;
+  supportNode(nodeId: unknown, dofs: readonly DofName[], values?: SupportValues): ModelBuilder;
   addRigidDiaphragm(input: RigidDiaphragmInput): ModelBuilder;
   addLoadCase(input: LoadCaseInput): ModelBuilder;
   addCombination(input: CombinationInput): ModelBuilder;
@@ -133,6 +139,62 @@ class DefaultModelBuilder implements ModelBuilder {
   public addConstraint(input: ConstraintInput): this {
     this.#constraints.add(createConstraintRecord(input));
     return this;
+  }
+
+  public fixNode(nodeId: unknown, values?: SupportValues): this {
+    return this.supportDofs("fix", nodeId, DOF_NAMES, values);
+  }
+
+  public supportNode(nodeId: unknown, dofs: readonly DofName[], values?: SupportValues): this {
+    if (!Array.isArray(dofs) || dofs.length === 0) {
+      throw new XFrameError("INPUT_INVALID", "Support presets require at least one DOF.", {
+        kind: "input",
+        path: "support.dofs",
+        expected: "non-empty array of tx, ty, tz, rx, ry, or rz",
+        actual: Array.isArray(dofs) ? `array(length=${dofs.length})` : typeof dofs,
+      });
+    }
+    return this.supportDofs("support", nodeId, dofs, values);
+  }
+
+  private supportDofs(
+    kind: "fix" | "support",
+    nodeId: unknown,
+    dofs: readonly DofName[],
+    values: SupportValues | undefined,
+  ): this {
+    const target = parseIdentifier(nodeId, `${kind}.nodeId`);
+    const parsedDofs = dofs.map((dof, index) => parseDofName(dof, `${kind}.dofs[${index}]`));
+    const prescribed = this.parseSupportValues(kind, values);
+    this.#constraints.transaction((draft) => {
+      for (const dof of parsedDofs) {
+        draft.add(
+          createConstraintRecord({
+            id: `${kind}:${target}:${dof}`,
+            terms: [{ nodeId: target, dof, coefficient: 1 }],
+            rightHandSide: prescribed[dof] ?? 0,
+          }),
+        );
+      }
+    });
+    return this;
+  }
+
+  private parseSupportValues(
+    kind: "fix" | "support",
+    values: SupportValues | undefined,
+  ): Readonly<Partial<Record<DofName, number>>> {
+    if (values === undefined) return Object.freeze({});
+    if (values === null || typeof values !== "object" || Array.isArray(values)) {
+      throw new XFrameError("INPUT_INVALID", "Support values must be an object.", {
+        kind: "input",
+        path: `${kind}.values`,
+        expected: "object mapping DOF names to finite numbers",
+        actual: values === null ? "null" : typeof values,
+      });
+    }
+    for (const key of Object.keys(values)) parseDofName(key, `${kind}.values.${key}`);
+    return values;
   }
 
   public addRigidDiaphragm(input: RigidDiaphragmInput): this {

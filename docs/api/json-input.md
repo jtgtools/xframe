@@ -40,7 +40,7 @@ Canonical JSON sorts object keys lexicographically, retains array order, emits f
 
 ## Units
 
-The exact unit keys are `version`, `length`, `force`, `moment`, `modulus`, `distributedForce`, `density`, and `rotation`. `rotation` must be `"rad"`. Labels are metadata; xframe performs no unit conversion.
+The exact unit keys are `version`, `length`, `force`, `moment`, `modulus`, `distributedForce`, `density`, and `rotation`. `rotation` must be `"rad"`. Labels are metadata; xframe performs no unit conversion. `unitsSI()` supplies the frozen SI labels accepted by this schema.
 
 ## Failure handling
 

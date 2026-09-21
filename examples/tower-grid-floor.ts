@@ -1,20 +1,12 @@
 import {
-  createEnvelopeCompatibility,
   createModelBuilder,
+  envelopeRecord,
   prepareAnalysis,
   streamEnvelope,
+  unitsSI,
 } from "../src/index.js";
 
-const units = {
-  version: "1",
-  length: "m",
-  force: "N",
-  moment: "N*m",
-  modulus: "Pa",
-  distributedForce: "N/m",
-  density: "kg/m^3",
-  rotation: "rad",
-} as const;
+const units = unitsSI();
 
 /**
  * Tower floor grid on soil springs with a rigid diaphragm.
@@ -22,14 +14,6 @@ const units = {
  * grounded + two-node soil springs, and wind from two directions.
  * Demonstrates diaphragms, springs, Timoshenko theory, and envelopes.
  */
-type TowerResult = {
-  nodes: readonly { id: string; displacements: readonly { dof: string; value: number }[] }[];
-};
-
-function diaphragmValue(result: TowerResult, dof: "tx" | "tz"): number {
-  return result.nodes.find((n) => n.id === "f22")!.displacements.find((d) => d.dof === dof)!.value;
-}
-
 export function runTowerGridExample() {
   const builder = createModelBuilder().setUnitSystem(units);
   // 2x2 bay floor at z=3, 6 m grid, columns down to grade springs.
@@ -138,22 +122,8 @@ export function runTowerGridExample() {
     Object.freeze({ component: "tx", entityId: "f22" }),
     Object.freeze({ component: "tz", entityId: "f22" }),
   ]);
-  const compatibility = createEnvelopeCompatibility(windX, components);
   const envelope = streamEnvelope(
-    [
-      {
-        resultId: windX.id,
-        resultKind: windX.kind,
-        compatibility,
-        values: [diaphragmValue(windX, "tx"), diaphragmValue(windX, "tz")],
-      },
-      {
-        resultId: windZ.id,
-        resultKind: windZ.kind,
-        compatibility: createEnvelopeCompatibility(windZ, components),
-        values: [diaphragmValue(windZ, "tx"), diaphragmValue(windZ, "tz")],
-      },
-    ],
+    [envelopeRecord(windX, components), envelopeRecord(windZ, components)],
     components,
   );
 

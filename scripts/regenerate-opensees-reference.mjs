@@ -7,7 +7,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { createModelBuilder, prepareAnalysis } from "../dist/index.js";
+import { createModelBuilder, prepareAnalysis, unitsSI } from "../dist/index.js";
 
 const root = resolve(import.meta.dirname, "..");
 const oracle = {
@@ -17,24 +17,10 @@ const oracle = {
   binarySha256: "5aa4e9c80c410c510ca62ac3b2f1d64a8e50679f0238e140b5bebcd6d5ddbe6d",
 };
 
-const units = {
-  version: "1",
-  length: "m",
-  force: "N",
-  moment: "N*m",
-  modulus: "Pa",
-  distributedForce: "N/m",
-  density: "kg/m^3",
-  rotation: "rad",
-};
+const units = unitsSI();
 
 function fixAll(builder, nodeId) {
-  for (const dof of ["tx", "ty", "tz", "rx", "ry", "rz"])
-    builder.addConstraint({
-      id: `fixed:${nodeId}:${dof}`,
-      terms: [{ nodeId, dof, coefficient: 1 }],
-      rightHandSide: 0,
-    });
+  builder.fixNode(nodeId);
 }
 
 function inputSha(name) {

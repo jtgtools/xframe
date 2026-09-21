@@ -18,10 +18,10 @@
       "skylineMaximumRowWidth": 9,
       "estimatedSparseWorkingBytes": 7968,
       "timingsMilliseconds": {
-        "topology": 14.297139000000001,
-        "prepareEndToEnd": 11.937611999999994,
-        "firstCase": 13.424604000000002,
-        "reusedSecondCase": 2.8738440000000054
+        "topology": 12.816713,
+        "prepareEndToEnd": 11.173202999999994,
+        "firstCase": 9.633841000000004,
+        "reusedSecondCase": 2.185299999999998
       },
       "reuse": {
         "assemblyCount": 1,
@@ -50,10 +50,10 @@
       "skylineMaximumRowWidth": 18,
       "estimatedSparseWorkingBytes": 29440,
       "timingsMilliseconds": {
-        "topology": 8.938303000000005,
-        "prepareEndToEnd": 14.379829999999998,
-        "firstCase": 6.868432999999996,
-        "reusedSecondCase": 3.7874400000000037
+        "topology": 4.151080999999991,
+        "prepareEndToEnd": 12.742080999999999,
+        "firstCase": 4.903035000000003,
+        "reusedSecondCase": 4.3017169999999965
       },
       "reuse": {
         "assemblyCount": 1,
@@ -82,10 +82,10 @@
       "skylineMaximumRowWidth": 20,
       "estimatedSparseWorkingBytes": 79824,
       "timingsMilliseconds": {
-        "topology": 8.980452999999997,
-        "prepareEndToEnd": 15.080007999999992,
-        "firstCase": 8.78662700000001,
-        "reusedSecondCase": 9.152035999999981
+        "topology": 7.256820000000005,
+        "prepareEndToEnd": 14.525272000000001,
+        "firstCase": 9.336283000000009,
+        "reusedSecondCase": 13.469201999999996
       },
       "reuse": {
         "assemblyCount": 1,
@@ -114,10 +114,10 @@
       "skylineMaximumRowWidth": 20,
       "estimatedSparseWorkingBytes": 120704,
       "timingsMilliseconds": {
-        "topology": 9.983080999999999,
-        "prepareEndToEnd": 20.066775999999976,
-        "firstCase": 13.222930999999988,
-        "reusedSecondCase": 15.569063
+        "topology": 7.509311999999994,
+        "prepareEndToEnd": 15.930687000000006,
+        "firstCase": 9.209115999999995,
+        "reusedSecondCase": 14.572068000000002
       },
       "reuse": {
         "assemblyCount": 1,
@@ -146,10 +146,10 @@
       "skylineMaximumRowWidth": 13,
       "estimatedSparseWorkingBytes": 10440,
       "timingsMilliseconds": {
-        "topology": 4.735657000000003,
-        "prepareEndToEnd": 6.531221000000016,
-        "firstCase": 2.6277550000000076,
-        "reusedSecondCase": 1.8910499999999786
+        "topology": 3.060604999999981,
+        "prepareEndToEnd": 4.650583999999981,
+        "firstCase": 2.8352140000000077,
+        "reusedSecondCase": 2.7965219999999817
       },
       "reuse": {
         "assemblyCount": 1,

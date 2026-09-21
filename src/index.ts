@@ -7,7 +7,12 @@ export type { XFrameErrorContext } from "./errors/error-context.js";
 export { XFrameError } from "./errors/xframe-error.js";
 
 export { createModelBuilder } from "./model/model-builder.js";
-export type { ModelBatchInput, ModelBuilder, RigidDiaphragmInput } from "./model/model-builder.js";
+export type {
+  ModelBatchInput,
+  ModelBuilder,
+  RigidDiaphragmInput,
+  SupportValues,
+} from "./model/model-builder.js";
 export type {
   CombinationInput,
   ConstraintInput,
@@ -35,6 +40,7 @@ export type {
   SelfWeightLoadInput,
 } from "./loads/load-types.js";
 export type { UnitSystem } from "./units/unit-system.js";
+export { unitsSI } from "./units/unit-presets.js";
 
 export { prepareAnalysis } from "./analysis/prepare-analysis.js";
 export type { PrepareAnalysisOptions } from "./analysis/prepare-analysis.js";
@@ -49,6 +55,7 @@ export type {
   FrameInternalForceSegment,
 } from "./results/frame-internal-forces.js";
 export { createEnvelopeCompatibility, streamEnvelope } from "./results/stream-envelope.js";
+export { envelopeRecord } from "./results/envelope-record.js";
 export type {
   CaseDiagnostics,
   CaseResult,

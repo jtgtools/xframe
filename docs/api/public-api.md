@@ -8,10 +8,12 @@ import {
   prepareAnalysis,
   combineResults,
   createEnvelopeCompatibility,
+  envelopeRecord,
   streamEnvelope,
   modelToJsonValue,
   resultToJsonValue,
   parseModelJson,
+  unitsSI,
 } from "@jtgtools/xframe";
 ```
 
@@ -19,7 +21,9 @@ import {
 
 `createModelBuilder(): ModelBuilder` creates a mutable transaction boundary. Add methods copy and validate caller-owned values and return the same builder for fluent use. `addBatch` is atomic. `snapshot()` returns immutable construction records. `finalize()` resolves references, active physical DOFs, elastic member geometry, load coordinates, result dependencies, and a deterministic model fingerprint.
 
-The builder supports `setUnitSystem`, `addNode`, `addMaterial`, `addFrameSection`, `addTrussSection`, `addFrame`, `addTruss`, `addSpring`, `addConstraint`, `addRigidDiaphragm`, `addLoadCase`, `addCombination`, and `addBatch`.
+The builder supports `setUnitSystem`, `addNode`, `addMaterial`, `addFrameSection`, `addTrussSection`, `addFrame`, `addTruss`, `addSpring`, `addConstraint`, `fixNode`, `supportNode`, `addRigidDiaphragm`, `addLoadCase`, `addCombination`, and `addBatch`.
+
+`fixNode(nodeId, values?)` constrains all six DOFs (`tx`, `ty`, `tz`, `rx`, `ry`, `rz`), each to `0` unless overridden in `values`, a partial record of finite prescribed displacements. `supportNode(nodeId, dofs, values?)` constrains exactly the listed DOFs and requires at least one. Generated constraint IDs follow `fix:<node>:<dof>` and `support:<node>:<dof>`; a collision with existing input fails closed with `DUPLICATE_IDENTIFIER`, and several presets apply atomically. Deliberately, there are no pin or roller presets: a translations-only restraint leaves rotations free, and the resulting moment behavior depends on element releases, so callers state the restrained DOFs explicitly. On nodes where a requested DOF is not physical (rotations at a zero-offset truss joint), finalization fails with `INPUT_INVALID` instead of inventing restraint — use `supportNode` with the translational subset there.
 
 Identifiers are NFC-normalized strings. Empty values, control characters, spreadsheet-formula prefixes, non-strings, and duplicates are rejected. Registries use `Map`, so names such as `__proto__` do not mutate object prototypes.
 
@@ -40,7 +44,7 @@ interface UnitSystem {
 }
 ```
 
-Unit labels are descriptive. There is no unit conversion. The caller is responsible for a consistent force-length system.
+Unit labels are descriptive. There is no unit conversion. The caller is responsible for a consistent force-length system. `unitsSI()` returns the frozen version-one SI labels (`m`, `N`, `N*m`, `Pa`, `N/m`, `kg/m^3`, `rad`) for direct use with `setUnitSystem`.
 
 ## Analysis
 
@@ -70,7 +74,25 @@ A `CaseResult` is immutable and includes:
 const combination = combineResults("uls", [{ result: deadLoad, factor: 1.35 }]);
 ```
 
-For frames it combines segment coefficients before deriving stations, so extrema from a new linear combination are retained. `createEnvelopeCompatibility(result, components)` produces the required immutable metadata. `streamEnvelope(records, components)` consumes records incrementally and retains all tied minimum and maximum governors with complete provenance.
+For frames it combines segment coefficients before deriving stations, so extrema from a new linear combination are retained. `createEnvelopeCompatibility(result, components)` produces the required immutable metadata. `envelopeRecord(result, components)` builds a complete streaming record — compatibility plus values extracted in component order — from this vocabulary:
+
+| `component`                 | `entityId`         | Resolved value     |
+| --------------------------- | ------------------ | ------------------ |
+| `tx`…`rz`                   | node id            | Nodal displacement |
+| `reaction.tx`…`reaction.rz` | node id            | Nodal reaction     |
+| `axialForce`                | truss id           | Truss axial force  |
+| `force.tx`…`force.rz`       | grounded spring id | Spring end force   |
+
+Unknown components, missing entities or DOFs, located components, and two-node spring forces fail with `RESULT_INCOMPATIBLE`:
+
+```ts
+const envelope = streamEnvelope(
+  [envelopeRecord(windX, components), envelopeRecord(windZ, components)],
+  components,
+);
+```
+
+`streamEnvelope(records, components)` consumes records incrementally and retains all tied minimum and maximum governors with complete provenance.
 
 Every envelope record carries strict compatibility metadata: the `sha256` model fingerprint, the complete unit system, result conventions, and the exact ordered component layout. `streamEnvelope` compares every record with the first record and the supplied layout before reading values. Bare legacy records and every mismatch fail with `RESULT_INCOMPATIBLE`.
 
@@ -88,7 +110,7 @@ See [JSON input](json-input.md).
 
 All expected validation and numerical failures use `XFrameError`. Stable codes are:
 
-`INPUT_INVALID`, `IDENTIFIER_INVALID`, `DUPLICATE_IDENTIFIER`, `REFERENCE_NOT_FOUND`, `UNITS_INVALID`, `GEOMETRY_INVALID`, `MATERIAL_INVALID`, `SECTION_INVALID`, `LOAD_INVALID`, `CONSTRAINT_CONTRADICTION`, `CONSTRAINT_CYCLE`, `CONSTRAINT_RANK_DEFICIENT`, `ELEMENT_LOCAL_MECHANISM`, `GLOBAL_MECHANISM`, `FACTORIZATION_FAILED`, `NON_FINITE_VALUE`, `MEMORY_LIMIT_EXCEEDED`, `SCHEMA_UNSUPPORTED`, `SCHEMA_INVALID`, `RESULT_INCOMPATIBLE`, and `UNSUPPORTED_FEATURE`.
+`INPUT_INVALID`, `IDENTIFIER_INVALID`, `DUPLICATE_IDENTIFIER`, `REFERENCE_NOT_FOUND`, `UNITS_INVALID`, `GEOMETRY_INVALID`, `MATERIAL_INVALID`, `SECTION_INVALID`, `LOAD_INVALID`, `CONSTRAINT_CONTRADICTION`, `CONSTRAINT_CYCLE`, `CONSTRAINT_RANK_DEFICIENT`, `CONSTRAINT_SEMANTIC_VIOLATION`, `ELEMENT_LOCAL_MECHANISM`, `GLOBAL_MECHANISM`, `FACTORIZATION_FAILED`, `NON_FINITE_VALUE`, `MEMORY_LIMIT_EXCEEDED`, `SCHEMA_UNSUPPORTED`, `SCHEMA_INVALID`, `RESULT_INCOMPATIBLE`, and `UNSUPPORTED_FEATURE`.
 
 The message is human-readable. `code` and `context` are the machine contract. Native programming errors are not converted into structural-analysis success.
 
@@ -98,4 +120,4 @@ The message is human-readable. `code` and `context` are the machine contract. Na
 
 ## Verification boundary
 
-Overlapping frame and truss behavior is compared directly with Frame3DD outputs, including element and assembled stiffness matrices. xframe-specific springs, affine constraints, result combinations, envelopes, JSON, and identifier security have independent tests because Frame3DD does not define those contracts.
+Frame, truss, and building behavior is compared against the OpenSees Tcl binary (no openseespy): cantilever, single-bay portal, two-story two-bay frame, triangular truss with settlement, and eccentric-truss rigid-link rotations. xframe-specific springs, affine constraints, result combinations, envelopes, JSON, and identifier security have independent tests because OpenSees does not define those contracts.

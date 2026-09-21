@@ -5,18 +5,10 @@ import {
   modelToJsonValue,
   parseModelJson,
   prepareAnalysis,
+  unitsSI,
 } from "../src/index.js";
 
-const units = {
-  version: "1",
-  length: "m",
-  force: "N",
-  moment: "N*m",
-  modulus: "Pa",
-  distributedForce: "N/m",
-  density: "kg/m^3",
-  rotation: "rad",
-} as const;
+const units = unitsSI();
 
 /** Canonical JSON round-trip of a real two-story building slice. */
 export async function runBuildingJsonRoundtripExample() {
@@ -67,13 +59,7 @@ export async function runBuildingJsonRoundtripExample() {
       orientation: [0, 1, 0],
       releases: { end: ["ry"] },
     });
-  for (const n of ["p1", "p2"])
-    for (const dof of ["tx", "ty", "tz", "rx", "ry", "rz"] as const)
-      builder.addConstraint({
-        id: `fix:${n}:${dof}`,
-        terms: [{ nodeId: n, dof, coefficient: 1 }],
-        rightHandSide: 0,
-      });
+  for (const n of ["p1", "p2"]) builder.fixNode(n);
   const model = builder
     .addLoadCase({
       id: "service",

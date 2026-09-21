@@ -15,12 +15,14 @@ it("exposes only the intentional public runtime API", () => {
     "combineResults",
     "createEnvelopeCompatibility",
     "createModelBuilder",
+    "envelopeRecord",
     "modelToJsonValue",
     "parseModelJson",
     "parseResultJson",
     "prepareAnalysis",
     "resultToJsonValue",
     "streamEnvelope",
+    "unitsSI",
   ]);
 });
 

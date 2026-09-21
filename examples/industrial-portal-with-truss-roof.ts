@@ -1,15 +1,6 @@
-import { createModelBuilder, prepareAnalysis } from "../src/index.js";
+import { createModelBuilder, prepareAnalysis, unitsSI } from "../src/index.js";
 
-const units = {
-  version: "1",
-  length: "m",
-  force: "N",
-  moment: "N*m",
-  modulus: "Pa",
-  distributedForce: "N/m",
-  density: "kg/m^3",
-  rotation: "rad",
-} as const;
+const units = unitsSI();
 
 /**
  * Single-bay industrial portal with a truss roof: a warehouse slice.
@@ -89,20 +80,9 @@ export function runIndustrialPortalExample() {
       sectionId: "tie",
     });
 
-  for (const n of ["base-l", "base-r"])
-    for (const dof of ["tx", "ty", "tz", "rx", "ry", "rz"] as const)
-      builder.addConstraint({
-        id: `pin:${n}:${dof}`,
-        terms: [{ nodeId: n, dof, coefficient: 1 }],
-        rightHandSide: 0,
-      });
+  for (const n of ["base-l", "base-r"]) builder.fixNode(n);
   // Out-of-plane restraint so the 2D slice stays stable in 3D.
-  for (const n of ["eave-l", "ridge", "eave-r"])
-    builder.addConstraint({
-      id: `brace:${n}:tz`,
-      terms: [{ nodeId: n, dof: "tz", coefficient: 1 }],
-      rightHandSide: 0,
-    });
+  for (const n of ["eave-l", "ridge", "eave-r"]) builder.supportNode(n, ["tz"]);
 
   const result = prepareAnalysis(
     builder
