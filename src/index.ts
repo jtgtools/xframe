@@ -79,8 +79,8 @@ export type {
 export { canonicalJson } from "./serialization/canonical-json.js";
 export { artifactHash } from "./serialization/artifact-hash.js";
 export { MODEL_SCHEMA_VERSION, modelToJsonValue } from "./serialization/model-schema.js";
-export type { ModelJsonV1 } from "./serialization/model-schema.js";
+export type { ModelJsonV1, ModelJsonV2 } from "./serialization/model-schema.js";
 export { parseModelJson } from "./serialization/parse-model-json.js";
 export { RESULT_SCHEMA_VERSION, resultToJsonValue } from "./serialization/result-schema.js";
-export type { ResultJsonV2 } from "./serialization/result-schema.js";
+export type { ResultJsonV2, ResultJsonV3 } from "./serialization/result-schema.js";
 export { parseResultJson } from "./serialization/parse-result-json.js";

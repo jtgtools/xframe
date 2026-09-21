@@ -98,7 +98,7 @@ Every envelope record carries strict compatibility metadata: the `sha256` model 
 
 ## JSON and canonical artifacts
 
-- `MODEL_SCHEMA_VERSION` is `"1"`; `RESULT_SCHEMA_VERSION` is `"2"`.
+- `MODEL_SCHEMA_VERSION` is `"2"`; `RESULT_SCHEMA_VERSION` is `"3"`.
 - `modelToJsonValue(model)` and `resultToJsonValue(result)` create complete plain-data artifacts.
 - `parseModelJson(value)` validates model schema version `2`; `parseResultJson(value)` validates result schema version `3` and rejects result schema version `2` with `SCHEMA_UNSUPPORTED`.
 - `canonicalJson(value)` sorts object keys, preserves array order, rejects unsupported/non-finite data, and normalizes negative zero.

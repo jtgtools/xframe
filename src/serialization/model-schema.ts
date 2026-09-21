@@ -16,7 +16,7 @@ import type { UnitSystem } from "../units/unit-system.js";
 
 export const MODEL_SCHEMA_VERSION = "2" as const;
 
-export interface ModelJsonV1 {
+export interface ModelJsonV2 {
   readonly schemaVersion: typeof MODEL_SCHEMA_VERSION;
   readonly unitSystem: UnitSystem;
   readonly nodes: readonly NodeInput[];
@@ -104,8 +104,11 @@ function loadToJson(load: FinalizedModel["loadCases"][number]["loads"][number]):
   }
 }
 
-/** Converts a finalized model to the complete version-one JSON model representation. */
-export function modelToJsonValue(model: FinalizedModel): ModelJsonV1 {
+/** Deprecated alias for ModelJsonV2, retained for compatibility. */
+export type ModelJsonV1 = ModelJsonV2;
+
+/** Converts a finalized model to the complete version-two JSON model representation. */
+export function modelToJsonValue(model: FinalizedModel): ModelJsonV2 {
   return {
     schemaVersion: MODEL_SCHEMA_VERSION,
     unitSystem: { ...model.unitSystem },

@@ -18,6 +18,6 @@ The sparse matrix convention is lower-triangular coordinate storage. Ordering us
 
 Element implementations remain separate because their active DOFs and physics differ. Frames have twelve deformable-end DOFs. A zero-offset truss uses translational axial behavior; a truss endpoint with a nonzero rigid offset activates all six reference-node DOFs, including physical rotations. Its sparse local stiffness is assembled from the compatibility vector `B` as `(EA/L) B^T B`, and self-weight uses the matching rigid-arm force transform. Unsupported free rotations remain physical global mechanisms rather than hidden restraints. Springs activate only explicitly nonzero components. Shared geometry and rigid-offset transformations are reused rather than hidden behind a generic one-implementation abstraction.
 
-Envelope streaming is a strict boundary: every record supplies model fingerprint, complete units, result conventions, and exact ordered component layout before any envelope value is read. Result serialization retains model schema version `1` and publishes result schema version `2`.
+Envelope streaming is a strict boundary: every record supplies model fingerprint, complete units, result conventions, and exact ordered component layout before any envelope value is read. Result serialization retains model schema version `2` and publishes result schema version `3`.
 
 See [structural model theory](../theory/structural-model.md), [solution and results](../theory/solution-and-results.md), and the [verification report](../verification/verification-report.md).

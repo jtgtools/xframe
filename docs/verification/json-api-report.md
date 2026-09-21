@@ -77,4 +77,4 @@ The repository remains pinned to Vitest 4.1.10, Oxlint 1.76.0, Oxfmt 0.61.0, and
 
 ## Safety-correctness supersession (2026-08-08)
 
-This report preserves the historical Part 13 execution and its test counts. Current model JSON remains schema version `1`; current result JSON is schema version `2`, and result version `1` fails with `SCHEMA_UNSUPPORTED`. Current exports additionally include `createEnvelopeCompatibility`, and envelopes require compatibility metadata rather than accepting bare records. See [`safety-correctness-report.md`](safety-correctness-report.md).
+This report preserves the historical Part 13 execution and its test counts. Current model JSON remains schema version `2`; current result JSON is schema version `3`, and result version `2` fails with `SCHEMA_UNSUPPORTED`. Current exports additionally include `createEnvelopeCompatibility`, and envelopes require compatibility metadata rather than accepting bare records. See [`safety-correctness-report.md`](safety-correctness-report.md).

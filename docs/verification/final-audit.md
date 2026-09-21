@@ -41,7 +41,7 @@ npm pack --dry-run
 npm pack
 ```
 
-The available harness reports passing tests and passing verification tests including 99 requested validation cases. Production TypeScript type checking and build pass. The browser runtime boundary is clean across source modules, and the dense-global-allocation guard passes. Native coverage percentages are not claimed because the pinned Vitest coverage provider could not be fetched.
+The available harness reports passing tests and passing verification tests including 99 requested validation cases. Production TypeScript type checking and build pass. The browser runtime boundary is clean across source modules, and the dense-global-allocation guard passes. (Note: `npm run check:dense` was later pruned as a standalone script; the guard now runs as `test/regression/no-dense-global-allocation.test.ts` under `npm run test`.) Native coverage percentages are not claimed because the pinned Vitest coverage provider could not be fetched.
 
 ## Package audit
 

@@ -4,7 +4,7 @@ xframe accepts parsed JSON values, not filenames or CSV. CSV input is not suppor
 
 ## Model artifact
 
-A version-one model is a closed object with `schemaVersion: "1"`, `unitSystem`, `nodes`, `materials`, `frameSections`, `trussSections`, `frames`, `trusses`, `springs`, `constraints`, `loadCases`, and `combinations`. Every property is required; unused collections are empty arrays. Unknown properties fail validation.
+A version-two model is a closed object with `schemaVersion: "2"`, `unitSystem`, `nodes`, `materials`, `frameSections`, `trussSections`, `frames`, `trusses`, `springs`, `constraints`, `loadCases`, and `combinations`. Every property is required; unused collections are empty arrays. Unknown properties fail validation.
 
 Use the complete schema at [`../../schemas/model.schema.json`](../../schemas/model.schema.json). JSON Schema validates shape, but `parseModelJson` remains authoritative for cross-references, physical properties, topology, constraints, finite values, and identifier safety.
 
