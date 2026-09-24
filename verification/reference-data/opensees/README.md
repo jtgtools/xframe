@@ -1,6 +1,6 @@
 # OpenSees Reference Data
 
-This directory contains the OpenSees-only external oracle: native Tcl inputs plus committed reference JSON. The OpenSees executable and source are intentionally not distributed with xframe. No openseespy (Python) dependency is used.
+This directory contains the OpenSees-only external oracle: native Tcl inputs plus committed reference JSON. The OpenSees executable and source are intentionally not distributed with xframe.
 
 ## Provenance
 

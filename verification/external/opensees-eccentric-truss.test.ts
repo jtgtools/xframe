@@ -123,7 +123,7 @@ it("OpenSees oracle detects a changed Tcl input via its SHA-256", () => {
   );
 });
 
-it("OpenSees building oracles pin the Tcl binary command without openseespy", () => {
+it("OpenSees building oracles pin the Tcl binary command", () => {
   for (const name of [
     "cantilever-euler",
     "portal-frame",

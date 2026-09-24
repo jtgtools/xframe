@@ -120,4 +120,4 @@ The message is human-readable. `code` and `context` are the machine contract. Na
 
 ## Verification boundary
 
-Frame, truss, and building behavior is compared against the OpenSees Tcl binary (no openseespy): cantilever, single-bay portal, two-story two-bay frame, triangular truss with settlement, and eccentric-truss rigid-link rotations. xframe-specific springs, affine constraints, result combinations, envelopes, JSON, and identifier security have independent tests because OpenSees does not define those contracts.
+Frame, truss, and building behavior is compared against the OpenSees Tcl binary: cantilever, single-bay portal, two-story two-bay frame, triangular truss with settlement, and eccentric-truss rigid-link rotations. xframe-specific springs, affine constraints, result combinations, envelopes, JSON, and identifier security have independent tests because OpenSees does not define those contracts.

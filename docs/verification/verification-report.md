@@ -17,7 +17,7 @@ The complete requested-case report is `requested-validation-report.md`; machine-
 
 ## OpenSees oracle (OpenSees-only suite)
 
-The independent external oracle is OpenSees version `3.8.0` (commit `6e55293513192aa05c7e1205e66a5a1a1ed088c4`), run as the native Tcl binary via `OPENSEES_BIN` with no openseespy dependency, supplied separately from this MIT-licensed repository.
+The independent external oracle is OpenSees version `3.8.0` (commit `6e55293513192aa05c7e1205e66a5a1a1ed088c4`), run as the native Tcl binary via `OPENSEES_BIN`, supplied separately from this MIT-licensed repository.
 
 - Executable SHA-256: `5aa4e9c80c410c510ca62ac3b2f1d64a8e50679f0238e140b5bebcd6d5ddbe6d`
 - Reproducible datasets: cantilever Euler beam, single-bay portal, two-story two-bay frame, triangular truss with settlement, and eccentric-truss rigid-link case

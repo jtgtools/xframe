@@ -9,10 +9,7 @@ const expectedVersion = "3.8.0";
 const expectedCommit = "6e55293513192aa05c7e1205e66a5a1a1ed088c4";
 const root = resolve(import.meta.dirname, "..");
 const binary = process.env.OPENSEES_BIN;
-if (!binary)
-  throw new Error(
-    "OPENSEES_BIN must point to the supplied OpenSees Tcl executable (no openseespy).",
-  );
+if (!binary) throw new Error("OPENSEES_BIN must point to the supplied OpenSees Tcl executable.");
 
 const datasets = [
   { name: "eccentric-truss", kind: "eccentric" },

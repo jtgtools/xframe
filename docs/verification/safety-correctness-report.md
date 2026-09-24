@@ -41,7 +41,7 @@ The following commands, identities, tolerances, and outputs were recorded by the
 
 ### OpenSees building-frame oracles (OpenSees-only suite)
 
-- Oracle: OpenSees 3.8.0, commit `6e55293513192aa05c7e1205e66a5a1a1ed088c4`, native Tcl binary via `OPENSEES_BIN` (no openseespy).
+- Oracle: OpenSees 3.8.0, commit `6e55293513192aa05c7e1205e66a5a1a1ed088c4`, native Tcl binary via `OPENSEES_BIN`.
 - Executable SHA-256: `5aa4e9c80c410c510ca62ac3b2f1d64a8e50679f0238e140b5bebcd6d5ddbe6d`.
 - Datasets: `cantilever-euler`, `portal-frame`, `two-story-two-bay`, `triangular-truss` (plus `eccentric-truss` above).
 - Tcl inputs: `verification/reference-data/opensees/*.tcl`; references: `verification/reference-data/opensees/*-reference.json`.
