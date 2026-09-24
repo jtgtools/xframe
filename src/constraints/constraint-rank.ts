@@ -4,6 +4,10 @@ import { compareIdentifiers } from "../model/identifier.js";
 import type { CanonicalAffineConstraint } from "./affine-equation.js";
 import { WorkingScalar } from "./constraint-numerics.js";
 
+// Rank pruning bound: 256 ulps (~5.7e-14) covers Neumaier-compensated
+// elimination rounding over the bounded constraint widths used here.
+// Residuals at or below the propagated bound are treated as exact zeros;
+// see combinedBound/dividedBound below for the per-step error propagation.
 export const TOLERANCE = 256 * Number.EPSILON;
 
 const ROUNDING_EPSILON = Number.EPSILON;

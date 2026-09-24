@@ -55,6 +55,11 @@ it("parses JSON text and reports malformed text at the root", () => {
   expect(typeof context.actual).toBe("string");
 });
 
+it("preserves the JSON parse cause in the error summary", () => {
+  const error = failure(() => parseJsonValue("{"));
+  expect(error.causeSummary?.name).toBe("SyntaxError");
+});
+
 it("accepts only own plain-object fields and reports their paths", () => {
   const nullPrototype = Object.assign(Object.create(null), { allowed: 1 });
   expect(objectAt(nullPrototype, "$.entry", ["allowed"])).toBe(nullPrototype);

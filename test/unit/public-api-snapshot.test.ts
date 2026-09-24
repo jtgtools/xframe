@@ -2,6 +2,8 @@ import { expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import * as api from "../../src/index.js";
 
+// Explicit allowlist (not a Vitest snapshot): any export change fails closed
+// and forces intentional review of the browser-safe public boundary.
 it("exposes only the intentional public runtime API", () => {
   expect(Object.keys(api).toSorted()).toEqual([
     "MODEL_SCHEMA_VERSION",

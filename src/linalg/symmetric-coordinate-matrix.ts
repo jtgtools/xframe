@@ -46,11 +46,13 @@ function checkedVector(values: ArrayLike<number>, size: number, path: string): F
   return result;
 }
 
-function deterministicSum(values: number[]): number {
-  values.sort((left, right) => Math.abs(left) - Math.abs(right) || left - right);
+function deterministicSum(values: readonly number[]): number {
+  const ordered = [...values].toSorted(
+    (left, right) => Math.abs(left) - Math.abs(right) || left - right,
+  );
   let sum = 0;
   let correction = 0;
-  for (const value of values) {
+  for (const value of ordered) {
     const next = sum + value;
     correction += Math.abs(sum) >= Math.abs(value) ? sum - next + value : value - next + sum;
     sum = next;
@@ -76,8 +78,12 @@ export class SymmetricCoordinateMatrix {
     const vector = checkedVector(values, this.size, "vector");
     const result = new Float64Array(this.size);
     for (const { row, column, value } of this.#entries) {
-      result[row] = result[row]! + value * vector[column]!;
-      if (row !== column) result[column] = result[column]! + value * vector[row]!;
+      const forward = finiteNumber(value * vector[column]!, `multiply[${row},${column}]`);
+      result[row] = finiteNumber(result[row]! + forward, `product[${row}]`);
+      if (row !== column) {
+        const symmetric = finiteNumber(value * vector[row]!, `multiply[${column},${row}]`);
+        result[column] = finiteNumber(result[column]! + symmetric, `product[${column}]`);
+      }
     }
     for (let index = 0; index < result.length; index += 1)
       finiteNumber(result[index], `product[${index}]`);
@@ -88,8 +94,14 @@ export class SymmetricCoordinateMatrix {
     const vector = checkedVector(values, this.size, "vector");
     let result = 0;
     for (const { row, column, value } of this.#entries) {
-      const contribution = value * vector[row]! * vector[column]!;
-      result += row === column ? contribution : 2 * contribution;
+      const contribution = finiteNumber(
+        value * vector[row]! * vector[column]!,
+        `quadraticForm[${row},${column}]`,
+      );
+      result = finiteNumber(
+        result + (row === column ? contribution : 2 * contribution),
+        "quadraticForm",
+      );
     }
     return finiteNumber(result, "quadraticForm");
   }

@@ -119,6 +119,35 @@ describe("constraint compiler", () => {
     ]);
   });
 
+  it("rejects dense constraint-force recovery that exceeds the Gram storage limit", () => {
+    const coupled = compileConstraints(3, [
+      {
+        sourceId: "a",
+        terms: [
+          { dof: 0, coefficient: 1 },
+          { dof: 1, coefficient: 1 },
+        ],
+        rightHandSide: 0,
+      },
+      {
+        sourceId: "b",
+        terms: [
+          { dof: 1, coefficient: 1 },
+          { dof: 2, coefficient: 1 },
+        ],
+        rightHandSide: 0,
+      },
+    ]);
+    expect(() =>
+      recoverConstrainedState(coupled, [7], [-1, -2, -3], { maximumGramEntries: 3 }),
+    ).toThrowError(XFrameError);
+    expect(
+      inputFailure(() =>
+        recoverConstrainedState(coupled, [7], [-1, -2, -3], { maximumGramEntries: 3 }),
+      ).code,
+    ).toBe("MEMORY_LIMIT_EXCEEDED");
+  });
+
   it("recovers coupled constraint reactions and rejects incompatible recovery vectors", () => {
     const coupled = compileConstraints(3, [
       {

@@ -1,4 +1,5 @@
 import type { FrameMemberLoad } from "../elements/frame/member-load-vector.js";
+import { XFrameError } from "../errors/xframe-error.js";
 import { finiteNumber } from "../geometry/finite.js";
 import type { FrameInternalForceStation } from "./result-types.js";
 
@@ -312,6 +313,13 @@ export function frameForceDerivativeRoots(
     Math.abs(quadraticDegree),
   );
   if (magnitude === 0) return Object.freeze([]);
+  // Power-of-two scaling: dividing by 2^floor(log2(magnitude)) is exact in
+  // binary floating point (no rounding) and maps the largest derivative
+  // coefficient into [1, 2). The quadratic formula then operates near unit
+  // scale, avoiding overflow in linear**2 and underflow in the discriminant.
+  // Roots are scale-invariant (numerator and denominator share the factor),
+  // so unscaling is unnecessary. The 1023 cap keeps the exponent within the
+  // finite double range; magnitude itself is finite per the checks above.
   const scale = 2 ** Math.min(1023, Math.floor(Math.log2(magnitude)));
   const constant = coefficients[1] / scale;
   const linear = 2 * (linearDegree / scale);
@@ -453,7 +461,16 @@ export function addFrameInternalForceSegments(
   rightFactor = 1,
 ): readonly FrameInternalForceSegment[] {
   if (left.length !== right.length) {
-    throw new RangeError("Frame internal-force segment layouts must have equal lengths.");
+    throw new XFrameError(
+      "INPUT_INVALID",
+      "Frame internal-force segment layouts must have equal lengths.",
+      {
+        kind: "input",
+        path: "frameForce.segments",
+        expected: `equal segment counts (left ${left.length}, right ${right.length})`,
+        actual: `lengths ${left.length}/${right.length}`,
+      },
+    );
   }
   const result: FrameInternalForceSegment[] = [];
   for (let index = 0; index < left.length; index += 1) {
@@ -461,7 +478,16 @@ export function addFrameInternalForceSegments(
     const other = right[index]!;
     const path = `frameForce.segments[${index}]`;
     if (segment.start !== other.start || segment.end !== other.end) {
-      throw new RangeError("Frame internal-force segment boundaries must match.");
+      throw new XFrameError(
+        "INPUT_INVALID",
+        "Frame internal-force segment boundaries must match.",
+        {
+          kind: "input",
+          path: `frameForce.segments[${index}]`,
+          expected: `boundaries [${segment.start}, ${segment.end}]`,
+          actual: `[${other.start}, ${other.end}]`,
+        },
+      );
     }
     const coefficients = [
       addedCoefficients(

@@ -18,6 +18,7 @@ export function schemaError(
   actual?: unknown,
   code: "SCHEMA_INVALID" | "SCHEMA_UNSUPPORTED" = "SCHEMA_INVALID",
   schemaVersion?: string,
+  options: { readonly cause?: unknown } = {},
 ): never {
   throw new XFrameError(
     code,
@@ -31,6 +32,7 @@ export function schemaError(
       ...(actual === undefined ? {} : { actual: describe(actual) }),
       ...(schemaVersion === undefined ? {} : { schemaVersion }),
     },
+    options.cause === undefined ? undefined : { cause: options.cause },
   );
 }
 
@@ -50,7 +52,14 @@ export function parseJsonValue(input: unknown): unknown {
   try {
     return JSON.parse(input) as unknown;
   } catch (error) {
-    schemaError("$", "valid JSON text", error instanceof Error ? error.message : String(error));
+    schemaError(
+      "$",
+      "valid JSON text",
+      error instanceof Error ? error.message : String(error),
+      "SCHEMA_INVALID",
+      undefined,
+      { cause: error },
+    );
   }
 }
 

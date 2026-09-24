@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { XFRAME_ERROR_CODES } from "../../src/errors/error-code.js";
 import { XFrameError } from "../../src/errors/xframe-error.js";
 
 function unsafeCause(): Error & { secret: object; code: string } {
@@ -59,4 +60,31 @@ it("copies nested context before freezing it", () => {
     reason: "incompatible models",
   });
   expect(Object.isFrozen((error.context as typeof context).resultIds)).toBe(true);
+});
+
+it("pins the stable error-code vocabulary", () => {
+  expect([...XFRAME_ERROR_CODES]).toEqual([
+    "INPUT_INVALID",
+    "IDENTIFIER_INVALID",
+    "DUPLICATE_IDENTIFIER",
+    "REFERENCE_NOT_FOUND",
+    "UNITS_INVALID",
+    "GEOMETRY_INVALID",
+    "MATERIAL_INVALID",
+    "SECTION_INVALID",
+    "LOAD_INVALID",
+    "CONSTRAINT_CONTRADICTION",
+    "CONSTRAINT_CYCLE",
+    "CONSTRAINT_RANK_DEFICIENT",
+    "CONSTRAINT_SEMANTIC_VIOLATION",
+    "ELEMENT_LOCAL_MECHANISM",
+    "GLOBAL_MECHANISM",
+    "FACTORIZATION_FAILED",
+    "NON_FINITE_VALUE",
+    "MEMORY_LIMIT_EXCEEDED",
+    "SCHEMA_UNSUPPORTED",
+    "SCHEMA_INVALID",
+    "RESULT_INCOMPATIBLE",
+    "UNSUPPORTED_FEATURE",
+  ]);
 });

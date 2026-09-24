@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { XFrameError } from "../../src/errors/xframe-error.js";
 import { prepareAnalysis } from "../../src/analysis/prepare-analysis.js";
 import { createModelBuilder } from "../../src/model/model-builder.js";
 import { createDofKey } from "../../src/model/dof-key.js";
+import { EULER_BERNOULLI_CANTILEVER_SPECIFICATION } from "../specification/element-kernel-cases.js";
 
 const units = {
   version: "1",
@@ -13,6 +15,15 @@ const units = {
   density: "kg/m^3",
   rotation: "rad",
 } as const;
+
+function captureFailure(action: () => unknown): unknown {
+  try {
+    action();
+  } catch (error) {
+    return error;
+  }
+  throw new Error("expected failure");
+}
 
 describe("integrated case solves", () => {
   it("solves an axial truss and recovers its support reaction", () => {
@@ -87,6 +98,18 @@ describe("integrated case solves", () => {
     );
   });
 
+  it("pins the shared Euler cantilever oracle to its closed form", () => {
+    const spec = EULER_BERNOULLI_CANTILEVER_SPECIFICATION;
+    expect(spec.tipDeflection).toBeCloseTo(
+      (spec.force * spec.length ** 3) / (3 * spec.elasticModulus * spec.secondMoment),
+      15,
+    );
+    expect(spec.tipRotation).toBeCloseTo(
+      (spec.force * spec.length ** 2) / (2 * spec.elasticModulus * spec.secondMoment),
+      15,
+    );
+  });
+
   it("solves a one-DOF grounded spring", () => {
     const builder = createModelBuilder()
       .setUnitSystem(units)
@@ -96,5 +119,86 @@ describe("integrated case solves", () => {
     const result = prepareAnalysis(builder.finalize()).solveCase("P");
     expect(result.fullDisplacements[0]).toBeCloseTo(0.05, 14);
     expect(result.fullResidual[0]).toBeCloseTo(0, 14);
+  });
+
+  it("rejects an unknown load-case id with a stable reference error", () => {
+    const analysis = prepareAnalysis(
+      createModelBuilder()
+        .setUnitSystem(units)
+        .addNode({ id: "n", coordinates: [0, 0, 0] })
+        .addSpring({ id: "k", startNodeId: "n", stiffness: [500, 0, 0, 0, 0, 0] })
+        .addLoadCase({ id: "P", loads: [] })
+        .finalize(),
+    );
+    const error = captureFailure(() => analysis.solveCase("missing"));
+    expect(error).toBeInstanceOf(XFrameError);
+    expect((error as XFrameError).code).toBe("REFERENCE_NOT_FOUND");
+  });
+
+  it("fails contradictory constraints end to end instead of solving", () => {
+    const model = createModelBuilder()
+      .setUnitSystem(units)
+      .addNode({ id: "n", coordinates: [0, 0, 0] })
+      .addSpring({ id: "k", startNodeId: "n", stiffness: [500, 0, 0, 0, 0, 0] })
+      .addConstraint({
+        id: "c1",
+        terms: [{ nodeId: "n", dof: "ux", coefficient: 1 }],
+        rightHandSide: 0,
+      })
+      .addConstraint({
+        id: "c2",
+        terms: [{ nodeId: "n", dof: "ux", coefficient: 1 }],
+        rightHandSide: 1,
+      })
+      .addLoadCase({ id: "P", loads: [] })
+      .finalize();
+    const error = captureFailure(() => prepareAnalysis(model).solveCase("P"));
+    expect(error).toBeInstanceOf(XFrameError);
+    expect((error as XFrameError).code).toBe("CONSTRAINT_CONTRADICTION");
+  });
+
+  it("fails a doubly axial-released frame end to end as a local mechanism", () => {
+    const builder = createModelBuilder()
+      .setUnitSystem(units)
+      .addNode({ id: "a", coordinates: [0, 0, 0] })
+      .addNode({ id: "b", coordinates: [3, 0, 0] })
+      .addMaterial({ id: "m", elasticModulus: 200e9, poissonRatio: 0.3 })
+      .addFrameSection({
+        id: "s",
+        area: 0.01,
+        torsionalConstant: 1e-5,
+        momentOfInertiaY: 8e-6,
+        momentOfInertiaZ: 8e-6,
+      })
+      .addFrame({
+        id: "f",
+        startNodeId: "a",
+        endNodeId: "b",
+        materialId: "m",
+        sectionId: "s",
+        theory: { kind: "euler-bernoulli" },
+        releases: { start: ["ux"], end: ["ux"] },
+      });
+    for (const dof of ["ux", "uy", "uz", "rx", "ry", "rz"] as const) {
+      builder.addConstraint({
+        id: `a:${dof}`,
+        terms: [{ nodeId: "a", dof, coefficient: 1 }],
+        rightHandSide: 0,
+      });
+    }
+    builder.addConstraint({
+      id: "b:uy",
+      terms: [{ nodeId: "b", dof: "uy", coefficient: 1 }],
+      rightHandSide: 0,
+    });
+    builder.addConstraint({
+      id: "b:uz",
+      terms: [{ nodeId: "b", dof: "uz", coefficient: 1 }],
+      rightHandSide: 0,
+    });
+    const model = builder.addLoadCase({ id: "P", loads: [] }).finalize();
+    const error = captureFailure(() => prepareAnalysis(model));
+    expect(error).toBeInstanceOf(XFrameError);
+    expect((error as XFrameError).code).toBe("ELEMENT_LOCAL_MECHANISM");
   });
 });

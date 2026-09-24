@@ -5,6 +5,7 @@ import type {
   AffineConstraintTerm,
   CanonicalAffineConstraint,
 } from "./affine-equation.js";
+import { compensatedCoefficientSum } from "./compensated-sum.js";
 
 function checkedDof(value: number, path: string): number {
   if (!Number.isSafeInteger(value) || value < 0) {
@@ -20,29 +21,6 @@ function checkedDof(value: number, path: string): number {
     );
   }
   return value;
-}
-
-function compensatedCoefficientSum(values: number[]): number {
-  // Deterministic: ascending |value| with numeric tie-break, then Neumaier
-  // compensated accumulation. Every permutation of the same multiset takes
-  // the identical numerical path, so the effective coefficient is
-  // independent of user term order and survives catastrophic-looking
-  // cancellation without tolerance pruning.
-  const ordered = values.toSorted(
-    (left, right) => Math.abs(left) - Math.abs(right) || left - right,
-  );
-  let sum = 0;
-  let compensation = 0;
-  for (const value of ordered) {
-    const next = sum + value;
-    if (Math.abs(sum) >= Math.abs(value)) {
-      compensation += sum - next + value;
-    } else {
-      compensation += value - next + sum;
-    }
-    sum = next;
-  }
-  return finiteNumber(sum + compensation, "constraint.effectiveCoefficient");
 }
 
 export function canonicalizeConstraint(input: AffineConstraintEquation): CanonicalAffineConstraint {
@@ -69,7 +47,7 @@ export function canonicalizeConstraint(input: AffineConstraintEquation): Canonic
   for (const [dof, coefficients] of grouped) {
     // Delete a DOF term only when the compensated aggregate is exactly zero;
     // rank decisions belong to the rank engine, not canonicalization.
-    const coefficient = compensatedCoefficientSum(coefficients);
+    const coefficient = compensatedCoefficientSum(coefficients, "constraint.effectiveCoefficient");
     if (coefficient !== 0) {
       terms.push([dof, coefficient]);
     }

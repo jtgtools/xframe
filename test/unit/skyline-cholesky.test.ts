@@ -17,6 +17,16 @@ function handMatrix() {
     .finalize();
 }
 
+function failureCode(action: () => unknown): string {
+  try {
+    action();
+  } catch (error) {
+    if (error instanceof XFrameError) return error.code;
+    throw error;
+  }
+  throw new Error("expected failure");
+}
+
 describe("skyline profile and Cholesky", () => {
   it("stores the exact lower skyline for a hand matrix", () => {
     const profile = createSkylineProfile(handMatrix(), identityOrdering(3));
@@ -41,6 +51,20 @@ describe("skyline profile and Cholesky", () => {
     expect(multiple[1]![1]).toBeCloseTo(2, 14);
     expect(multiple[1]![2]).toBeCloseTo(3, 14);
     expect(factor.diagnostics.minimumNormalizedPivot).toBeGreaterThan(0);
+  });
+
+  it("rejects intermediate non-finite products with a located error", () => {
+    const matrix = new SymmetricCoordinateBuilder(1).add(0, 0, 1e308).finalize();
+    expect(() => matrix.multiply([1e308])).toThrowError(XFrameError);
+    expect(failureCode(() => matrix.multiply([1e308]))).toBe("NON_FINITE_VALUE");
+  });
+
+  it("uses a finite sentinel for zero-load nonzero residual that still fails diagnostics", () => {
+    const matrix = handMatrix();
+    const diagnostics = computeResidualDiagnostics(matrix, new Float64Array([1, 0, 0]), [0, 0, 0]);
+    expect(diagnostics.maximumAbsoluteResidual).toBeGreaterThan(0);
+    expect(Number.isFinite(diagnostics.normalizedResidual)).toBe(true);
+    expect(diagnostics.normalizedResidual).toBe(Number.MAX_VALUE);
   });
 
   it("computes residual and energy diagnostics against the original sparse matrix", () => {

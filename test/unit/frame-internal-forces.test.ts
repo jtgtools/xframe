@@ -1,4 +1,5 @@
 import { expect, it } from "vitest";
+import { XFrameError } from "../../src/errors/xframe-error.js";
 import type { FrameMemberLoad } from "../../src/elements/frame/member-load-vector.js";
 import {
   addFrameInternalForceSegments,
@@ -338,3 +339,26 @@ it("retains a genuine component jump while adding polynomial segments", () => {
     ["right", 1],
   ]);
 });
+
+it("rejects mismatched segment layouts with a stable error code", () => {
+  const single = [segment([0, 0, 0, 0], 0, 1)];
+  const doubled = [segment([0, 0, 0, 0], 0, 1), segment([0, 0, 0, 0], 1, 2)];
+  const shifted = [segment([0, 0, 0, 0], 0, 2)];
+  for (const action of [
+    () => addFrameInternalForceSegments(single, doubled),
+    () => addFrameInternalForceSegments(single, shifted),
+  ]) {
+    expect(action).toThrowError(XFrameError);
+    expect(failureCode(action)).toBe("INPUT_INVALID");
+  }
+});
+
+function failureCode(action: () => unknown): string {
+  try {
+    action();
+  } catch (error) {
+    if (error instanceof XFrameError) return error.code;
+    throw error;
+  }
+  throw new Error("expected failure");
+}

@@ -39,14 +39,21 @@ type RecordMetadata = {
   readonly compatibility: unknown;
 };
 
-function incompatible(resultIds: readonly string[], reason: string): never {
-  throw new XFrameError("RESULT_INCOMPATIBLE", "Envelope input is incompatible.", {
-    kind: "result",
-    resultIds: Object.freeze([...resultIds]),
-    reason,
-  });
+function incompatible(resultIds: readonly string[], reason: string, cause?: unknown): never {
+  throw new XFrameError(
+    "RESULT_INCOMPATIBLE",
+    "Envelope input is incompatible.",
+    {
+      kind: "result",
+      resultIds: Object.freeze([...resultIds]),
+      reason,
+    },
+    cause === undefined ? undefined : { cause },
+  );
 }
 
+// False from these predicates always maps to incompatible() at the caller,
+// so revoked-Proxy throws here still surface as RESULT_INCOMPATIBLE.
 function isRecord(value: unknown): value is MetadataRecord {
   if (value === null || typeof value !== "object") return false;
   try {
@@ -94,8 +101,8 @@ function captureMetadata(
   for (const key of keys) {
     try {
       captured[key] = value[key];
-    } catch {
-      incompatible(resultIds, invalidReason);
+    } catch (error) {
+      incompatible(resultIds, invalidReason, error);
     }
   }
   return captured;
@@ -109,14 +116,16 @@ function normalizeComponents(
   let array: readonly unknown[];
   try {
     array = Array.isArray(input) ? input : incompatible(resultIds, invalidReason);
-  } catch {
-    incompatible(resultIds, invalidReason);
+  } catch (error) {
+    if (error instanceof XFrameError) throw error;
+    incompatible(resultIds, invalidReason, error);
   }
   let length: number;
   try {
     length = array.length;
-  } catch {
-    incompatible(resultIds, invalidReason);
+  } catch (error) {
+    if (error instanceof XFrameError) throw error;
+    incompatible(resultIds, invalidReason, error);
   }
   if (!Number.isSafeInteger(length) || length < 0 || length > 4_294_967_295) {
     incompatible(resultIds, invalidReason);
@@ -127,8 +136,9 @@ function normalizeComponents(
     let component: unknown;
     try {
       component = array[index];
-    } catch {
-      incompatible(resultIds, invalidReason);
+    } catch (error) {
+      if (error instanceof XFrameError) throw error;
+      incompatible(resultIds, invalidReason, error);
     }
     if (!isRecord(component)) incompatible(resultIds, invalidReason);
 
@@ -145,8 +155,9 @@ function normalizeComponents(
       componentName = component["component"];
       entityIdValue = component["entityId"];
       locationValue = hasLocation ? component["location"] : undefined;
-    } catch {
-      incompatible(resultIds, invalidReason);
+    } catch (error) {
+      if (error instanceof XFrameError) throw error;
+      incompatible(resultIds, invalidReason, error);
     }
 
     if (typeof componentName !== "string" || componentName.length === 0) {
@@ -156,8 +167,8 @@ function normalizeComponents(
     let entityId: EntityId;
     try {
       entityId = parseIdentifier(entityIdValue, `envelope.components[${index}].entityId`);
-    } catch {
-      incompatible(resultIds, invalidReason);
+    } catch (error) {
+      incompatible(resultIds, invalidReason, error);
     }
 
     if (

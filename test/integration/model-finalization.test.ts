@@ -2,6 +2,16 @@ import { describe, expect, it, vi } from "vitest";
 import { XFrameError } from "../../src/errors/xframe-error.js";
 import { createModelBuilder } from "../../src/model/model-builder.js";
 
+function failureCode(action: () => unknown): string {
+  try {
+    action();
+  } catch (error) {
+    if (error instanceof XFrameError) return error.code;
+    throw error;
+  }
+  throw new Error("expected failure");
+}
+
 const units = {
   version: "1",
   length: "m",
@@ -117,6 +127,24 @@ describe("model finalization", () => {
         .addNode({ id: "a", coordinates: [0, 0, 0] })
         .finalize(),
     ).toThrow(XFrameError);
+  });
+
+  it("rejects distinct nodes at identical coordinates with a geometry error", () => {
+    const builder = createModelBuilder()
+      .setUnitSystem(units)
+      .addNode({ id: "a", coordinates: [0, 0, 0] })
+      .addNode({ id: "b", coordinates: [0, 0, 0] })
+      .addMaterial({ id: "m", elasticModulus: 200e9, poissonRatio: 0.3 })
+      .addTrussSection({ id: "s", area: 0.01 })
+      .addTruss({
+        id: "t",
+        startNodeId: "a",
+        endNodeId: "b",
+        materialId: "m",
+        sectionId: "s",
+      });
+    expect(() => builder.finalize()).toThrowError(XFrameError);
+    expect(failureCode(() => builder.finalize())).toBe("GEOMETRY_INVALID");
   });
 
   it("checks theory-dependent section completeness at finalization", () => {

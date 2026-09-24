@@ -1,4 +1,5 @@
 import { XFrameError } from "../errors/xframe-error.js";
+import { finiteNumber } from "../geometry/finite.js";
 import { estimateSkylineMemory } from "./memory-estimate.js";
 import type { MatrixOrdering } from "./reverse-cuthill-mckee.js";
 import type { SymmetricCoordinateMatrix } from "./symmetric-coordinate-matrix.js";
@@ -82,12 +83,13 @@ export function createSkylineProfile(
     rowStarts[row + 1] = rowStarts[row]! + row - firstColumns[row]! + 1;
   const values = new Float64Array(estimate.storageCount);
   for (const { row: oldRow, column: oldColumn, value } of matrix.entries()) {
+    const checked = finiteNumber(value, `matrix.entries[${oldRow},${oldColumn}]`);
     const mappedRow = ordering.inversePermutation[oldRow]!;
     const mappedColumn = ordering.inversePermutation[oldColumn]!;
     const row = Math.max(mappedRow, mappedColumn);
     const column = Math.min(mappedRow, mappedColumn);
     const index = rowStarts[row]! + column - firstColumns[row]!;
-    values[index] = values[index]! + value;
+    values[index] = finiteNumber(values[index]! + checked, `skyline.values[${row},${column}]`);
   }
   return new SkylineProfile(firstColumns, rowStarts, values, ordering);
 }

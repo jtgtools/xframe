@@ -11,6 +11,7 @@ import {
 import { createFrameRigidOffsetTransform } from "../elements/frame/rigid-offset-transform.js";
 import { createTrussRigidOffsetKinematics } from "../elements/truss/rigid-offset-kinematics.js";
 import { XFrameError } from "../errors/xframe-error.js";
+import { finiteNumber } from "../geometry/finite.js";
 import { multiplyMatrix3Vector3 } from "../geometry/matrix-3.js";
 import type { ResolvedLoadRecord } from "../loads/load-types.js";
 import { createDofKey, DOF_NAMES } from "../model/dof-key.js";
@@ -25,7 +26,8 @@ import type { SymmetricCoordinateMatrix } from "../linalg/symmetric-coordinate-m
 import { frameEquationMap, trussEquationMap } from "./element-equation-map.js";
 
 function addAt(vector: Float64Array, index: number, value: number): void {
-  vector[index] = vector[index]! + value;
+  const checked = finiteNumber(value, `load[${index}]`);
+  vector[index] = finiteNumber(vector[index]! + checked, `load[${index}]`);
 }
 
 function dofIndex(
@@ -133,7 +135,10 @@ export function assembleFrameLocalLoad(
       load: memberLoad,
     });
     for (let index = 0; index < 12; index += 1)
-      result[index] = result[index]! + contribution[index]!;
+      result[index] = finiteNumber(
+        result[index]! + finiteNumber(contribution[index], `frameLocalLoad[${index}]`),
+        `frameLocalLoad[${index}]`,
+      );
   }
   return result;
 }
@@ -187,8 +192,10 @@ function assembleFullLoad(model: FinalizedModel, loadCase: FinalizedLoadCaseReco
     if (load.kind !== "self-weight") continue;
     for (const truss of model.resolvedTrusses) {
       if (!load.trussIds.includes(truss.record.id)) continue;
-      const scale =
-        0.5 * truss.material.density! * truss.section.area * truss.geometry.elasticLength;
+      const scale = finiteNumber(
+        0.5 * truss.material.density! * truss.section.area * truss.geometry.elasticLength,
+        `selfWeightScale[${truss.record.id}]`,
+      );
       const equations = trussEquationMap(model, truss);
       const kinematics = createTrussRigidOffsetKinematics(
         truss.direction,
@@ -224,9 +231,20 @@ export function assembleLoadCase(
   const stiffnessOffset = fullStiffness.multiply(offsets);
   const reducedLoad = new Float64Array(constraints.reducedDofCount);
   for (let full = 0; full < constraints.fullDofCount; full += 1) {
-    const adjusted = fullLoad[full]! - stiffnessOffset[full]!;
+    const adjusted = finiteNumber(
+      finiteNumber(fullLoad[full], `fullLoad[${full}]`) -
+        finiteNumber(stiffnessOffset[full], `stiffnessOffset[${full}]`),
+      `adjustedLoad[${full}]`,
+    );
     for (const term of constraints.rows[full]!.terms) {
-      reducedLoad[term.reducedDof] = reducedLoad[term.reducedDof]! + term.coefficient * adjusted;
+      const contribution = finiteNumber(
+        finiteNumber(term.coefficient, `constraintCoefficient[${full}]`) * adjusted,
+        `reducedLoadContribution[${full}][${term.reducedDof}]`,
+      );
+      reducedLoad[term.reducedDof] = finiteNumber(
+        reducedLoad[term.reducedDof]! + contribution,
+        `reducedLoad[${term.reducedDof}]`,
+      );
     }
   }
   return Object.freeze({ fullLoad, reducedLoad });

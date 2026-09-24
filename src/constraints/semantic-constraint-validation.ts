@@ -1,12 +1,18 @@
 import { XFrameError } from "../errors/xframe-error.js";
 import { finiteNumber } from "../geometry/finite.js";
 import type { AffineConstraintEquation } from "./affine-equation.js";
+import { compensatedCoefficientSum } from "./compensated-sum.js";
 import { TOLERANCE } from "./constraint-rank.js";
 import type { SparseAffineTransformRow } from "./compile-constraints.js";
 
-// Temporary Phase 1 containment policy: reuse the constraint rank tolerance
-// (256 * Number.EPSILON) without changing its value. The compiler redesign
-// phase must re-derive a dedicated semantic tolerance with written evidence.
+// Semantic residual tolerance: the semantic oracle aggregates duplicate DOF
+// terms with the same compensated sum as canonicalization, then normalizes by
+// the compensated scale (sum of |contributions|). Both numerator and scale
+// carry at most a few ulps of Neumaier rounding per term, so the normalized
+// residual of an exactly satisfied equation is bounded by O(n*EPS). Reusing
+// TOLERANCE = 256*EPS (about 5.7e-14) matches the rank engine's pruning bound
+// and keeps the hard gate consistent: any violation above this cannot be
+// attributed to compensated rounding.
 export const SEMANTIC_CONSTRAINT_TOLERANCE = TOLERANCE;
 
 export interface SemanticTransformViolation {
@@ -47,29 +53,6 @@ function accumulate(map: Map<number, CompensatedAccumulator>, key: number, value
   accumulator.add(value);
 }
 
-function compensatedCoefficientSum(values: readonly number[]): number {
-  // Deterministic: ascending |value| with value tie-break, then Neumaier
-  // compensated accumulation. Every permutation of the same multiset takes
-  // the identical numerical path, so the effective coefficient is
-  // independent of user term order and survives catastrophic-looking
-  // cancellation without tolerance pruning.
-  const ordered = [...values].toSorted(
-    (left, right) => Math.abs(left) - Math.abs(right) || left - right,
-  );
-  let sum = 0;
-  let compensation = 0;
-  for (const value of ordered) {
-    const next = sum + value;
-    if (Math.abs(sum) >= Math.abs(value)) {
-      compensation += sum - next + value;
-    } else {
-      compensation += value - next + sum;
-    }
-    sum = next;
-  }
-  return finiteNumber(sum + compensation, "semanticConstraint.effectiveCoefficient");
-}
-
 function aggregateCoefficients(equation: AffineConstraintEquation): Map<number, number> {
   const grouped = new Map<number, number[]>();
   for (let index = 0; index < equation.terms.length; index += 1) {
@@ -88,7 +71,10 @@ function aggregateCoefficients(equation: AffineConstraintEquation): Map<number, 
   }
   const aggregated = new Map<number, number>();
   for (const [dof, coefficients] of grouped) {
-    aggregated.set(dof, compensatedCoefficientSum(coefficients));
+    aggregated.set(
+      dof,
+      compensatedCoefficientSum(coefficients, "semanticConstraint.effectiveCoefficient"),
+    );
   }
   return aggregated;
 }

@@ -50,6 +50,17 @@ export function prepareAnalysis(
         { cause: error },
       );
     }
-    throw error;
+    if (error instanceof XFrameError) throw error;
+    throw new XFrameError(
+      "INPUT_INVALID",
+      "Analysis preparation failed with an unexpected host error.",
+      {
+        kind: "input",
+        path: "model",
+        expected: "factorizable stiffness",
+        actual: error instanceof Error ? error.message : String(error),
+      },
+      { cause: error },
+    );
   }
 }

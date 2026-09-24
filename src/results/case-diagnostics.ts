@@ -12,6 +12,33 @@ function vectorNormMax(values: readonly number[]): number {
   return Math.max(0, ...values.map(Math.abs));
 }
 
+// Single r = cross(position, force) accumulation used for both physical DOFs
+// and grounded-spring reactions, keeping the moment-arm convention in one place.
+function addForceMoment(
+  force: number[],
+  moment: number[],
+  component: number,
+  position: readonly [number, number, number],
+  value: number,
+): void {
+  force[component] = force[component]! + value;
+  const [x, y, z] = position;
+  if (component === 0) {
+    moment[1] = moment[1]! + z * value;
+    moment[2] = moment[2]! - y * value;
+  } else if (component === 1) {
+    moment[0] = moment[0]! - z * value;
+    moment[2] = moment[2]! + x * value;
+  } else {
+    moment[0] = moment[0]! + y * value;
+    moment[1] = moment[1]! - x * value;
+  }
+}
+
+// Display normalization only: equilibrium components below 1e-14 (about 60
+// ulps at unit scale, well under the 1e-9 pass threshold) are reported as 0
+// to avoid -0 and rounding noise in artifacts. The pass/warn/fail gate uses
+// the unrounded worst value, so this never masks a violation.
 function normalizedZero(value: number): number {
   return Object.is(value, -0) || Math.abs(value) < 1e-14 ? 0 : value;
 }
@@ -47,19 +74,9 @@ export function createCaseDiagnostics(input: CaseDiagnosticInput): CaseDiagnosti
     const node = input.model.nodes.find(({ id }) => id === metadata.nodeId)!;
     if (metadata.dof === "ux" || metadata.dof === "uy" || metadata.dof === "uz") {
       const component = metadata.dof === "ux" ? 0 : metadata.dof === "uy" ? 1 : 2;
-      force[component] = force[component]! + total;
+      addForceMoment(force, moment, component, node.coordinates, total);
       forceScale += Math.abs(input.fullLoad[index]!) + Math.abs(input.fullResidual[index]!);
       const [x, y, z] = node.coordinates;
-      if (component === 0) {
-        moment[1] = moment[1]! + z * total;
-        moment[2] = moment[2]! - y * total;
-      } else if (component === 1) {
-        moment[0] = moment[0]! - z * total;
-        moment[2] = moment[2]! + x * total;
-      } else {
-        moment[0] = moment[0]! + y * total;
-        moment[1] = moment[1]! - x * total;
-      }
       momentScale += Math.abs(total) * Math.max(Math.abs(x), Math.abs(y), Math.abs(z));
     } else {
       const component = metadata.dof === "rx" ? 0 : metadata.dof === "ry" ? 1 : 2;
@@ -71,21 +88,11 @@ export function createCaseDiagnostics(input: CaseDiagnosticInput): CaseDiagnosti
   for (const spring of input.springs) {
     if (!spring.grounded) continue;
     const springRecord = input.model.resolvedSprings.find(({ record }) => record.id === spring.id)!;
-    const [x, y, z] = springRecord.startNode.coordinates;
+    const position = springRecord.startNode.coordinates;
     for (let component = 0; component < 3; component += 1) {
       const supportForce = -(spring.globalEndForces[component] ?? 0);
-      force[component] = force[component]! + supportForce;
+      addForceMoment(force, moment, component, position, supportForce);
       forceScale += Math.abs(supportForce);
-      if (component === 0) {
-        moment[1] = moment[1]! + z * supportForce;
-        moment[2] = moment[2]! - y * supportForce;
-      } else if (component === 1) {
-        moment[0] = moment[0]! - z * supportForce;
-        moment[2] = moment[2]! + x * supportForce;
-      } else {
-        moment[0] = moment[0]! + y * supportForce;
-        moment[1] = moment[1]! - x * supportForce;
-      }
     }
     for (let component = 0; component < 3; component += 1) {
       const supportMoment = -(spring.globalEndForces[component + 3] ?? 0);

@@ -1,6 +1,7 @@
 import { XFrameError } from "../errors/xframe-error.js";
 import { finiteNumber } from "../geometry/finite.js";
 import type { CompiledConstraints } from "./compile-constraints.js";
+import { TOLERANCE } from "./constraint-rank.js";
 
 export interface ConstraintDofForce {
   readonly dof: number;
@@ -19,6 +20,27 @@ export interface RecoveredConstrainedState {
   readonly constraintForces: readonly ConstraintForceResult[];
 }
 
+export interface RecoverConstrainedStateOptions {
+  readonly maximumGramEntries?: number;
+}
+
+function checkedGramLimit(value: number | undefined): number {
+  const maximum = value ?? 10_000_000;
+  if (!Number.isSafeInteger(maximum) || maximum < 0) {
+    throw new XFrameError(
+      "MEMORY_LIMIT_EXCEEDED",
+      "Constraint force recovery exceeds the configured Gram storage limit.",
+      {
+        kind: "memory",
+        operation: "constraint-force-recovery",
+        estimatedBytes: 0,
+        limitBytes: Math.max(0, maximum) * 8,
+      },
+    );
+  }
+  return maximum;
+}
+
 function solveDense(matrix: number[][], rhs: number[]): number[] {
   const size = rhs.length;
   for (let pivot = 0; pivot < size; pivot += 1) {
@@ -26,7 +48,7 @@ function solveDense(matrix: number[][], rhs: number[]): number[] {
     for (let row = pivot + 1; row < size; row += 1) {
       if (Math.abs(matrix[row]![pivot]!) > Math.abs(matrix[selected]![pivot]!)) selected = row;
     }
-    if (Math.abs(matrix[selected]![pivot]!) <= 256 * Number.EPSILON) {
+    if (Math.abs(matrix[selected]![pivot]!) <= TOLERANCE) {
       throw new XFrameError(
         "CONSTRAINT_RANK_DEFICIENT",
         "Constraint force recovery encountered a rank-deficient block.",
@@ -60,6 +82,7 @@ export function recoverConstrainedState(
   compiled: CompiledConstraints,
   reducedDisplacements: ArrayLike<number>,
   fullResidualInput: ArrayLike<number>,
+  options: RecoverConstrainedStateOptions = {},
 ): RecoveredConstrainedState {
   if (fullResidualInput.length !== compiled.fullDofCount) {
     throw new XFrameError("INPUT_INVALID", "Residual length must match full physical DOF count.", {
@@ -76,20 +99,45 @@ export function recoverConstrainedState(
   if (compiled.equations.length === 0)
     return Object.freeze({ fullDisplacements, dofReactions, constraintForces: Object.freeze([]) });
 
+  const maximumGramEntries = checkedGramLimit(options.maximumGramEntries);
+  const equationCount = compiled.equations.length;
+  if (equationCount * equationCount > maximumGramEntries) {
+    throw new XFrameError(
+      "MEMORY_LIMIT_EXCEEDED",
+      "Constraint force recovery Gram matrix exceeds the configured storage limit.",
+      {
+        kind: "memory",
+        operation: "constraint-force-recovery",
+        estimatedBytes: equationCount * equationCount * 8,
+        limitBytes: maximumGramEntries * 8,
+      },
+    );
+  }
+
   const rows = compiled.equations.map(
     (equation) => new Map(equation.terms.map(({ dof, coefficient }) => [dof, coefficient])),
   );
-  const gram = rows.map((left) =>
-    rows.map((right) => {
+  const gram = rows.map((left, leftIndex) =>
+    rows.map((right, rightIndex) => {
       let value = 0;
-      for (const [dof, coefficient] of left) value += coefficient * (right.get(dof) ?? 0);
-      return value;
+      for (const [dof, coefficient] of left) {
+        const other = right.get(dof) ?? 0;
+        value = finiteNumber(
+          value + finiteNumber(coefficient * other, `constraintGram[${leftIndex}][${rightIndex}]`),
+          `constraintGram[${leftIndex}][${rightIndex}]`,
+        );
+      }
+      return finiteNumber(value, `constraintGram[${leftIndex}][${rightIndex}]`);
     }),
   );
-  const rhs = rows.map((row) => {
+  const rhs = rows.map((row, rowIndex) => {
     let value = 0;
-    for (const [dof, coefficient] of row) value -= coefficient * dofReactions[dof]!;
-    return value;
+    for (const [dof, coefficient] of row)
+      value = finiteNumber(
+        value - finiteNumber(coefficient * dofReactions[dof]!, `constraintRhs[${rowIndex}]`),
+        `constraintRhs[${rowIndex}]`,
+      );
+    return finiteNumber(value, `constraintRhs[${rowIndex}]`);
   });
   const multipliers = solveDense(gram, rhs);
   const constraintForces = compiled.equations.map((equation, index): ConstraintForceResult => {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { computeTrussGlobalStiffness } from "../../src/elements/truss/local-stiffness.js";
 import { recoverTrussResult } from "../../src/elements/truss/result-recovery.js";
+import { AXIAL_BAR_SPECIFICATION } from "../specification/element-kernel-cases.js";
 
 describe("3D truss kernel", () => {
   it("creates the rotated axial stiffness and preserves rigid translation", () => {
@@ -36,5 +37,20 @@ describe("3D truss kernel", () => {
     Array.from(result.globalEndForces).forEach((value, index) => {
       expect(value).toBeCloseTo(expected[index]!, 14);
     });
+  });
+
+  it("matches the independent axial-bar closed form", () => {
+    const spec = AXIAL_BAR_SPECIFICATION;
+    const stiffness = (spec.elasticModulus * spec.area) / spec.length;
+    expect(stiffness).toBeCloseTo(400e6, 12);
+    expect([...spec.localStiffness]).toEqual([stiffness, -stiffness, -stiffness, stiffness]);
+    const result = recoverTrussResult({
+      length: spec.length,
+      elasticModulus: spec.elasticModulus,
+      area: spec.area,
+      direction: [1, 0, 0],
+      globalDisplacements: [0, 0, 0, 0.001, 0, 0],
+    });
+    expect(result.axialForce).toBeCloseTo(stiffness * 0.001, 8);
   });
 });

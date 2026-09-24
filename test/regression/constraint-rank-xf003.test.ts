@@ -379,6 +379,9 @@ function expectRecoveredParallelToNullVector(
   recovered: readonly number[],
   nullVector: readonly bigint[],
 ): void {
+  // toBeCloseTo uses an absolute tolerance (5e-5 at precision 4); on the
+  // 7M-scale null vector this is ~7e-12 relative, matching the 1e-12
+  // residual norm used elsewhere.
   let reference = 0;
   for (let index = 1; index < nullVector.length; index += 1) {
     if (Math.abs(Number(nullVector[index])) > Math.abs(Number(nullVector[reference]))) {
@@ -471,6 +474,8 @@ describe("adversarial review remediation", () => {
     expect(result.diagnostics.status).toBe("pass");
     const displacements = Array.from(result.fullDisplacements);
     expect(displacements).not.toEqual([0, 0, 0, 0, 0, 0]);
+    // Absolute precision 4 on 7M-scale displacements is ~7e-12 relative,
+    // consistent with the kernel residual norm.
     expect(displacements[0]!).toBeCloseTo(7279735, 4);
     expect(displacements[1]!).toBeCloseTo(-5140875, 4);
     expect(displacements[2]!).toBeCloseTo(-7313500, 4);

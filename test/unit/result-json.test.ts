@@ -200,6 +200,14 @@ it("reports malformed result unit metadata at the JSON field path", () => {
   expect(context.kind === "schema" ? context.path : undefined).toBe("$.result.unitSystem.extra");
 });
 
+it("canonical JSON preserves __proto__ as an own property without polluting prototypes", () => {
+  const input = JSON.parse('{"__proto__":{"polluted":1},"a":1}') as unknown;
+  const text = canonicalJson(input);
+  expect(text).toBe('{"__proto__":{"polluted":1},"a":1}');
+  expect(Object.hasOwn(JSON.parse(text) as object, "__proto__")).toBe(true);
+  expect(({} as Record<string, unknown>)["polluted"]).toBeUndefined();
+});
+
 it("canonical JSON sorts keys, preserves arrays, rejects unsupported values, and hashes deterministically", async () => {
   expect(canonicalJson({ z: 1, a: -0, b: [3, 2, 1] })).toBe('{"a":0,"b":[3,2,1],"z":1}');
   expect(() => canonicalJson({ value: Number.NaN })).toThrowError(XFrameError);

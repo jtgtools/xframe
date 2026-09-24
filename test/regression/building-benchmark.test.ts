@@ -47,6 +47,8 @@ it("building benchmarks show realistic coupled bandwidth and reuse one factoriza
     expect(c.reuse.factorizationCount).toBe(1);
     expect(c.reuse.solveCount).toBe(2);
     expect(c.checks.loadScalingRatio).toBeCloseTo(2, 10);
+    // 1e-9 (vs 1e-12 kernel norm) allows O(n) skyline rounding accumulation
+    // over 50+ equations at building load scales while still requiring pass.
     expect(c.checks.normalizedResidual).toBeLessThan(1e-9);
   }
 });

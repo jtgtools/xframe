@@ -41,9 +41,36 @@ function smallSigma1(value: number): number {
   return rotateRight(value, 17) ^ rotateRight(value, 19) ^ (value >>> 10);
 }
 
+import { XFrameError } from "../errors/xframe-error.js";
+
+export const DEFAULT_HASH_MEMORY_LIMIT_BYTES = 512 * 1024 * 1024;
+
 /** Returns a synchronous browser-safe SHA-256 digest encoded as lowercase hexadecimal. */
-export function sha256Hex(text: string): string {
+export function sha256Hex(
+  text: string,
+  memoryLimitBytes = DEFAULT_HASH_MEMORY_LIMIT_BYTES,
+): string {
+  if (!Number.isSafeInteger(memoryLimitBytes) || memoryLimitBytes <= 0) {
+    throw new XFrameError("INPUT_INVALID", "Hash memory limit must be a positive safe integer.", {
+      kind: "input",
+      path: "memoryLimitBytes",
+      expected: "positive safe integer",
+      actual: String(memoryLimitBytes),
+    });
+  }
   const bytes = new TextEncoder().encode(text);
+  if (bytes.length > memoryLimitBytes) {
+    throw new XFrameError(
+      "MEMORY_LIMIT_EXCEEDED",
+      "SHA-256 input exceeds the configured memory limit.",
+      {
+        kind: "memory",
+        operation: "sha256-hash",
+        estimatedBytes: bytes.length,
+        limitBytes: memoryLimitBytes,
+      },
+    );
+  }
   const bitLength = bytes.length * 8;
   const paddedLength = Math.ceil((bytes.length + 9) / 64) * 64;
   const padded = new Uint8Array(paddedLength);

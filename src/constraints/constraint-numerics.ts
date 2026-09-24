@@ -3,7 +3,9 @@ import { finiteNumber } from "../geometry/finite.js";
 
 /**
  * Compiler-side compensated working scalar for the rank engine. Kept
- * independent of the Phase 1 semantic oracle's accumulator on purpose.
+ * independent of the shared compensatedCoefficientSum oracle on purpose:
+ * the rank engine needs incremental add/divideBy with per-step bounds,
+ * while the shared helper is a one-shot deterministic sum.
  */
 export class WorkingScalar {
   private sum: number;

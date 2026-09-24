@@ -336,10 +336,7 @@ describe("constraint rank", () => {
       ),
     ];
     expect(equations).toHaveLength(fullDofCount);
-    const started = performance.now();
     const result = analyzeConstraintRank(equations);
-    const elapsed = performance.now() - started;
-    console.log(`[2c-3003-rank] elapsed ${elapsed.toFixed(1)}ms for ${fullDofCount} DOFs`);
     expect(result.rank).toBe(fullDofCount);
     expect(result.redundantSourceIds).toEqual([]);
     expect(new Set(result.rows.map(({ pivotDof }) => pivotDof))).toEqual(

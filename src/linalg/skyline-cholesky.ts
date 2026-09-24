@@ -2,6 +2,9 @@ import { XFrameError } from "../errors/xframe-error.js";
 import { finiteNumber } from "../geometry/finite.js";
 import type { SkylineProfile } from "./skyline-profile.js";
 
+// Pivot guard: 128 ulps (~2.8e-14) relative to the original diagonal scale.
+// A smaller normalized pivot cannot be distinguished from Cholesky rounding
+// on the skyline profile and is treated as singular (FACTORIZATION_FAILED).
 export const PIVOT_RELATIVE_TOLERANCE = 128 * Number.EPSILON;
 
 export interface CholeskyDiagnostics {

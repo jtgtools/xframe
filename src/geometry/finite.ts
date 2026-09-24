@@ -1,5 +1,10 @@
 import { XFrameError } from "../errors/xframe-error.js";
 
+/**
+ * Validates a finite number. Negative zero is normalized to +0 so canonical
+ * JSON, fingerprints, and result equality are stable across runtimes
+ * (-0 serializes as 0 and Object.is(-0, 0) is false).
+ */
 export function finiteNumber(value: unknown, path: string): number {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     throw new XFrameError("NON_FINITE_VALUE", `Expected a finite number at ${path}.`, {

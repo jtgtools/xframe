@@ -6,7 +6,7 @@ import { createDofKey } from "../model/dof-key.js";
 import type { PhysicalDofTable } from "../model/dof-topology.js";
 import type { AffineConstraintEquation, CanonicalAffineConstraint } from "./affine-equation.js";
 import { canonicalizeConstraint } from "./canonicalize-constraint.js";
-import { analyzeConstraintRank } from "./constraint-rank.js";
+import { analyzeConstraintRank, TOLERANCE } from "./constraint-rank.js";
 import { WorkingScalar } from "./constraint-numerics.js";
 import { findSemanticTransformViolation } from "./semantic-constraint-validation.js";
 
@@ -76,9 +76,12 @@ function detectEqualDofCycle(equations: readonly CanonicalAffineConstraint[]): v
   for (const equation of equations) {
     if (equation.rightHandSide !== 0 || equation.terms.length !== 2) continue;
     const [left, right] = equation.terms;
+    // Canonical coefficients are normalized by rowScale with an exact sign
+    // flip, so unit equal-DOF pairs are ±1 within a few ulps. TOLERANCE
+    // (256*EPS) matches the rank engine instead of the former ad-hoc 1e-12.
     if (
-      Math.abs(Math.abs(left!.coefficient) - 1) > 1e-12 ||
-      Math.abs(Math.abs(right!.coefficient) - 1) > 1e-12 ||
+      Math.abs(Math.abs(left!.coefficient) - 1) > TOLERANCE ||
+      Math.abs(Math.abs(right!.coefficient) - 1) > TOLERANCE ||
       left!.coefficient * right!.coefficient >= 0
     )
       continue;

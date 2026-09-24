@@ -20,6 +20,9 @@ it("the two-story building example drifts laterally and equilibrates base shear"
 it("the industrial portal example releases pinned bases and carries truss roof load", () => {
   const output = runIndustrialPortalExample();
   expect(output.diagnosticStatus).toBe("pass");
+  // 1e-6 absolute on a ~1e4 N*m moment scale (~1e-10 relative) covers
+  // condensation + rigid-offset rounding across the multi-bay assembly;
+  // kernel-level checks below use 1e-12 on unit-scale residuals.
   expect(Math.abs(output.pinnedBaseMoment)).toBeLessThan(1e-6);
   expect(output.trussAxial).not.toBeCloseTo(0, 6);
   expect(Math.abs(output.eaveDisplacement)).toBeGreaterThan(1e-9);

@@ -40,8 +40,10 @@ function id(value: unknown, path: string): EntityId {
   const text = stringAt(value, path);
   try {
     return parseIdentifier(text, path);
-  } catch {
-    schemaError(path, "valid structural identifier", text);
+  } catch (error) {
+    schemaError(path, "valid structural identifier", text, "SCHEMA_INVALID", undefined, {
+      cause: error,
+    });
   }
 }
 

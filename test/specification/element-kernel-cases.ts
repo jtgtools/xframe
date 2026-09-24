@@ -1,6 +1,7 @@
 /**
- * Independent closed-form cases consumed by Parts 09 and 10 when numerical kernels are introduced.
- * This file is typechecked now but is intentionally not a test file until the corresponding kernels exist.
+ * Independent closed-form oracles for element kernels and cantilever systems.
+ * Consumed by truss-kernel and integrated case-solve tests; this module holds
+ * shared numbers only and is intentionally not a *.test.ts file itself.
  */
 export const AXIAL_BAR_SPECIFICATION = Object.freeze({
   elasticModulus: 200e9,

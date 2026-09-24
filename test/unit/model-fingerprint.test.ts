@@ -1,4 +1,5 @@
 import { expect, it } from "vitest";
+import { XFrameError } from "../../src/errors/xframe-error.js";
 import { canonicalJson } from "../../src/serialization/canonical-json.js";
 import { sha256Hex } from "../../src/serialization/sha-256.js";
 import { computeModelFingerprint } from "../../src/model/model-fingerprint.js";
@@ -60,6 +61,21 @@ it("matches the published SHA-256 empty-string vector", () => {
 it("matches the published SHA-256 abc vector", () => {
   expect(sha256Hex("abc")).toBe("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
 });
+
+it("rejects SHA-256 inputs that exceed the memory limit", () => {
+  expect(() => sha256Hex("abc", 2)).toThrowError(XFrameError);
+  expect(failureCode(() => sha256Hex("abc", 2))).toBe("MEMORY_LIMIT_EXCEEDED");
+});
+
+function failureCode(action: () => unknown): string {
+  try {
+    action();
+  } catch (error) {
+    if (error instanceof XFrameError) return error.code;
+    throw error;
+  }
+  throw new Error("expected failure");
+}
 
 it.each([
   [55, "9f4390f8d30c2dd92ec9f095b65e2b9ae9b0a925a5258e241c9f1e910f734318"],

@@ -8,6 +8,12 @@ export interface ResidualDiagnostics {
   readonly quadraticEnergy: number;
 }
 
+// Finite stand-in for +Infinity when loadScale is zero but the residual is
+// nonzero. Result artifacts require finite numbers (finiteAt), so Infinity
+// would break JSON round-trip validation; MAX_VALUE is finite, exceeds the
+// 1e-6 fail threshold in case diagnostics, and forces status "fail".
+export const ZERO_LOAD_NONZERO_RESIDUAL = Number.MAX_VALUE;
+
 export function computeResidualDiagnostics(
   matrix: SymmetricCoordinateMatrix,
   solution: ArrayLike<number>,
@@ -33,7 +39,7 @@ export function computeResidualDiagnostics(
     loadScale === 0
       ? maximumAbsoluteResidual === 0
         ? 0
-        : Number.MAX_VALUE
+        : ZERO_LOAD_NONZERO_RESIDUAL
       : maximumAbsoluteResidual / loadScale;
   return Object.freeze({
     maximumAbsoluteResidual,
