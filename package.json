@@ -1,6 +1,6 @@
 {
   "name": "@jtgtools/xframe",
-  "version": "0.0.2",
+  "version": "0.0.1",
   "description": "Linear-static 3D structural analysis: frames, trusses, and springs.",
   "keywords": [
     "finite-element",
